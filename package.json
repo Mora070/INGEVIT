@@ -1,0 +1,25 @@
+{
+  "name": "ingevit-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend del sistema de gestión de proyectos de obra",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.2.3",
+    "@nestjs/core": "^11.2.3",
+    "@nestjs/platform-express": "^11.2.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "tsx": "^4.20.3",
+    "typescript": "5.9"
+  }
+}
