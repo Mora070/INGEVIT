@@ -1,17 +1,19 @@
-# Dependencias
+# Dependencias instaladas
 node_modules/
 
-# Compilación
+# Código compilado
 dist/
 
-# Variables de entorno
+# Configuración local y credenciales
 .env
 .env.*
 !.env.example
 
-# Logs
+# Registros de ejecución
 *.log
-npm-debug.log*
 
-# VS Code
-.vscode/
+# Resultados de pruebas
+coverage/
+
+# Archivos temporales de TypeScript
+*.tsbuildinfo
