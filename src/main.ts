@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { createValidationPipe } from './common/pipes/create-validation-pipe';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap(): Promise<void> {
   const host = process.env.HOST ?? '127.0.0.1';
@@ -17,6 +19,13 @@ async function bootstrap(): Promise<void> {
   }
 
   const app = await NestFactory.create(AppModule);
+
+
+  // Interpreta las cookies antes de ejecutar los guards.
+  app.use(cookieParser());
+
+  // Aplica la configuración de validación a las entradas de las rutas.
+  app.useGlobalPipes(createValidationPipe());
 
   // Permite ejecutar los métodos de apagado ante señales como Ctrl+C.
   app.enableShutdownHooks();
