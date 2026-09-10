@@ -38,6 +38,14 @@ const {
   createValidationPipe,
 } = require('../dist/common/pipes/create-validation-pipe');
 
+const {
+  ActividadesService,
+} = require('../dist/modules/actividades/actividades.service');
+
+const {
+  FotografiasService,
+} = require('../dist/modules/fotografias/fotografias.service');
+
 const ID_USUARIO = '10000000-0000-4000-8000-000000000001';
 const TOKEN = 'TOKEN_PROYECTOS_FICTICIO';
 
@@ -142,6 +150,28 @@ async function conServidor(
         {
           provide: APP_GUARD,
           useClass: OriginGuard,
+        },
+
+        {
+          provide: ActividadesService,
+          useValue: {
+            async listarDisponibles() {
+              assert.fail(
+                'Esta prueba no debe consultar el historial de actividades.',
+              );
+            },
+          },
+        },
+
+        {
+          provide: FotografiasService,
+          useValue: {
+            async listarDisponibles() {
+              assert.fail(
+                'Esta prueba no debe consultar fotografías.',
+              );
+            },
+          },
         },
 
         {

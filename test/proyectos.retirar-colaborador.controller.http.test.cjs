@@ -3,11 +3,7 @@ require('reflect-metadata');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const {
-    ValidationPipe,
-    NotFoundException,
-} = require('@nestjs/common');
-
+const { NotFoundException } = require('@nestjs/common');
 const { Test } = require('@nestjs/testing');
 
 const {
@@ -35,16 +31,19 @@ const ID_PROPIETARIO = '10000000-0000-4000-8000-000000000001';
 const ID_COLABORADOR = '30000000-0000-4000-8000-000000000003';
 
 /**
- * Levanta únicamente el controlador y sus dependencias simuladas.
+ * Prueba el controlador mediante peticiones HTTP reales.
  *
- * No conecta con PostgreSQL ni genera tokens.
- * Cada prueba utiliza un puerto disponible y cierra su servidor al terminar.
+ * Simula la autenticación y el servicio: no conecta con PostgreSQL.
+ * Las reglas de autorización y atomicidad se prueban por separado.
  */
-async function conServidor(operacion, { errorServicio } = {}) {
+async function conServidor(
+    operacion,
+    { errorServicio, establecerIdentidad = true } = {},
+) {
     const llamadas = [];
 
     const servicioSimulado = {
-        async agregarColaborador(idProyecto, idActor, idColaborador) {
+        async retirarColaborador(idProyecto, idActor, idColaborador) {
             llamadas.push({
                 idProyecto,
                 idActor,
@@ -61,27 +60,23 @@ async function conServidor(operacion, { errorServicio } = {}) {
         canActivate(context) {
             const request = context.switchToHttp().getRequest();
 
-            // Simula exclusivamente la identidad que establece AuthGuard.
-            request.usuario = {
-                id_usuario: ID_PROPIETARIO,
-                rol: 'USUARIO',
-                estado: 'ACTIVO',
-            };
+            if (establecerIdentidad) {
+                request.usuario = {
+                    id_usuario: ID_PROPIETARIO,
+                    rol: 'USUARIO',
+                    estado: 'ACTIVO',
+                };
+            }
 
             return true;
         },
     };
 
-    /*
-     * Sustituye explícitamente el guard asociado al controlador.
-     * Nest utiliza guardSimulado sin construir AuthGuard ni sus dependencias.
-     *
-     * La sustitución solo afecta a este módulo de pruebas.
-     */
+    // Sustituye el guard del controlador antes de resolver sus dependencias.
+    // Así no se construyen TokenService ni UsuariosService en estas pruebas.
     const moduloPrueba = await Test.createTestingModule({
         controllers: [ProyectosController],
         providers: [
-
             {
                 provide: ActividadesService,
                 useValue: {
@@ -119,57 +114,32 @@ async function conServidor(operacion, { errorServicio } = {}) {
 
     try {
         app.setGlobalPrefix('api');
-
-        app.useGlobalPipes(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                transformOptions: {
-                    enableImplicitConversion: false,
-                },
-                validationError: {
-                    target: false,
-                    value: false,
-                },
-            }),
-        );
-
         await app.listen(0, '127.0.0.1');
 
         const direccion = app.getHttpServer().address();
         const baseUrl = `http://127.0.0.1:${direccion.port}`;
 
-        async function agregar(
-            cuerpo,
-            { idProyecto = ID_PROYECTO } = {},
-        ) {
+        async function retirar({
+            idProyecto = ID_PROYECTO,
+            idUsuario = ID_COLABORADOR,
+        } = {}) {
             return fetch(
-                `${baseUrl}/api/proyectos/${idProyecto}/colaboradores`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(cuerpo),
-                },
+                `${baseUrl}/api/proyectos/${idProyecto}/colaboradores/${idUsuario}`,
+                { method: 'DELETE' },
             );
         }
 
-        await operacion({ agregar, llamadas });
+        await operacion({ retirar, llamadas });
     } finally {
         await app.close();
     }
 }
 
 test(
-    'POST colaboradores: devuelve 204 y utiliza la identidad de la sesión',
+    'DELETE colaboradores: devuelve 204 y utiliza la identidad de la sesión',
     async () => {
-        await conServidor(async ({ agregar, llamadas }) => {
-            const respuesta = await agregar({
-                id_usuario: ID_COLABORADOR,
-            });
+        await conServidor(async ({ retirar, llamadas }) => {
+            const respuesta = await retirar();
 
             assert.equal(respuesta.status, 204);
             assert.equal(await respuesta.text(), '');
@@ -190,40 +160,11 @@ test(
 );
 
 test(
-    'POST colaboradores: rechaza un identificador de proyecto inválido',
+    'DELETE colaboradores: rechaza un identificador de proyecto inválido',
     async () => {
-        await conServidor(async ({ agregar, llamadas }) => {
-            const respuesta = await agregar(
-                { id_usuario: ID_COLABORADOR },
-                { idProyecto: 'proyecto-invalido' },
-            );
-
-            assert.equal(respuesta.status, 400);
-            assert.equal((await respuesta.json()).statusCode, 400);
-            assert.deepEqual(llamadas, []);
-        });
-    },
-);
-
-test(
-    'POST colaboradores: exige el identificador del colaborador',
-    async () => {
-        await conServidor(async ({ agregar, llamadas }) => {
-            const respuesta = await agregar({});
-
-            assert.equal(respuesta.status, 400);
-            assert.equal((await respuesta.json()).statusCode, 400);
-            assert.deepEqual(llamadas, []);
-        });
-    },
-);
-
-test(
-    'POST colaboradores: rechaza un identificador de colaborador inválido',
-    async () => {
-        await conServidor(async ({ agregar, llamadas }) => {
-            const respuesta = await agregar({
-                id_usuario: 'usuario-invalido',
+        await conServidor(async ({ retirar, llamadas }) => {
+            const respuesta = await retirar({
+                idProyecto: 'proyecto-invalido',
             });
 
             assert.equal(respuesta.status, 400);
@@ -234,12 +175,11 @@ test(
 );
 
 test(
-    'POST colaboradores: impide enviar la identidad del actor en el cuerpo',
+    'DELETE colaboradores: rechaza un identificador de colaborador inválido',
     async () => {
-        await conServidor(async ({ agregar, llamadas }) => {
-            const respuesta = await agregar({
-                id_usuario: ID_COLABORADOR,
-                id_actor: ID_COLABORADOR,
+        await conServidor(async ({ retirar, llamadas }) => {
+            const respuesta = await retirar({
+                idUsuario: 'usuario-invalido',
             });
 
             assert.equal(respuesta.status, 400);
@@ -250,16 +190,36 @@ test(
 );
 
 test(
-    'POST colaboradores: conserva el rechazo del servicio para un proyecto no autorizado',
+    'DELETE colaboradores: la comprobación defensiva rechaza una identidad ausente',
+    async () => {
+        await conServidor(
+            async ({ retirar, llamadas }) => {
+                const respuesta = await retirar();
+
+                assert.equal(respuesta.status, 401);
+
+                const cuerpo = await respuesta.json();
+
+                assert.equal(
+                    cuerpo.message,
+                    'La sesión no es válida o ha expirado.',
+                );
+                assert.deepEqual(llamadas, []);
+            },
+            { establecerIdentidad: false },
+        );
+    },
+);
+
+test(
+    'DELETE colaboradores: conserva el rechazo del servicio para un proyecto no autorizado',
     async () => {
         const mensaje =
             'El proyecto no está disponible para gestionar colaboradores.';
 
         await conServidor(
-            async ({ agregar, llamadas }) => {
-                const respuesta = await agregar({
-                    id_usuario: ID_COLABORADOR,
-                });
+            async ({ retirar, llamadas }) => {
+                const respuesta = await retirar();
 
                 assert.equal(respuesta.status, 404);
 
@@ -276,15 +236,13 @@ test(
 );
 
 test(
-    'POST colaboradores: oculta los detalles de un error interno del servicio',
+    'DELETE colaboradores: oculta los detalles de un error interno',
     async () => {
         const detalleInterno = 'DETALLE_INTERNO_NO_PUBLICABLE';
 
         await conServidor(
-            async ({ agregar, llamadas }) => {
-                const respuesta = await agregar({
-                    id_usuario: ID_COLABORADOR,
-                });
+            async ({ retirar, llamadas }) => {
+                const respuesta = await retirar();
 
                 assert.equal(respuesta.status, 500);
 

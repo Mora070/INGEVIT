@@ -1,15 +1,32 @@
 import { Module } from '@nestjs/common';
 
+import { DatabaseModule } from '../../database/database.module';
+
 import { ActividadesRepository } from './actividades.repository';
+import {
+  ActividadesConsultaRepository,
+} from './actividades-consulta.repository';
+import { ActividadesService } from './actividades.service';
 
 /**
- * Proporciona la escritura del historial a otros módulos.
+ * Agrupa la escritura y la consulta del historial.
  *
- * No importa DatabaseModule porque el repositorio utiliza
- * exclusivamente la conexión transaccional que recibe.
+ * ActividadesRepository recibe el cliente de transacción del servicio
+ * que realiza la modificación del proyecto.
+ *
+ * ActividadesConsultaRepository utiliza DatabaseService para consultar
+ * el historial y comprobar el acceso en una misma sentencia.
  */
 @Module({
-  providers: [ActividadesRepository],
-  exports: [ActividadesRepository],
+  imports: [DatabaseModule],
+  providers: [
+    ActividadesRepository,
+    ActividadesConsultaRepository,
+    ActividadesService,
+  ],
+  exports: [
+    ActividadesRepository,
+    ActividadesService,
+  ],
 })
 export class ActividadesModule {}

@@ -7,6 +7,9 @@ import { ProyectosController } from './proyectos.controller';
 import { ProyectosRepository } from './proyectos.repository';
 import { ProyectosService } from './proyectos.service';
 import { ActividadesModule } from '../actividades/actividades.module';
+import {
+  FotografiasModule,
+} from '../fotografias/fotografias.module';
 
 /**
  * Agrupa las rutas y los casos de uso de proyectos.
@@ -22,6 +25,7 @@ import { ActividadesModule } from '../actividades/actividades.module';
     AuthModule,
     UsuariosModule,
     ActividadesModule,
+    FotografiasModule,
   ],
   controllers: [
     ProyectosController,

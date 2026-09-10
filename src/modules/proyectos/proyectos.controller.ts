@@ -25,6 +25,33 @@ import type { ProyectoResponse } from './types/proyecto.types';
 import { CrearProyectoDto } from './dto/crear-proyecto.dto';
 import { ActualizarProyectoDto } from './dto/actualizar-proyecto.dto';
 import { AgregarColaboradorDto } from './dto/agregar-colaborador.dto';
+import type {
+    ParticipanteProyectoResponse,
+} from './types/participante-proyecto.types';
+
+import {
+    ActividadesService,
+} from '../actividades/actividades.service';
+
+import {
+    ListarActividadesQueryDto,
+} from '../actividades/dto/listar-actividades-query.dto';
+
+import type {
+    ActividadesPaginadasResponse,
+} from '../actividades/types/actividades-paginadas.types';
+
+import {
+    FotografiasService,
+} from '../fotografias/fotografias.service';
+
+import {
+    ListarFotografiasQueryDto,
+} from '../fotografias/dto/listar-fotografias-query.dto';
+
+import type {
+    FotografiasPaginadasResponse,
+} from '../fotografias/types/fotografias-paginadas.types';
 
 /**
  * Expone las operaciones HTTP de proyectos.
@@ -37,6 +64,8 @@ import { AgregarColaboradorDto } from './dto/agregar-colaborador.dto';
 export class ProyectosController {
     constructor(
         private readonly proyectosService: ProyectosService,
+        private readonly actividadesService: ActividadesService,
+        private readonly fotografiasService: FotografiasService,
     ) { }
 
     /**
@@ -235,5 +264,139 @@ export class ProyectosController {
             datos.id_usuario,
         );
     }
+
+
+    /**
+ * Retira la relación de colaboración de un usuario con el proyecto.
+ *
+ * La identidad del actor procede de la sesión autenticada.
+ * El servicio comprueba la propiedad y disponibilidad del proyecto,
+ * y registra la retirada dentro de la misma transacción.
+ *
+ * Conserva al usuario, sus incidencias y su historial.
+ * No modifica quién es el propietario del proyecto.
+ *
+ * @returns HTTP 204 sin cuerpo, incluso si la relación ya no existía.
+ */
+    @Delete(':idProyecto/colaboradores/:idUsuario')
+    @HttpCode(204)
+    @Header('Cache-Control', 'no-store')
+    async retirarColaborador(
+        @Param('idProyecto', new ParseUUIDPipe())
+        idProyecto: string,
+        @Param('idUsuario', new ParseUUIDPipe())
+        idUsuario: string,
+        @Req() request: AuthRequest,
+    ): Promise<void> {
+        const usuario = request.usuario;
+
+        // AuthGuard establece la identidad; mantenemos esta comprobación defensiva.
+        if (!usuario) {
+            throw new UnauthorizedException(
+                'La sesión no es válida o ha expirado.',
+            );
+        }
+
+        await this.proyectosService.retirarColaborador(
+            idProyecto,
+            usuario.id_usuario,
+            idUsuario,
+        );
+    }
+
+
+    /**
+ * Devuelve al propietario y a los colaboradores del proyecto.
+ *
+ * La identidad del solicitante procede exclusivamente de la sesión.
+ * El servicio devuelve 404 si el proyecto no está disponible para él.
+ *
+ * Cada usuario aparece una sola vez y el propietario aparece primero.
+ */
+    @Get(':idProyecto/participantes')
+    @Header('Cache-Control', 'no-store')
+    async listarParticipantes(
+        @Param('idProyecto', new ParseUUIDPipe())
+        idProyecto: string,
+        @Req() request: AuthRequest,
+    ): Promise<ParticipanteProyectoResponse[]> {
+        const usuario = request.usuario;
+
+        // AuthGuard debe haber establecido la identidad autenticada.
+        if (!usuario) {
+            throw new UnauthorizedException(
+                'La sesión no es válida o ha expirado.',
+            );
+        }
+
+        return this.proyectosService.listarParticipantes(
+            idProyecto,
+            usuario.id_usuario,
+        );
+    }
+
+
+    /**
+ * Devuelve una página del historial del proyecto.
+ *
+ * La identidad procede de la sesión autenticada.
+ * El servicio comprueba la disponibilidad del proyecto para el solicitante.
+ *
+ * Omitir los parámetros utiliza la página 1 y un límite de 20.
+ */
+    @Get(':idProyecto/actividades')
+    @Header('Cache-Control', 'no-store')
+    async listarActividades(
+        @Param('idProyecto', new ParseUUIDPipe())
+        idProyecto: string,
+        @Req() request: AuthRequest,
+        @Query() consulta: ListarActividadesQueryDto,
+    ): Promise<ActividadesPaginadasResponse> {
+        const usuario = request.usuario;
+
+        if (!usuario) {
+            throw new UnauthorizedException(
+                'La sesión no es válida o ha expirado.',
+            );
+        }
+
+        return this.actividadesService.listarDisponibles(
+            idProyecto,
+            usuario.id_usuario,
+            consulta,
+        );
+    }
+
+    /**
+     * Devuelve una página de fotografías del proyecto.
+     *
+     * La identidad del solicitante procede exclusivamente de la sesión.
+     * El servicio comprueba el acceso y devuelve únicamente metadatos públicos.
+     *
+     * Esta ruta no descarga ni modifica archivos.
+     */
+    @Get(':idProyecto/fotografias')
+    @Header('Cache-Control', 'no-store')
+    async listarFotografias(
+        @Param('idProyecto', new ParseUUIDPipe())
+        idProyecto: string,
+        @Req() request: AuthRequest,
+        @Query() consulta: ListarFotografiasQueryDto,
+    ): Promise<FotografiasPaginadasResponse> {
+        const usuario = request.usuario;
+
+        if (!usuario) {
+            throw new UnauthorizedException(
+                'La sesión no es válida o ha expirado.',
+            );
+        }
+
+        return this.fotografiasService.listarDisponibles(
+            idProyecto,
+            usuario.id_usuario,
+            consulta,
+        );
+    }
+
 
 }

@@ -9,6 +9,13 @@ import { DatabaseService } from '../../database/database.service';
 import { ActividadesRepository } from '../actividades/actividades.repository';
 import type { CrearProyectoDto } from './dto/crear-proyecto.dto';
 import type { ActualizarProyectoDto } from './dto/actualizar-proyecto.dto';
+import type {
+  ParticipanteProyectoResponse,
+} from './types/participante-proyecto.types';
+
+import {
+  mapearParticipanteProyecto,
+} from './mappers/participante-proyecto.mapper';
 
 /**
  * Coordina los casos de uso de proyectos.
@@ -372,6 +379,105 @@ export class ProyectosService {
         mensaje: `Usuario ${idColaborador} agregado como colaborador.`,
       });
     });
+  }
+
+  /**
+ * Retira a un colaborador y registra la acción de forma atómica.
+ *
+ * Solo el propietario activo puede administrar los colaboradores de un
+ * proyecto disponible. La identidad del actor debe proceder de la sesión.
+ *
+ * Elimina únicamente la relación de colaboración: conserva al usuario,
+ * sus incidencias, sus actividades y la propiedad del proyecto.
+ *
+ * Si la relación no existe, termina sin generar una actividad.
+ * Si falla el historial, la transacción revierte la eliminación.
+ */
+  async retirarColaborador(
+    idProyecto: string,
+    idActor: string,
+    idColaborador: string,
+  ): Promise<void> {
+    await this.database.withTransaction(async (client) => {
+      // Mantiene el mismo orden de bloqueos que las demás modificaciones:
+      // primero el usuario actor y después el proyecto.
+      const actorActivo =
+        await this.proyectosRepository.bloquearPropietarioActivo(
+          client,
+          idActor,
+        );
+
+      if (!actorActivo) {
+        throw new UnauthorizedException(
+          'La sesión no es válida o la cuenta no está activa.',
+        );
+      }
+
+      // Comprueba simultáneamente propiedad y disponibilidad del proyecto.
+      const proyecto =
+        await this.proyectosRepository.bloquearEditablePorPropietario(
+          client,
+          idProyecto,
+          idActor,
+        );
+
+      if (!proyecto) {
+        throw new NotFoundException(
+          'El proyecto no está disponible para gestionar colaboradores.',
+        );
+      }
+
+      const retirado =
+        await this.proyectosRepository.retirarColaborador(
+          client,
+          idProyecto,
+          idColaborador,
+        );
+
+      // Una relación inexistente no representa una nueva acción.
+      if (!retirado) {
+        return;
+      }
+
+      await this.actividadesRepository.crear(client, {
+        idProyecto,
+        idActor,
+        tipoAccion: 'COLABORADOR_RETIRADO',
+        mensaje:
+          `Usuario ${idColaborador} retirado como colaborador.`,
+      });
+    });
+  }
+
+  /**
+   * Devuelve los participantes de un proyecto disponible para el solicitante.
+   *
+   * El repositorio comprueba en una sola consulta que el solicitante esté
+   * activo, que tenga acceso y que el proyecto y su propietario estén activos.
+   *
+   * Un proyecto disponible siempre incluye, como mínimo, a su propietario.
+   * Por ello, un resultado vacío representa un proyecto no disponible.
+   *
+   * @param idProyecto Identificador del proyecto solicitado.
+   * @param idUsuario Identidad obtenida de la sesión autenticada.
+   */
+  async listarParticipantes(
+    idProyecto: string,
+    idUsuario: string,
+  ): Promise<ParticipanteProyectoResponse[]> {
+    const participantes =
+      await this.proyectosRepository.findParticipantesDisponibles(
+        idProyecto,
+        idUsuario,
+      );
+
+    if (participantes.length === 0) {
+      throw new NotFoundException(
+        'El proyecto no está disponible.',
+      );
+    }
+
+    return participantes.map(mapearParticipanteProyecto);
   }
 
 }

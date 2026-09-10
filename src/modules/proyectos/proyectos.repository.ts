@@ -6,6 +6,9 @@ import type { ProyectoRow } from './types/proyecto.types';
 import type { PoolClient } from 'pg';
 import type { CrearProyectoInput } from './types/crear-proyecto.types';
 import type { ActualizarProyectoInput } from './types/actualizar-proyecto.types';
+import type {
+  ParticipanteProyectoRow,
+} from './types/participante-proyecto.types';
 
 import type {
   ProyectoPaginaConsultaRow,
@@ -628,6 +631,138 @@ export class ProyectosRepository {
     throw new Error(
       'La inserción del colaborador devolvió un resultado inesperado.',
     );
+  }
+
+  /**
+ * Elimina la relación de colaboración entre un usuario y un proyecto.
+ *
+ * Debe ejecutarse dentro de la transacción del servicio, después de comprobar
+ * que el actor es el propietario activo y de bloquear el proyecto.
+ *
+ * No elimina al usuario ni modifica la propiedad del proyecto.
+ * Tampoco elimina incidencias o actividades creadas por ese usuario.
+ *
+ * @param client Cliente de la transacción que administra el servicio.
+ * @param idProyecto Identificador del proyecto.
+ * @param idUsuario Identificador del colaborador que se desea retirar.
+ * @returns true si eliminó la relación; false si la relación no existía.
+ */
+  async retirarColaborador(
+    client: PoolClient,
+    idProyecto: string,
+    idUsuario: string,
+  ): Promise<boolean> {
+    const resultado = await client.query(
+      `
+      DELETE FROM obra.usuario_proyecto
+      WHERE id_usuario = $1::uuid
+        AND id_proyecto = $2::uuid
+    `,
+      [idUsuario, idProyecto],
+    );
+
+    if (resultado.rowCount === 1) {
+      return true;
+    }
+
+    if (resultado.rowCount === 0) {
+      return false;
+    }
+
+    // La clave primaria compuesta impide que exista más de una relación.
+    throw new Error(
+      'La eliminación del colaborador devolvió un resultado inesperado.',
+    );
+  }
+
+  /**
+   * Obtiene los participantes de un proyecto disponible para quien consulta.
+   *
+   * Incluye al propietario y a los colaboradores, incluso si alguno de estos
+   * últimos está inactivo: la inactivación no elimina su participación.
+   *
+   * El propietario aparece una sola vez y con participación PROPIETARIO,
+   * aunque también tenga una relación en usuario_proyecto.
+   *
+   * @returns Participantes, o un arreglo vacío si el proyecto no existe
+   * o no está disponible para el usuario que consulta.
+   */
+  async findParticipantesDisponibles(
+    idProyecto: string,
+    idUsuario: string,
+  ): Promise<ParticipanteProyectoRow[]> {
+    const resultado =
+      await this.database.query<ParticipanteProyectoRow>(
+        `
+        WITH proyecto_disponible AS (
+          SELECT
+            p.id_proyecto,
+            p.id_propietario
+          FROM obra.proyectos AS p
+          INNER JOIN obra.usuarios AS propietario
+            ON propietario.id_usuario = p.id_propietario
+          INNER JOIN obra.usuarios AS solicitante
+            ON solicitante.id_usuario = $2::uuid
+          WHERE p.id_proyecto = $1::uuid
+            AND p.activo = true
+            AND propietario.estado = 'ACTIVO'
+            AND solicitante.estado = 'ACTIVO'
+            AND (
+              p.id_propietario = solicitante.id_usuario
+              OR EXISTS (
+                SELECT 1
+                FROM obra.usuario_proyecto AS acceso
+                WHERE acceso.id_proyecto = p.id_proyecto
+                  AND acceso.id_usuario = solicitante.id_usuario
+              )
+            )
+        ),
+        participantes AS (
+          SELECT
+            usuario.id_usuario,
+            usuario.nombre,
+            usuario.apellidos,
+            usuario.foto_perfil_url,
+            'PROPIETARIO'::text AS participacion
+          FROM proyecto_disponible AS proyecto
+          INNER JOIN obra.usuarios AS usuario
+            ON usuario.id_usuario = proyecto.id_propietario
+
+          UNION ALL
+
+          SELECT
+            usuario.id_usuario,
+            usuario.nombre,
+            usuario.apellidos,
+            usuario.foto_perfil_url,
+            'COLABORADOR'::text AS participacion
+          FROM proyecto_disponible AS proyecto
+          INNER JOIN obra.usuario_proyecto AS relacion
+            ON relacion.id_proyecto = proyecto.id_proyecto
+          INNER JOIN obra.usuarios AS usuario
+            ON usuario.id_usuario = relacion.id_usuario
+          WHERE relacion.id_usuario <> proyecto.id_propietario
+        )
+        SELECT
+          id_usuario,
+          nombre,
+          apellidos,
+          foto_perfil_url,
+          participacion
+        FROM participantes
+        ORDER BY
+          CASE
+            WHEN participacion = 'PROPIETARIO' THEN 0
+            ELSE 1
+          END,
+          apellidos ASC NULLS LAST,
+          nombre ASC NULLS LAST,
+          id_usuario ASC
+      `,
+        [idProyecto, idUsuario],
+      );
+
+    return resultado.rows;
   }
 
 }
