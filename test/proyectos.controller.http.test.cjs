@@ -7,7 +7,7 @@ const {
   UnauthorizedException,
   NotFoundException,
 } = require('@nestjs/common');
-const { NestFactory } = require('@nestjs/core');
+const { NestFactory, APP_GUARD } = require('@nestjs/core');
 const cookieParser = require('cookie-parser');
 
 const {
@@ -60,6 +60,26 @@ function crearDetalleProyecto() {
   };
 }
 
+
+const {
+  OriginGuard,
+  AUTH_ALLOWED_ORIGINS,
+} = require('../dist/modules/auth/guards/origin.guard');
+
+const ORIGIN = 'http://127.0.0.1:3000';
+
+function crearEntradaProyecto(cambios = {}) {
+  return {
+    nombre: 'Proyecto de prueba',
+    descripcion: 'Descripción de prueba',
+    direccion: 'Dirección de prueba',
+    contratante: 'Cliente de prueba',
+    fecha_inicio: '2026-09-09',
+    estado_proyecto: 'ACTIVA',
+    ...cambios,
+  };
+}
+
 /**
  * Ejecuta el controlador, AuthGuard y ValidationPipe reales.
  *
@@ -68,10 +88,13 @@ function crearDetalleProyecto() {
  */
 async function conServidor(
   operation,
-  { errorPerfil, errorListado, errorDetalle } = {},
+  { errorPerfil, errorListado, errorDetalle, errorCreacion, errorActualizacion, errorEliminacion, } = {},
 ) {
   const llamadas = [];
   const consultasDetalle = [];
+  const creaciones = [];
+  const actualizaciones = [];
+  const eliminaciones = [];
   let app;
 
   try {
@@ -111,41 +134,113 @@ async function conServidor(
             },
           },
         },
-{
-  provide: ProyectosService,
-  useValue: {
-    async listarDisponibles(idUsuario, consulta) {
-      llamadas.push({
-        idUsuario,
-        pagina: consulta.pagina,
-        limite: consulta.limite,
-      });
 
-      if (errorListado) {
-        throw errorListado;
-      }
+        {
+          provide: AUTH_ALLOWED_ORIGINS,
+          useValue: new Set([ORIGIN]),
+        },
+        {
+          provide: APP_GUARD,
+          useClass: OriginGuard,
+        },
 
-      return {
-        proyectos: [],
-        pagina: consulta.pagina,
-        limite: consulta.limite,
-        total: 0,
-        total_paginas: 0,
-      };
-    },
+        {
+          provide: ProyectosService,
+          useValue: {
+            async listarDisponibles(idUsuario, consulta) {
+              llamadas.push({
+                idUsuario,
+                pagina: consulta.pagina,
+                limite: consulta.limite,
+              });
 
-    // Ambos métodos deben estar dentro de useValue.
-    async obtenerDetalle(idProyecto, idUsuario) {
-      consultasDetalle.push({ idProyecto, idUsuario });
+              if (errorListado) {
+                throw errorListado;
+              }
 
-      if (errorDetalle) {
-        throw errorDetalle;
-      }
+              return {
+                proyectos: [],
+                pagina: consulta.pagina,
+                limite: consulta.limite,
+                total: 0,
+                total_paginas: 0,
+              };
+            },
 
-      return crearDetalleProyecto();
-    },
-  },
-},
+            // Ambos métodos deben estar dentro de useValue.
+            async obtenerDetalle(idProyecto, idUsuario) {
+              consultasDetalle.push({ idProyecto, idUsuario });
+
+              if (errorDetalle) {
+                throw errorDetalle;
+              }
+
+              return crearDetalleProyecto();
+            },
+
+            async crear(idUsuario, datos) {
+              creaciones.push({
+                idUsuario,
+                datos: { ...datos },
+              });
+
+              if (errorCreacion) {
+                throw errorCreacion;
+              }
+
+              return {
+                ...crearDetalleProyecto(),
+                id_propietario: idUsuario,
+                nombre: datos.nombre,
+                descripcion: datos.descripcion,
+                direccion: datos.direccion,
+                contratante: datos.contratante,
+                fecha_inicio: datos.fecha_inicio,
+                fecha_finalizacion: datos.fecha_finalizacion ?? null,
+                estado_proyecto: datos.estado_proyecto,
+                activo: true,
+                latitud: datos.latitud ?? null,
+                longitud: datos.longitud ?? null,
+              };
+            },
+
+            async actualizar(idProyecto, idUsuario, datos) {
+              actualizaciones.push({
+                idProyecto,
+                idUsuario,
+                datos: { ...datos },
+              });
+
+              if (errorActualizacion) {
+                throw errorActualizacion;
+              }
+
+              return {
+                ...crearDetalleProyecto(),
+                id_proyecto: idProyecto,
+                id_propietario: idUsuario,
+                nombre: datos.nombre,
+                descripcion: datos.descripcion,
+                direccion: datos.direccion,
+                contratante: datos.contratante,
+                fecha_inicio: datos.fecha_inicio,
+                fecha_finalizacion: datos.fecha_finalizacion ?? null,
+                estado_proyecto: datos.estado_proyecto,
+                latitud: datos.latitud ?? null,
+                longitud: datos.longitud ?? null,
+              };
+            },
+
+            async eliminarLogicamente(idProyecto, idUsuario) {
+              eliminaciones.push({ idProyecto, idUsuario });
+
+              if (errorEliminacion) {
+                throw errorEliminacion;
+              }
+            },
+
+          },
+        },
       ],
     })(ProyectosHttpTestModule);
 
@@ -189,7 +284,85 @@ async function conServidor(
       );
     }
 
-    await operation({ consultar, llamadas, consultarDetalle,consultasDetalle });
+    async function crearProyectoHttp(
+      body,
+      { token = TOKEN, origin = ORIGIN } = {},
+    ) {
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token !== null) {
+        headers.Cookie = `${AUTH_COOKIE_NAME}=${token}`;
+      }
+
+      if (origin !== null) {
+        headers.Origin = origin;
+      }
+
+      return fetch(baseUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+    }
+
+    async function actualizarProyectoHttp(
+      body,
+      {
+        idProyecto = ID_PROYECTO,
+        token = TOKEN,
+        origin = ORIGIN,
+      } = {},
+    ) {
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token !== null) {
+        headers.Cookie = `${AUTH_COOKIE_NAME}=${token}`;
+      }
+
+      if (origin !== null) {
+        headers.Origin = origin;
+      }
+
+      return fetch(
+        `${baseUrl}/${encodeURIComponent(idProyecto)}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(body),
+        },
+      );
+    }
+
+
+    async function eliminarProyectoHttp({
+      idProyecto = ID_PROYECTO,
+      token = TOKEN,
+      origin = ORIGIN,
+    } = {}) {
+      const headers = {};
+
+      if (token !== null) {
+        headers.Cookie = `${AUTH_COOKIE_NAME}=${token}`;
+      }
+
+      if (origin !== null) {
+        headers.Origin = origin;
+      }
+
+      return fetch(
+        `${baseUrl}/${encodeURIComponent(idProyecto)}`,
+        {
+          method: 'DELETE',
+          headers,
+        },
+      );
+    }
+
+    await operation({ consultar, llamadas, consultarDetalle, consultasDetalle, crearProyectoHttp, creaciones, actualizarProyectoHttp, actualizaciones, eliminarProyectoHttp, eliminaciones, });
   } finally {
     if (app) {
       await app.close();
@@ -464,6 +637,548 @@ test('GET detalle proyecto: oculta los detalles internos de un fallo técnico', 
     },
     {
       errorDetalle: new Error(detalleInterno),
+    },
+  );
+});
+
+
+test('POST proyectos: devuelve 201 y utiliza al solicitante como propietario', async () => {
+  await conServidor(async ({ crearProyectoHttp, creaciones }) => {
+    const entrada = crearEntradaProyecto({
+      latitud: 0,
+      longitud: -74.0721,
+    });
+
+    const response = await crearProyectoHttp(entrada);
+
+    assert.equal(response.status, 201);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(response.headers.get('set-cookie'), null);
+
+    const body = await response.json();
+
+    assert.deepEqual(body, {
+      ...crearDetalleProyecto(),
+      id_propietario: ID_USUARIO,
+      fecha_finalizacion: null,
+      latitud: 0,
+      longitud: -74.0721,
+    });
+
+    assert.equal(creaciones.length, 1);
+    assert.equal(creaciones[0].idUsuario, ID_USUARIO);
+    assert.equal(creaciones[0].datos.nombre, entrada.nombre);
+    assert.equal(creaciones[0].datos.latitud, 0);
+
+    assert.equal(
+      Object.hasOwn(creaciones[0].datos, 'id_propietario'),
+      false,
+    );
+  });
+});
+
+test('POST proyectos: rechaza una sesión ausente o inválida antes de crear', async () => {
+  await conServidor(async ({ crearProyectoHttp, creaciones }) => {
+    for (const token of [null, 'TOKEN_INCORRECTO']) {
+      const response = await crearProyectoHttp(
+        crearEntradaProyecto(),
+        { token },
+      );
+
+      assert.equal(response.status, 401);
+      await response.json();
+    }
+
+    assert.deepEqual(creaciones, []);
+  });
+});
+
+test('POST proyectos: rechaza un origen ausente o no autorizado', async () => {
+  await conServidor(async ({ crearProyectoHttp, creaciones }) => {
+    for (const origin of [null, 'https://otro.example.test']) {
+      const response = await crearProyectoHttp(
+        crearEntradaProyecto(),
+        { origin },
+      );
+
+      assert.equal(response.status, 403);
+
+      const body = await response.json();
+      assert.equal(
+        body.message,
+        'El origen de la solicitud no está permitido.',
+      );
+    }
+
+    assert.deepEqual(creaciones, []);
+  });
+});
+
+test('POST proyectos: rechaza campos internos y datos inválidos antes de crear', async () => {
+  await conServidor(async ({ crearProyectoHttp, creaciones }) => {
+    const entradasInvalidas = [
+      {},
+      crearEntradaProyecto({
+        id_propietario: '30000000-0000-4000-8000-000000000003',
+      }),
+      crearEntradaProyecto({ activo: false }),
+      crearEntradaProyecto({ fecha_inicio: '2026-02-30' }),
+      crearEntradaProyecto({ latitud: 4.711 }),
+    ];
+
+    for (const entrada of entradasInvalidas) {
+      const response = await crearProyectoHttp(entrada);
+
+      assert.equal(response.status, 400);
+      await response.json();
+    }
+
+    assert.deepEqual(creaciones, []);
+  });
+});
+
+test('POST proyectos: rechaza una cuenta inactiva desde el guard', async () => {
+  await conServidor(
+    async ({ crearProyectoHttp, creaciones }) => {
+      const response = await crearProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 401);
+      await response.json();
+
+      assert.deepEqual(creaciones, []);
+    },
+    {
+      errorPerfil: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('POST proyectos: respeta el rechazo de la cuenta al iniciar la transacción', async () => {
+  await conServidor(
+    async ({ crearProyectoHttp, creaciones }) => {
+      const response = await crearProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 401);
+
+      const body = await response.json();
+      assert.equal(
+        body.message,
+        'La sesión no es válida o la cuenta no está activa.',
+      );
+
+      // La autenticación inicial pasó; el servicio rechazó la operación.
+      assert.equal(creaciones.length, 1);
+    },
+    {
+      errorCreacion: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('POST proyectos: devuelve 500 sin exponer detalles si falla la creación', async () => {
+  const detalleInterno = 'FALLO_INTERNO_FICTICIO_DE_CREACION';
+
+  await conServidor(
+    async ({ crearProyectoHttp }) => {
+      const response = await crearProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 500);
+      assert.equal(response.headers.get('set-cookie'), null);
+
+      const body = await response.json();
+      assert.equal(
+        JSON.stringify(body).includes(detalleInterno),
+        false,
+      );
+      assert.equal(Object.hasOwn(body, 'stack'), false);
+    },
+    {
+      errorCreacion: new Error(detalleInterno),
+    },
+  );
+});
+
+
+test('PUT proyectos: transmite la identidad autenticada y devuelve el proyecto actualizado', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const entrada = crearEntradaProyecto({
+        nombre: 'Proyecto actualizado',
+        estado_proyecto: 'PAUSA',
+        latitud: 0,
+        longitud: 0,
+      });
+
+      const response = await actualizarProyectoHttp(entrada);
+
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get('cache-control'),
+        'no-store',
+      );
+      assert.equal(response.headers.get('set-cookie'), null);
+
+      assert.deepEqual(await response.json(), {
+        ...crearDetalleProyecto(),
+        nombre: 'Proyecto actualizado',
+        estado_proyecto: 'PAUSA',
+        fecha_finalizacion: null,
+        latitud: 0,
+        longitud: 0,
+      });
+
+      assert.equal(actualizaciones.length, 1);
+      assert.equal(actualizaciones[0].idProyecto, ID_PROYECTO);
+      assert.equal(actualizaciones[0].idUsuario, ID_USUARIO);
+      assert.equal(actualizaciones[0].datos.nombre, entrada.nombre);
+    },
+  );
+});
+
+test('PUT proyectos: exige una sesión válida antes de actualizar', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      for (const token of [null, 'TOKEN_INCORRECTO']) {
+        const response = await actualizarProyectoHttp(
+          crearEntradaProyecto(),
+          { token },
+        );
+
+        assert.equal(response.status, 401);
+        await response.json();
+      }
+
+      assert.deepEqual(actualizaciones, []);
+    },
+  );
+});
+
+test('PUT proyectos: rechaza un origen ausente o no autorizado', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      for (const origin of [null, 'https://otro.example.test']) {
+        const response = await actualizarProyectoHttp(
+          crearEntradaProyecto(),
+          { origin },
+        );
+
+        assert.equal(response.status, 403);
+        await response.json();
+      }
+
+      assert.deepEqual(actualizaciones, []);
+    },
+  );
+});
+
+test('PUT proyectos: rechaza un UUID malformado antes de actualizar', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const response = await actualizarProyectoHttp(
+        crearEntradaProyecto(),
+        { idProyecto: 'identificador-invalido' },
+      );
+
+      assert.equal(response.status, 400);
+      await response.json();
+
+      assert.deepEqual(actualizaciones, []);
+    },
+  );
+});
+
+test('PUT proyectos: aplica las validaciones heredadas y rechaza campos protegidos', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const entradasInvalidas = [
+        {},
+        { nombre: 'Edición parcial no admitida por este PUT' },
+        crearEntradaProyecto({
+          fecha_inicio: '2026-02-30',
+        }),
+        crearEntradaProyecto({
+          latitud: 4.711,
+        }),
+        crearEntradaProyecto({
+          id_propietario: '30000000-0000-4000-8000-000000000003',
+        }),
+        crearEntradaProyecto({
+          activo: false,
+        }),
+      ];
+
+      for (const entrada of entradasInvalidas) {
+        const response = await actualizarProyectoHttp(entrada);
+
+        assert.equal(response.status, 400);
+        await response.json();
+      }
+
+      assert.deepEqual(actualizaciones, []);
+    },
+  );
+});
+
+test('PUT proyectos: devuelve 404 si el servicio rechaza la edición', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const response = await actualizarProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 404);
+
+      const body = await response.json();
+      assert.equal(
+        body.message,
+        'El proyecto no está disponible para edición.',
+      );
+
+      assert.equal(actualizaciones.length, 1);
+    },
+    {
+      errorActualizacion: new NotFoundException(
+        'El proyecto no está disponible para edición.',
+      ),
+    },
+  );
+});
+
+test('PUT proyectos: no invoca la actualización si el guard rechaza la cuenta', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const response = await actualizarProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 401);
+      await response.json();
+
+      assert.deepEqual(actualizaciones, []);
+    },
+    {
+      errorPerfil: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('PUT proyectos: respeta el rechazo del propietario durante la transacción', async () => {
+  await conServidor(
+    async ({ actualizarProyectoHttp, actualizaciones }) => {
+      const response = await actualizarProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 401);
+      await response.json();
+
+      assert.equal(actualizaciones.length, 1);
+    },
+    {
+      errorActualizacion: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('PUT proyectos: oculta los detalles internos de un fallo técnico', async () => {
+  const detalleInterno = 'FALLO_INTERNO_FICTICIO_DE_EDICION';
+
+  await conServidor(
+    async ({ actualizarProyectoHttp }) => {
+      const response = await actualizarProyectoHttp(
+        crearEntradaProyecto(),
+      );
+
+      assert.equal(response.status, 500);
+
+      const body = await response.json();
+      assert.equal(
+        JSON.stringify(body).includes(detalleInterno),
+        false,
+      );
+      assert.equal(Object.hasOwn(body, 'stack'), false);
+    },
+    {
+      errorActualizacion: new Error(detalleInterno),
+    },
+  );
+});
+
+test('DELETE proyectos: utiliza la identidad autenticada y devuelve 204 sin cuerpo', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      const response = await eliminarProyectoHttp();
+
+      assert.equal(response.status, 204);
+      assert.equal(await response.text(), '');
+      assert.equal(
+        response.headers.get('cache-control'),
+        'no-store',
+      );
+      assert.equal(response.headers.get('set-cookie'), null);
+
+      assert.deepEqual(eliminaciones, [
+        {
+          idProyecto: ID_PROYECTO,
+          idUsuario: ID_USUARIO,
+        },
+      ]);
+    },
+  );
+});
+
+test('DELETE proyectos: rechaza una sesión ausente o inválida antes de eliminar', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      for (const token of [null, 'TOKEN_INCORRECTO']) {
+        const response = await eliminarProyectoHttp({ token });
+
+        assert.equal(response.status, 401);
+        await response.json();
+      }
+
+      assert.deepEqual(eliminaciones, []);
+    },
+  );
+});
+
+test('DELETE proyectos: rechaza un origen ausente o no autorizado', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      for (const origin of [null, 'https://otro.example.test']) {
+        const response = await eliminarProyectoHttp({ origin });
+
+        assert.equal(response.status, 403);
+
+        const body = await response.json();
+        assert.equal(
+          body.message,
+          'El origen de la solicitud no está permitido.',
+        );
+      }
+
+      assert.deepEqual(eliminaciones, []);
+    },
+  );
+});
+
+test('DELETE proyectos: rechaza un UUID malformado antes de eliminar', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      const response = await eliminarProyectoHttp({
+        idProyecto: 'identificador-invalido',
+      });
+
+      assert.equal(response.status, 400);
+      await response.json();
+
+      assert.deepEqual(eliminaciones, []);
+    },
+  );
+});
+
+test('DELETE proyectos: devuelve 404 cuando el proyecto no está disponible para eliminación', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      const response = await eliminarProyectoHttp();
+
+      assert.equal(response.status, 404);
+
+      const body = await response.json();
+      assert.equal(
+        body.message,
+        'El proyecto no está disponible para eliminación.',
+      );
+
+      assert.deepEqual(eliminaciones, [
+        {
+          idProyecto: ID_PROYECTO,
+          idUsuario: ID_USUARIO,
+        },
+      ]);
+    },
+    {
+      errorEliminacion: new NotFoundException(
+        'El proyecto no está disponible para eliminación.',
+      ),
+    },
+  );
+});
+
+test('DELETE proyectos: no llama al servicio si el guard rechaza la cuenta', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      const response = await eliminarProyectoHttp();
+
+      assert.equal(response.status, 401);
+      await response.json();
+
+      assert.deepEqual(eliminaciones, []);
+    },
+    {
+      errorPerfil: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('DELETE proyectos: respeta el rechazo de la cuenta dentro de la transacción', async () => {
+  await conServidor(
+    async ({ eliminarProyectoHttp, eliminaciones }) => {
+      const response = await eliminarProyectoHttp();
+
+      assert.equal(response.status, 401);
+
+      const body = await response.json();
+      assert.equal(
+        body.message,
+        'La sesión no es válida o la cuenta no está activa.',
+      );
+
+      assert.equal(eliminaciones.length, 1);
+    },
+    {
+      errorEliminacion: new UnauthorizedException(
+        'La sesión no es válida o la cuenta no está activa.',
+      ),
+    },
+  );
+});
+
+test('DELETE proyectos: devuelve 500 sin exponer detalles si falla la operación', async () => {
+  const detalleInterno = 'FALLO_INTERNO_FICTICIO_DE_ELIMINACION';
+
+  await conServidor(
+    async ({ eliminarProyectoHttp }) => {
+      const response = await eliminarProyectoHttp();
+
+      assert.equal(response.status, 500);
+      assert.equal(response.headers.get('set-cookie'), null);
+
+      const body = await response.json();
+      assert.equal(
+        JSON.stringify(body).includes(detalleInterno),
+        false,
+      );
+      assert.equal(Object.hasOwn(body, 'stack'), false);
+    },
+    {
+      errorEliminacion: new Error(detalleInterno),
     },
   );
 });
