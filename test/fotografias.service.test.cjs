@@ -18,6 +18,7 @@ function crearFotografia() {
     titulo: 'Fotografía de prueba',
     url: 'https://example.invalid/fotografia.jpg',
     s3_key: 'fotografias/archivo-de-prueba.jpg',
+    original_s3_key:'fotografias/60000000-0000-4000-8000-000000000006.jpg',
     fecha_subida: new Date('2026-09-10T15:30:00.000Z'),
   };
 }

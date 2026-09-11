@@ -26,12 +26,14 @@
     "cookie-parser": "^1.4.7",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.2.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0",
     "@types/node": "^24.13.3",
     "@types/pg": "^8.23.1",
     "tsx": "^4.20.3",

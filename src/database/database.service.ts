@@ -5,8 +5,11 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Pool } from 'pg';
-import type { PoolClient ,QueryResult, QueryResultRow } from 'pg';
+import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { getDatabaseConfig } from './database.config';
+import {
+  ResultadoTransaccionDesconocidoError,
+} from './errors/resultado-transaccion-desconocido.error';
 
 /**
  * Administra las conexiones de la aplicación con PostgreSQL.
@@ -22,8 +25,7 @@ import { getDatabaseConfig } from './database.config';
  */
 @Injectable()
 export class DatabaseService
-  implements OnModuleInit, OnApplicationShutdown
-{
+  implements OnModuleInit, OnApplicationShutdown {
   private readonly logger = new Logger(DatabaseService.name);
   private readonly pool: Pool;
 
@@ -74,7 +76,7 @@ export class DatabaseService
    *
    * No utilizar este método para repartir BEGIN, consultas y COMMIT:
    * una transacción necesita una misma conexión durante toda su ejecución.
-   * Implementaremos ese mecanismo antes de escribir operaciones de negocio.
+   * Para operaciones transaccionales, utilizar withTransaction.
    */
   async query<T extends QueryResultRow = QueryResultRow>(
     text: string,
@@ -84,59 +86,97 @@ export class DatabaseService
   }
 
 
-    /**
-   * Ejecuta una operación dentro de una transacción.
+  /**
+   * Ejecuta una operación utilizando una sola conexión y transacción.
    *
-   * Confirma los cambios únicamente si toda la operación termina
-   * correctamente. Si ocurre un error, intenta revertirlos.
-   *
-   * Reglas para quien utilice este método:
+   * Reglas para el consumidor:
    * - Ejecutar todas las consultas mediante el client recibido.
    * - Esperar las consultas con await.
-   * - No ejecutar BEGIN, COMMIT, ROLLBACK ni release manualmente.
-   * - No usar DatabaseService.query() dentro de la operación:
-   *   podría utilizar otra conexión y quedar fuera de la transacción.
+   * - No administrar BEGIN, COMMIT, ROLLBACK o release manualmente.
+   * - No utilizar DatabaseService.query dentro de la operación.
+   * - No ignorar errores SQL para continuar como si la operación funcionara.
+   *
+   * Si la operación falla y la reversión se confirma, propaga el error original.
+   * Si falla COMMIT o no puede confirmarse ROLLBACK, informa incertidumbre
+   * mediante ResultadoTransaccionDesconocidoError y descarta la conexión.
    *
    * No realiza reintentos automáticos.
    */
   async withTransaction<T>(
     operation: (client: PoolClient) => Promise<T>,
   ): Promise<T> {
-    // Si no se obtiene una conexión, el error se propaga.
-    // En ese caso todavía no existe un cliente que debamos liberar.
     const client = await this.pool.connect();
 
     let discardClient = false;
+    let commitIntentado = false;
 
     try {
       await client.query('BEGIN');
 
       const result = await operation(client);
 
-      await client.query('COMMIT');
+      /*
+       * La marca se establece ANTES de enviar COMMIT.
+       * Si se pierde la conexión, no podemos asumir que no se confirmó.
+       */
+      commitIntentado = true;
 
-      return result;
-    } catch (error: unknown) {
-      try {
-        await client.query('ROLLBACK');
-      } catch {
-        /*
-         * Si falla la reversión, no devolvemos esta conexión
-         * al conjunto de conexiones reutilizables.
-         *
-         * Conservamos el error original para no ocultar
-         * la causa que interrumpió la operación.
-         */
-        discardClient = true;
+      const confirmacion = await client.query('COMMIT');
 
-        this.logger.error(
-          'Falló la reversión de una transacción. Se descartará la conexión.',
+      /*
+       * Una transacción abortada puede terminar con una respuesta ROLLBACK
+       * al solicitar COMMIT. No debemos comunicar éxito en ese caso.
+       */
+      if (confirmacion.command !== 'COMMIT') {
+        throw new Error(
+          'PostgreSQL no confirmó la transacción con una respuesta COMMIT.',
         );
       }
 
+      return result;
+    } catch (error: unknown) {
+      if (commitIntentado) {
+        discardClient = true;
+
+        /*
+         * Un ROLLBACK posterior no demostraría qué ocurrió con COMMIT.
+         * Descartamos la conexión y dejamos la resolución al coordinador.
+         */
+        this.logger.error(
+          'No se pudo confirmar el resultado de COMMIT. Se descartará la conexión.',
+        );
+
+        throw new ResultadoTransaccionDesconocidoError(
+          'COMMIT',
+          error,
+        );
+      }
+
+      try {
+        const reversion = await client.query('ROLLBACK');
+
+        if (reversion.command !== 'ROLLBACK') {
+          throw new Error(
+            'PostgreSQL no confirmó la reversión con una respuesta ROLLBACK.',
+          );
+        }
+      } catch (errorReversion: unknown) {
+        discardClient = true;
+
+        this.logger.error(
+          'No se pudo confirmar la reversión. Se descartará la conexión.',
+        );
+
+        throw new ResultadoTransaccionDesconocidoError(
+          'ROLLBACK',
+          error,
+          errorReversion,
+        );
+      }
+
+      // Conserva, por ejemplo, un NotFoundException o un error de integridad.
       throw error;
     } finally {
-      // true destruye la conexión; false la devuelve al pool.
       client.release(discardClient);
     }
   }

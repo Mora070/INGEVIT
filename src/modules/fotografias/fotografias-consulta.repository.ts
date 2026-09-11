@@ -77,6 +77,7 @@ export class FotografiasConsultaRepository {
               fotografia.titulo,
               fotografia.url,
               fotografia.s3_key,
+              fotografia.original_s3_key,
               fotografia.fecha_subida
             FROM obra.fotografias AS fotografia
             INNER JOIN proyecto_disponible AS proyecto
@@ -94,6 +95,7 @@ export class FotografiasConsultaRepository {
             pagina.titulo,
             pagina.url,
             pagina.s3_key,
+            pagina.original_s3_key,
             pagina.fecha_subida,
             conteo.total
           FROM conteo
@@ -146,6 +148,7 @@ export class FotografiasConsultaRepository {
         titulo: fila.titulo,
         url: fila.url,
         s3_key: fila.s3_key,
+        original_s3_key: fila.original_s3_key,
         fecha_subida: fila.fecha_subida,
       });
     }

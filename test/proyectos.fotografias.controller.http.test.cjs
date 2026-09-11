@@ -28,6 +28,10 @@ const {
 } = require('../dist/modules/fotografias/fotografias.service');
 
 const {
+    FotografiasSubidaService,
+} = require('../dist/modules/fotografias/fotografias-subida.service');
+
+const {
     AuthGuard,
 } = require('../dist/modules/auth/guards/auth.guard');
 
@@ -109,6 +113,21 @@ async function conServidor(
             {
                 provide: FotografiasService,
                 useValue: fotografiasService,
+            },
+
+            {
+                provide: FotografiasSubidaService,
+                useValue: {
+                    /**
+                     * Estas pruebas comprueban otras rutas del controlador.
+                     * Una llamada a subir sería un comportamiento inesperado.
+                     */
+                    async subir() {
+                        throw new Error(
+                            'Esta prueba no debe ejecutar la subida de fotografías.',
+                        );
+                    },
+                },
             },
         ],
     })

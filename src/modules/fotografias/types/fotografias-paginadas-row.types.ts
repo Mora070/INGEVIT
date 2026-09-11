@@ -34,6 +34,7 @@ interface FotografiaPaginaVaciaRow {
   titulo: null;
   url: null;
   s3_key: null;
+  original_s3_key: null;
   fecha_subida: null;
 }
 

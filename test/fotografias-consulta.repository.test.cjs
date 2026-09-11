@@ -18,6 +18,7 @@ function crearFotografia() {
     titulo: 'Fotografía de prueba',
     url: 'https://example.invalid/fotografia.jpg',
     s3_key: 'fotografias/archivo-de-prueba.jpg',
+    original_s3_key:'fotografias/60000000-0000-4000-8000-000000000006.jpg',
     fecha_subida: new Date('2026-09-10T15:30:00.000Z'),
   };
 }
@@ -34,6 +35,7 @@ function crearPaginaVacia(total) {
     titulo: null,
     url: null,
     s3_key: null,
+    original_s3_key: null,
     fecha_subida: null,
     total,
   };
@@ -118,6 +120,11 @@ test(
     assert.equal(
       resultado.fotografias[0].s3_key,
       fotografia.s3_key,
+    );
+
+    assert.equal(
+      resultado.fotografias[0].original_s3_key,
+      fotografia.original_s3_key,
     );
   },
 );

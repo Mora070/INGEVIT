@@ -85,8 +85,8 @@ test(
           }
 
           /**
-           * Prepara únicamente metadatos.
-           * No crea archivos locales ni objetos en Amazon S3.
+           * Prepara las referencias de ambas versiones.
+           * No crea archivos físicos: esta prueba evalúa la consulta de metadatos.
            */
           async function insertarFotografia(
             id,
@@ -94,27 +94,31 @@ test(
             idUsuario,
             fecha,
           ) {
+            const idOriginal = randomUUID();
+
             await client.query(
               `
-                INSERT INTO obra.fotografias (
-                  id_fotografia,
-                  id_proyecto,
-                  id_usuario_subida,
-                  titulo,
-                  url,
-                  s3_key,
-                  fecha_subida
-                )
-                VALUES (
-                  $1::uuid,
-                  $2::uuid,
-                  $3::uuid,
-                  'Fotografía de prueba',
-                  $4,
-                  $5,
-                  $6::timestamptz
-                )
-              `,
+      INSERT INTO obra.fotografias (
+        id_fotografia,
+        id_proyecto,
+        id_usuario_subida,
+        titulo,
+        url,
+        s3_key,
+        fecha_subida,
+        original_s3_key
+      )
+      VALUES (
+        $1::uuid,
+        $2::uuid,
+        $3::uuid,
+        'Fotografía de prueba',
+        $4,
+        $5,
+        $6::timestamptz,
+        $7
+      )
+    `,
               [
                 id,
                 idProyecto,
@@ -122,6 +126,7 @@ test(
                 `https://example.invalid/${id}.jpg`,
                 `fotografias/${id}.jpg`,
                 fecha,
+                `fotografias/${idOriginal}.jpg`,
               ],
             );
           }

@@ -26,6 +26,10 @@ const {
     FotografiasService,
 } = require('../dist/modules/fotografias/fotografias.service');
 
+const {
+    FotografiasSubidaService,
+} = require('../dist/modules/fotografias/fotografias-subida.service');
+
 const ID_PROYECTO = '20000000-0000-4000-8000-000000000002';
 const ID_SOLICITANTE = '10000000-0000-4000-8000-000000000001';
 const ID_COLABORADOR = '30000000-0000-4000-8000-000000000003';
@@ -122,6 +126,21 @@ async function conServidor(
             {
                 provide: ProyectosService,
                 useValue: servicioSimulado,
+            },
+
+            {
+                provide: FotografiasSubidaService,
+                useValue: {
+                    /**
+                     * Estas pruebas comprueban otras rutas del controlador.
+                     * Una llamada a subir sería un comportamiento inesperado.
+                     */
+                    async subir() {
+                        throw new Error(
+                            'Esta prueba no debe ejecutar la subida de fotografías.',
+                        );
+                    },
+                },
             },
         ],
     })

@@ -11,6 +11,8 @@ export interface FotografiaRow {
   titulo: string;
   url: string;
   s3_key: string;
+  /** Clave del archivo original conservado sin modificar sus bytes. */
+  original_s3_key: string;
   fecha_subida: Date;
 }
 

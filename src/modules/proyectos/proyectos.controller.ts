@@ -13,7 +13,9 @@ import {
     HttpStatus,
     Body,
     Put,
-    Delete
+    Delete,
+    UseInterceptors,
+    UploadedFile
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -53,6 +55,28 @@ import type {
     FotografiasPaginadasResponse,
 } from '../fotografias/types/fotografias-paginadas.types';
 
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import {
+    FotografiasSubidaService,
+} from '../fotografias/fotografias-subida.service';
+
+import {
+    SubirFotografiaDto,
+} from '../fotografias/dto/subir-fotografia.dto';
+
+import {
+    ContenidoFotografiaPipe,
+} from '../fotografias/pipes/contenido-fotografia.pipe';
+
+import {
+    getSubidaFotografiaConfig,
+} from '../fotografias/config/subida-fotografia.config';
+
+import type {
+    FotografiaResponse,
+} from '../fotografias/types/fotografia.types';
+
 /**
  * Expone las operaciones HTTP de proyectos.
  *
@@ -66,6 +90,7 @@ export class ProyectosController {
         private readonly proyectosService: ProyectosService,
         private readonly actividadesService: ActividadesService,
         private readonly fotografiasService: FotografiasService,
+        private readonly fotografiasSubidaService: FotografiasSubidaService,
     ) { }
 
     /**
@@ -395,6 +420,56 @@ export class ProyectosController {
             idProyecto,
             usuario.id_usuario,
             consulta,
+        );
+    }
+
+
+    /**
+ * Sube una fotografía al proyecto.
+ *
+ * Recibe multipart/form-data:
+ * - titulo: datos validados mediante SubirFotografiaDto.
+ * - archivo: fotografía original, hasta 20 MiB.
+ *
+ * AuthGuard identifica al solicitante antes de recibir el archivo.
+ * OriginGuard aplica la comprobación global del origen del POST.
+ *
+ * El interceptor recibe el archivo en memoria y aplica sus límites.
+ * El pipe extrae el Buffer sin modificar los bytes originales.
+ *
+ * El servicio comprueba el acceso al proyecto, procesa la imagen
+ * y coordina el almacenamiento con el registro de la actividad.
+ *
+ * Devuelve los metadatos públicos con la URL de la versión optimizada.
+ */
+    @Post(':idProyecto/fotografias')
+    @HttpCode(HttpStatus.CREATED)
+    @Header('Cache-Control', 'no-store')
+    @UseInterceptors(
+        FileInterceptor('archivo', getSubidaFotografiaConfig()),
+    )
+    async subirFotografia(
+        @Param('idProyecto', new ParseUUIDPipe())
+        idProyecto: string,
+        @Req() request: AuthRequest,
+        @Body() datos: SubirFotografiaDto,
+        @UploadedFile(new ContenidoFotografiaPipe())
+        contenido: Buffer,
+    ): Promise<FotografiaResponse> {
+        const usuario = request.usuario;
+
+        // La identidad procede de la sesión, nunca del formulario.
+        if (!usuario) {
+            throw new UnauthorizedException(
+                'La sesión no es válida o ha expirado.',
+            );
+        }
+
+        return this.fotografiasSubidaService.subir(
+            idProyecto,
+            usuario.id_usuario,
+            datos,
+            contenido,
         );
     }
 
