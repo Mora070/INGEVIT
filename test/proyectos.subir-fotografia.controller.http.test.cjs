@@ -230,3 +230,122 @@ test('POST fotografía: rechaza un archivo superior a 20 MiB', async () => {
     assert.equal(llamadas.length, 0);
   });
 });
+
+test(
+  'POST fotografía: rechaza un archivo vacío sin invocar el servicio',
+  async () => {
+    await conAplicacion(async ({ url, llamadas }) => {
+      const resultado = await fetch(url, {
+        method: 'POST',
+        body: crearFormulario(Buffer.alloc(0)),
+      });
+
+      const cuerpo = await resultado.json();
+
+      assert.equal(resultado.status, 400);
+      assert.equal(
+        cuerpo.message,
+        'Debes proporcionar un archivo de fotografía no vacío.',
+      );
+      assert.equal(llamadas.length, 0);
+    });
+  },
+);
+
+test(
+  'POST fotografía: rechaza un archivo enviado en un campo distinto de archivo',
+  async () => {
+    await conAplicacion(async ({ url, llamadas }) => {
+      const formulario = new FormData();
+
+      formulario.append('titulo', 'Avance de obra');
+
+      // El contrato HTTP exige el nombre de campo "archivo".
+      formulario.append(
+        'fotografia',
+        new Blob([Buffer.from([1, 2, 3])], {
+          type: 'image/jpeg',
+        }),
+        'fotografia.jpg',
+      );
+
+      const resultado = await fetch(url, {
+        method: 'POST',
+        body: formulario,
+      });
+
+      await resultado.json();
+
+      assert.equal(resultado.status, 400);
+      assert.equal(llamadas.length, 0);
+    });
+  },
+);
+
+test(
+  'POST fotografía: rechaza dos archivos sin realizar una subida parcial',
+  async () => {
+    await conAplicacion(async ({ url, llamadas }) => {
+      const formulario = crearFormulario();
+
+      formulario.append(
+        'archivo',
+        new Blob([Buffer.from([4, 5, 6])], {
+          type: 'image/jpeg',
+        }),
+        'segunda-fotografia.jpg',
+      );
+
+      const resultado = await fetch(url, {
+        method: 'POST',
+        body: formulario,
+      });
+
+      await resultado.json();
+
+      assert.equal(resultado.status, 400);
+
+      /*
+       * El interceptor debe rechazar la petición completa.
+       * El servicio no debe guardar siquiera el primer archivo.
+       */
+      assert.equal(llamadas.length, 0);
+    });
+  },
+);
+
+test(
+  'POST fotografía: permite recibir exactamente 20 MiB',
+  async () => {
+    await conAplicacion(async ({ url, llamadas }) => {
+      /*
+       * El servicio está sustituido en esta suite.
+       * Comprobamos el tamaño admitido por HTTP, no la validez
+       * de estos bytes como imagen.
+       */
+      const contenido = Buffer.alloc(
+        MAX_BYTES_FOTOGRAFIA_ORIGINAL,
+        7,
+      );
+
+      const resultado = await fetch(url, {
+        method: 'POST',
+        body: crearFormulario(contenido),
+      });
+
+      await resultado.json();
+
+      assert.equal(resultado.status, 201);
+      assert.equal(llamadas.length, 1);
+
+      const bufferRecibido = llamadas[0][3];
+
+      assert.ok(Buffer.isBuffer(bufferRecibido));
+      assert.equal(
+        bufferRecibido.length,
+        MAX_BYTES_FOTOGRAFIA_ORIGINAL,
+      );
+      assert.deepEqual(bufferRecibido, contenido);
+    });
+  },
+);

@@ -8,6 +8,10 @@ import {
   AlmacenamientoLocalService,
 } from './almacenamiento-local.service';
 
+import {
+  ArchivosPendientesRepository,
+} from './archivos-pendientes.repository';
+
 /**
  * Configura la implementación de almacenamiento utilizada por el backend.
  *
@@ -17,11 +21,13 @@ import {
 @Module({
   providers: [
     AlmacenamientoLocalService,
+    ArchivosPendientesRepository,
     {
       provide: AlmacenamientoService,
       useExisting: AlmacenamientoLocalService,
+      
     },
   ],
-  exports: [AlmacenamientoService],
+  exports: [AlmacenamientoService,ArchivosPendientesRepository,],
 })
 export class AlmacenamientoModule {}

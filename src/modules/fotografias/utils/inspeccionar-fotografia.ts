@@ -16,6 +16,8 @@ import type {
     FormatoFotografiaOriginal,
 } from '../config/procesamiento-fotografia.config';
 
+import { leerFotogramasPng } from './leer-fotogramas-png';
+
 /**
  * Información interna obtenida del contenido recibido.
  *
@@ -75,7 +77,16 @@ export async function inspeccionarFotografia(
 
     const ancho = metadatos.width;
     const alto = metadatos.height;
-    const fotogramas = metadatos.pages ?? 1;
+    /*
+ * PNG puede contener animación no reflejada en metadata.pages.
+ * Conservamos también el valor de Sharp para no perder información.
+ */
+    const fotogramas = formato === 'png'
+        ? Math.max(
+            metadatos.pages ?? 1,
+            leerFotogramasPng(contenido),
+        )
+        : metadatos.pages ?? 1;
 
     if (
         typeof ancho !== 'number'

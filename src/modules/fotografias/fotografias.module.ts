@@ -12,6 +12,35 @@ import { FotografiasSubidaService } from './fotografias-subida.service';
 import { FotografiasRepository } from './fotografias.repository';
 import { FotografiasService } from './fotografias.service';
 
+import {
+  FotografiasDescargaRepository,
+} from './fotografias-descarga.repository';
+
+import {
+  FotografiasDescargaService,
+} from './fotografias-descarga.service';
+
+import { AuthModule } from '../auth/auth.module';
+
+import {
+  FotografiasDescargaController,
+} from './fotografias-descarga.controller';
+
+import { UsuariosModule } from '../usuarios/usuarios.module';
+
+import {
+  FotografiasEdicionService,
+} from './fotografias-edicion.service';
+
+import {
+  FotografiasEdicionController,
+} from './fotografias-edicion.controller';
+
+import {
+  FotografiasEliminacionService,
+} from './fotografias-eliminacion.service';
+
+
 /**
  * Agrupa la consulta y la subida de fotografías de los proyectos.
  *
@@ -28,6 +57,13 @@ import { FotografiasService } from './fotografias.service';
     DatabaseModule,
     AlmacenamientoModule,
     ActividadesModule,
+    AuthModule,
+    UsuariosModule,
+  ],
+
+  controllers: [
+    FotografiasDescargaController,
+    FotografiasEdicionController,
   ],
   providers: [
     // Consulta de fotografías disponibles para el usuario.
@@ -44,10 +80,22 @@ import { FotografiasService } from './fotografias.service';
 
     // Operación completa de subida.
     FotografiasSubidaService,
+
+    // Consulta autorizada y apertura de fotografías optimizadas.
+    FotografiasDescargaRepository,
+    FotografiasDescargaService,
+
+    // Edición del título y registro de actividad en una transacción.
+    FotografiasEdicionService,
+
+    // Eliminación del registro, cola de archivos y actividad.
+    FotografiasEliminacionService,
   ],
   exports: [
     FotografiasService,
     FotografiasSubidaService,
+    FotografiasDescargaService,
+    FotografiasEdicionService,
   ],
 })
-export class FotografiasModule {}
+export class FotografiasModule { }

@@ -19,6 +19,16 @@ export function getSubidaFotografiaConfig(): MulterOptions {
   return {
     limits: {
       files: 1,
+
+      /*
+       * Busboy rechaza al alcanzar este valor.
+       *
+       * Configuramos el primer byte no permitido para aceptar
+       * exactamente 20 MiB y rechazar desde 20 MiB + 1 byte.
+       *
+       * El procesamiento conserva su validación independiente:
+       * contenido.length > MAX_BYTES_FOTOGRAFIA_ORIGINAL.
+       */
       fileSize: MAX_BYTES_FOTOGRAFIA_ORIGINAL,
     },
   };

@@ -40,6 +40,14 @@ const {
   ActividadesRepository,
 } = require('../../dist/modules/actividades/actividades.repository');
 
+const {
+  FotografiasDescargaRepository,
+} = require('../../dist/modules/fotografias/fotografias-descarga.repository');
+
+const {
+  FotografiasDescargaService,
+} = require('../../dist/modules/fotografias/fotografias-descarga.service');
+
 /**
  * Comprueba la coordinación real entre:
  *
@@ -262,6 +270,62 @@ test(
 
       assert.ok(optimizadaGuardada.length > 0);
       assert.ok(optimizadaGuardada.length <= 3 * 1024 * 1024);
+
+      /*
+ * Recuperamos la fotografía mediante el servicio de descarga.
+ *
+ * El repositorio utiliza PostgreSQL real para comprobar el acceso
+ * del colaborador; el almacenamiento abre el archivo real.
+ */
+      const descargaService = new FotografiasDescargaService(
+        new FotografiasDescargaRepository(database),
+        almacenamiento,
+      );
+
+      // Tomamos el nombre de la URL pública que devolvió la subida.
+      const urlPublica = new URL(
+        respuesta.url,
+        'http://127.0.0.1:3000',
+      );
+
+      const nombreArchivo = decodeURIComponent(
+        urlPublica.pathname.split('/').pop(),
+      );
+
+      assert.equal(nombreArchivo, nombreOptimizado);
+
+      const flujoDescarga = await descargaService.abrirOptimizada(
+        idProyecto,
+        idColaborador,
+        nombreArchivo,
+      );
+
+      const fragmentos = [];
+
+      try {
+        for await (const fragmento of flujoDescarga) {
+          fragmentos.push(Buffer.from(fragmento));
+        }
+      } finally {
+        // Liberamos el recurso incluso si la lectura falla.
+        flujoDescarga.destroy();
+      }
+
+      const contenidoDescargado = Buffer.concat(fragmentos);
+
+      // La descarga entrega exactamente la versión optimizada almacenada.
+      assert.deepEqual(contenidoDescargado, optimizadaGuardada);
+
+      // El respaldo original sigue intacto después de la descarga.
+      assert.deepEqual(
+        await readFile(
+          path.join(
+            raizTemporal,
+            ...fotografia.original_s3_key.split('/'),
+          ),
+        ),
+        copiaOriginal,
+      );
 
       const metadata = await sharp(optimizadaGuardada).metadata();
 

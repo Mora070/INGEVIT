@@ -78,4 +78,112 @@ export class FotografiasRepository {
 
     return fotografia;
   }
+
+  /**
+   * Actualiza el título de una fotografía del proyecto indicado.
+   *
+   * El servicio debe comprobar previamente la autorización usando
+   * la misma transacción.
+   *
+   * La condición incluye el proyecto para impedir que una fotografía
+   * de otro proyecto se modifique mediante esta operación.
+   *
+   * No cambia el autor, la fecha de subida ni las referencias
+   * de almacenamiento.
+   *
+   * Devuelve null cuando no existe una fotografía coincidente.
+   */
+  async actualizarTitulo(
+    client: PoolClient,
+    idProyecto: string,
+    idFotografia: string,
+    titulo: string,
+  ): Promise<FotografiaRow | null> {
+    const resultado = await client.query<FotografiaRow>(
+      `
+      UPDATE obra.fotografias
+      SET titulo = $3
+      WHERE id_proyecto = $1::uuid
+        AND id_fotografia = $2::uuid
+      RETURNING
+        id_fotografia,
+        id_proyecto,
+        id_usuario_subida,
+        titulo,
+        url,
+        s3_key,
+        original_s3_key,
+        fecha_subida
+    `,
+      [idProyecto, idFotografia, titulo],
+    );
+
+    if (resultado.rowCount === 0) {
+      return null;
+    }
+
+    const fotografia = resultado.rows[0];
+
+    if (resultado.rowCount !== 1 || !fotografia) {
+      throw new Error(
+        'La actualización de la fotografía no devolvió el registro esperado.',
+      );
+    }
+
+    return fotografia;
+  }
+
+  /**
+ * Elimina una fotografía del proyecto indicado y devuelve
+ * los metadatos del registro eliminado.
+ *
+ * Contrato para el servicio que llama:
+ * - Comprobar previamente la autorización.
+ * - Registrar ambas claves en la cola de eliminación usando
+ *   este mismo client y antes de confirmar la transacción.
+ * - Registrar la actividad correspondiente en esa transacción.
+ *
+ * No elimina archivos físicos.
+ *
+ * Devuelve null si la fotografía no pertenece al proyecto
+ * indicado o si ya no existe.
+ */
+  async eliminar(
+    client: PoolClient,
+    idProyecto: string,
+    idFotografia: string,
+  ): Promise<FotografiaRow | null> {
+    const resultado = await client.query<FotografiaRow>(
+      `
+      DELETE FROM obra.fotografias
+      WHERE id_proyecto = $1::uuid
+        AND id_fotografia = $2::uuid
+      RETURNING
+        id_fotografia,
+        id_proyecto,
+        id_usuario_subida,
+        titulo,
+        url,
+        s3_key,
+        original_s3_key,
+        fecha_subida
+    `,
+      [idProyecto, idFotografia],
+    );
+
+    if (resultado.rowCount === 0) {
+      return null;
+    }
+
+    const fotografia = resultado.rows[0];
+
+    if (resultado.rowCount !== 1 || !fotografia) {
+      throw new Error(
+        'La eliminación de la fotografía no devolvió el registro esperado.',
+      );
+    }
+
+    return fotografia;
+  }
+
 }

@@ -1,23 +1,25 @@
 import {
   BadRequestException,
   Injectable,
+  PayloadTooLargeException,
   PipeTransform,
 } from '@nestjs/common';
 
 import type { Express } from 'express';
 import type {} from 'multer';
 
+import {
+  MAX_BYTES_FOTOGRAFIA_ORIGINAL,
+} from '../config/procesamiento-fotografia.config';
+
 /**
- * Extrae el contenido del archivo recibido mediante Multer.
+ * Comprueba el contenido recibido y lo entrega al servicio.
  *
- * Responsabilidades:
- * - Rechazar peticiones sin fotografía.
- * - Rechazar archivos sin contenido disponible en memoria.
- * - Entregar el Buffer al servicio de subida.
+ * El interceptor limita la recepción del archivo.
+ * Este pipe verifica explícitamente el tamaño del Buffer
+ * antes de permitir que se ejecute el servicio de subida.
  *
- * No comprueba permisos ni interpreta la imagen.
- * Esas validaciones pertenecen al servicio y al procesamiento
- * de fotografías.
+ * El formato real de la imagen se valida durante su procesamiento.
  */
 @Injectable()
 export class ContenidoFotografiaPipe
@@ -34,7 +36,13 @@ export class ContenidoFotografiaPipe
       );
     }
 
-    // Conservamos los bytes originales sin copiarlos ni modificarlos.
+    // Exactamente 20 MiB está permitido; cualquier byte adicional no.
+    if (archivo.buffer.length > MAX_BYTES_FOTOGRAFIA_ORIGINAL) {
+      throw new PayloadTooLargeException(
+        'La fotografía no puede superar 20 MiB.',
+      );
+    }
+
     return archivo.buffer;
   }
 }
