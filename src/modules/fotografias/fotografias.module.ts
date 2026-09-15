@@ -40,6 +40,10 @@ import {
   FotografiasEliminacionService,
 } from './fotografias-eliminacion.service';
 
+import {
+  FotografiasEliminacionController,
+} from './fotografias-eliminacion.controller';
+
 
 /**
  * Agrupa la consulta y la subida de fotografías de los proyectos.
@@ -64,6 +68,7 @@ import {
   controllers: [
     FotografiasDescargaController,
     FotografiasEdicionController,
+    FotografiasEliminacionController,
   ],
   providers: [
     // Consulta de fotografías disponibles para el usuario.

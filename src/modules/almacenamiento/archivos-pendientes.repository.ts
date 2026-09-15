@@ -67,15 +67,14 @@ export class ArchivosPendientesRepository {
 
 
     /**
-   * Selecciona y bloquea la primera tarea disponible.
-   *
-   * Debe ejecutarse dentro de una transacción.
-   * El bloqueo se conserva hasta confirmar o revertir esa transacción.
-   *
-   * SKIP LOCKED permite omitir tareas reservadas por otros trabajadores.
-   * null significa que no hay tareas disponibles en ese momento;
-   * pueden existir tareas bloqueadas por otras transacciones.
-   */
+     * Selecciona y bloquea una tarea cuyo próximo intento ya esté disponible.
+     *
+     * Debe ejecutarse dentro de una transacción.
+     * SKIP LOCKED omite tareas reservadas por otros trabajadores.
+     *
+     * null puede significar que la cola está vacía, que las tareas
+     * están bloqueadas o que todavía no llegó su próximo intento.
+     */
     async bloquearSiguiente(
         client: PoolClient,
     ): Promise<ArchivoPendienteRow | null> {
@@ -83,7 +82,8 @@ export class ArchivosPendientesRepository {
             `
       SELECT s3_key, fecha_creacion
       FROM obra.archivos_pendientes_eliminacion
-      ORDER BY fecha_creacion, s3_key
+      WHERE fecha_proximo_intento <= statement_timestamp()
+      ORDER BY fecha_proximo_intento, fecha_creacion, s3_key
       LIMIT 1
       FOR UPDATE SKIP LOCKED
     `,
@@ -120,4 +120,156 @@ export class ArchivosPendientesRepository {
             );
         }
     }
+
+
+    /**
+ * Comprueba si alguna fotografía conserva una referencia a la clave.
+ *
+ * Incluye originales y versiones optimizadas de todos los proyectos,
+ * aunque el proyecto o su propietario estén inactivos.
+ *
+ * La inactividad no significa que el archivo pueda borrarse.
+ *
+ * Esta comprobación cubre fotografías. El trabajador deberá limitarse
+ * a esa categoría hasta implementar las comprobaciones equivalentes
+ * para planos y panorámicas.
+ */
+    async estaReferenciadoEnFotografias(
+        client: PoolClient,
+        clave: string,
+    ): Promise<boolean> {
+        const claveValidada = validarClaveAlmacenamiento(clave);
+
+        const resultado = await client.query<{
+            referenciado: boolean;
+        }>(
+            `
+      SELECT EXISTS (
+        SELECT 1
+        FROM obra.fotografias
+        WHERE s3_key = $1
+           OR original_s3_key = $1
+      ) AS referenciado
+    `,
+            [claveValidada],
+        );
+
+        const fila = resultado.rows[0];
+
+        /*
+         * Un resultado inesperado no debe interpretarse como permiso
+         * para borrar. Detenemos la operación.
+         */
+        if (
+            resultado.rowCount !== 1 ||
+            !fila ||
+            typeof fila.referenciado !== 'boolean'
+        ) {
+            throw new Error(
+                'No se pudo comprobar si el archivo continúa referenciado.',
+            );
+        }
+
+        return fila.referenciado;
+    }
+
+
+    /**
+ * Aplaza una tarea después de un fallo.
+ *
+ * Debe ejecutarse en una transacción nueva si la transacción
+ * de procesamiento anterior fue revertida.
+ *
+ * Devuelve false si la tarea ya no existe. Otro trabajador
+ * podría haberla completado después de liberarse el bloqueo.
+ *
+ * No modifica la clave ni la fecha original de creación.
+ */
+    async aplazar(
+        client: PoolClient,
+        clave: string,
+        demoraSegundos: number,
+    ): Promise<boolean> {
+        const claveValidada = validarClaveAlmacenamiento(clave);
+
+        if (
+            !Number.isSafeInteger(demoraSegundos) ||
+            demoraSegundos <= 0
+        ) {
+            throw new Error(
+                'La demora del reintento debe ser un número entero positivo de segundos.',
+            );
+        }
+
+        const resultado = await client.query(
+            `
+      UPDATE obra.archivos_pendientes_eliminacion
+      SET fecha_proximo_intento = GREATEST(
+        fecha_proximo_intento,
+        statement_timestamp()
+          + ($2::double precision * INTERVAL '1 second')
+      )
+      WHERE s3_key = $1
+    `,
+            [claveValidada, demoraSegundos],
+        );
+
+        if (resultado.rowCount === 0) {
+            return false;
+        }
+
+        if (resultado.rowCount !== 1) {
+            throw new Error(
+                'No se pudo determinar el resultado del aplazamiento de la tarea.',
+            );
+        }
+
+        return true;
+    }
+
+    /**
+ * Comprueba referencias de planos de todos los proyectos.
+ *
+ * No filtra por actividad del proyecto ni por estado del usuario:
+ * esas condiciones no autorizan a eliminar un archivo conservado.
+ * 
+ * 
+ *  * Esta comprobación cubre originales y versiones optimizadas.
+ * El trabajador selecciona la comprobación según la categoría.
+ */
+    async estaReferenciadoEnPlanos(
+        client: PoolClient,
+        clave: string,
+    ): Promise<boolean> {
+        const claveValidada = validarClaveAlmacenamiento(clave);
+
+        const resultado = await client.query<{
+            referenciado: boolean;
+        }>(
+            `
+        SELECT EXISTS (
+          SELECT 1
+          FROM obra.planos
+          WHERE s3_key = $1
+        ) AS referenciado
+      `,
+            [claveValidada],
+        );
+
+        const fila = resultado.rows[0];
+
+        if (
+            resultado.rowCount !== 1 ||
+            resultado.rows.length !== 1 ||
+            !fila ||
+            typeof fila.referenciado !== 'boolean'
+        ) {
+            throw new Error(
+                'No se pudo comprobar si el archivo continúa referenciado.',
+            );
+        }
+
+        return fila.referenciado;
+    }
 }
+

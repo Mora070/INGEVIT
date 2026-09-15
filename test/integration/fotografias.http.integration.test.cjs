@@ -23,6 +23,10 @@ const {
   AUTH_COOKIE_NAME,
 } = require('../../dist/modules/auth/auth-cookie.config');
 
+const {
+  ArchivosPendientesService,
+} = require('../../dist/modules/almacenamiento/archivos-pendientes.service');
+
 test(
   'fotografías HTTP: inicia sesión, sube, descarga y edita con componentes reales',
   async () => {
@@ -36,6 +40,8 @@ test(
         const correo = `${idUsuario}@example.invalid`;
         const password = 'Clave temporal de integración-2026';
         const hash = await passwords.generarHash(password);
+
+        let clavesDeLaPrueba = [];
 
         try {
           /*
@@ -196,6 +202,11 @@ test(
           assert.equal(registros.rowCount, 1);
 
           const registro = registros.rows[0];
+
+          clavesDeLaPrueba = [
+            registro.original_s3_key,
+            registro.s3_key,
+          ];
 
           assert.equal(
             registro.id_fotografia,
@@ -375,6 +386,190 @@ test(
             ),
             originalGuardado,
           );
+
+          // Eliminación HTTP con sesión y origen válidos.
+          const urlEliminacion =
+            `${baseUrl}/api/proyectos/${idProyecto}` +
+            `/fotografias/${fotografia.id_fotografia}`;
+
+          const eliminacion = await fetch(urlEliminacion, {
+            method: 'DELETE',
+            headers: {
+              Origin: origen,
+              Cookie: cookie,
+            },
+          });
+
+          assert.equal(eliminacion.status, 204);
+          assert.equal(await eliminacion.text(), '');
+
+          const fotografiaEliminada = await database.query(
+            `
+    SELECT id_fotografia
+    FROM obra.fotografias
+    WHERE id_fotografia = $1
+  `,
+            [fotografia.id_fotografia],
+          );
+
+          assert.equal(fotografiaEliminada.rowCount, 0);
+
+          const tareasDeBorrado = await database.query(
+            `
+    SELECT s3_key
+    FROM obra.archivos_pendientes_eliminacion
+    WHERE s3_key = ANY($1::text[])
+    ORDER BY s3_key
+  `,
+            [clavesDeLaPrueba],
+          );
+
+          assert.deepEqual(
+            tareasDeBorrado.rows.map((fila) => fila.s3_key),
+            [...clavesDeLaPrueba].sort(),
+          );
+
+          /*
+           * El trabajador está desactivado en conAplicacionReal.
+           * La respuesta 204 no significa que los archivos ya se borraron.
+           */
+          assert.deepEqual(
+            await readFile(
+              path.join(raizTemporal, ...registro.s3_key.split('/')),
+            ),
+            optimizadaGuardada,
+          );
+
+          assert.deepEqual(
+            await readFile(
+              path.join(raizTemporal, ...registro.original_s3_key.split('/')),
+            ),
+            originalGuardado,
+          );
+
+          // Aunque el archivo físico existe, la descarga autorizada deja de estar disponible.
+          const descargaPosterior = await fetch(urlDescarga, {
+            headers: { Cookie: cookie },
+          });
+
+          await descargaPosterior.json();
+          assert.equal(descargaPosterior.status, 404);
+
+          // Repetir la eliminación no debe crear tareas ni actividades adicionales.
+          const eliminacionRepetida = await fetch(urlEliminacion, {
+            method: 'DELETE',
+            headers: {
+              Origin: origen,
+              Cookie: cookie,
+            },
+          });
+
+          await eliminacionRepetida.json();
+          assert.equal(eliminacionRepetida.status, 404);
+
+          const actividadesEliminacion = await database.query(
+            `
+    SELECT id_actor, tipo_accion, mensaje
+    FROM obra.actividades
+    WHERE id_proyecto = $1
+      AND tipo_accion = 'FOTOGRAFIA_ELIMINADA'
+  `,
+            [idProyecto],
+          );
+
+          assert.deepEqual(actividadesEliminacion.rows, [
+            {
+              id_actor: idUsuario,
+              tipo_accion: 'FOTOGRAFIA_ELIMINADA',
+              mensaje: `Fotografía ${fotografia.id_fotografia} eliminada.`,
+            },
+          ]);
+
+          const pendientesFinales = await database.query(
+            `
+    SELECT s3_key
+    FROM obra.archivos_pendientes_eliminacion
+    WHERE s3_key = ANY($1::text[])
+    ORDER BY s3_key
+  `,
+            [clavesDeLaPrueba],
+          );
+
+          assert.deepEqual(pendientesFinales.rows, tareasDeBorrado.rows);
+          /*
+* El procesador selecciona tareas de la cola completa.
+* Verificamos que no haya pendientes ajenos antes de ejecutarlo.
+*/
+          const tareasAjenas = await database.query(
+            `
+    SELECT s3_key
+    FROM obra.archivos_pendientes_eliminacion
+    WHERE NOT (s3_key = ANY($1::text[]))
+  `,
+            [clavesDeLaPrueba],
+          );
+
+          assert.equal(
+            tareasAjenas.rowCount,
+            0,
+            'La prueba no debe procesar tareas ajenas.',
+          );
+
+          const procesador = app.get(ArchivosPendientesService);
+
+          // Una tarea por cada versión: original y optimizada.
+          assert.equal(
+            await procesador.procesarSiguienteConReintento(60),
+            true,
+          );
+
+          assert.equal(
+            await procesador.procesarSiguienteConReintento(60),
+            true,
+          );
+
+          const tareasTrasProcesar = await database.query(
+            `
+    SELECT s3_key
+    FROM obra.archivos_pendientes_eliminacion
+    WHERE s3_key = ANY($1::text[])
+  `,
+            [clavesDeLaPrueba],
+          );
+
+          assert.equal(tareasTrasProcesar.rowCount, 0);
+
+          // Ambas versiones físicas deben haber desaparecido.
+          for (const clave of clavesDeLaPrueba) {
+            await assert.rejects(
+              () => readFile(
+                path.join(raizTemporal, ...clave.split('/')),
+              ),
+              { code: 'ENOENT' },
+            );
+          }
+
+          assert.equal(
+            await procesador.procesarSiguienteConReintento(60),
+            false,
+          );
+
+          // La actividad de eliminación permanece después del borrado físico.
+          const actividadConservada = await database.query(
+            `
+    SELECT id_actor, tipo_accion, mensaje
+    FROM obra.actividades
+    WHERE id_proyecto = $1
+      AND tipo_accion = 'FOTOGRAFIA_ELIMINADA'
+  `,
+            [idProyecto],
+          );
+
+          assert.deepEqual(
+            actividadConservada.rows,
+            actividadesEliminacion.rows,
+          );
+
         } finally {
           /*
            * Limpiamos únicamente los UUID de esta prueba.
@@ -387,12 +582,26 @@ test(
               [idProyecto],
             );
 
+            /*
+             * La cola no tiene una relación en cascada con el proyecto.
+             * Retiramos únicamente las tareas creadas por esta prueba.
+             */
+            await client.query(
+              `
+        DELETE FROM obra.archivos_pendientes_eliminacion
+        WHERE s3_key = ANY($1::text[])
+      `,
+              [clavesDeLaPrueba],
+            );
+
             await client.query(
               'DELETE FROM obra.usuarios WHERE id_usuario = $1',
               [idUsuario],
             );
           });
+
         }
+
       },
     );
   },

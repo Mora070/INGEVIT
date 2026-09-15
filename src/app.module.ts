@@ -14,6 +14,8 @@ import {
   OriginGuard,
 } from './modules/auth/guards/origin.guard';
 
+import { PlanosModule } from './modules/planos/planos.module';
+
 
 
 /**
@@ -23,7 +25,7 @@ import {
  * de negocio que componen la aplicación.
  */
 @Module({
-  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule],
+  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule],
   controllers: [AppController],
   providers: [
   AppService,

@@ -27,7 +27,10 @@ const {
  * No ejecutar llamadas concurrentes a este ayudante en un mismo
  * proceso: modifica temporalmente variables de entorno.
  */
-async function conAplicacionReal(ejecutar) {
+async function conAplicacionReal(
+  ejecutar,
+  { habilitarTrabajador = false } = {},
+) {
   const raizTemporal = await mkdtemp(
     path.join(tmpdir(), 'ingevit-http-real-'),
   );
@@ -37,6 +40,8 @@ async function conAplicacionReal(ejecutar) {
     'AUTH_JWT_SECRET',
     'AUTH_ALLOWED_ORIGINS',
     'NODE_ENV',
+    'ARCHIVOS_PENDIENTES_HABILITADO',
+    'ARCHIVOS_PENDIENTES_INTERVALO_MS',
   ];
 
   const valoresAnteriores = new Map(
@@ -59,6 +64,17 @@ async function conAplicacionReal(ejecutar) {
     process.env.AUTH_JWT_SECRET = randomBytes(32).toString('hex');
     process.env.AUTH_ALLOWED_ORIGINS = origen;
     process.env.NODE_ENV = 'development';
+    /*
+     * El procesamiento automático solo se activa cuando una prueba
+     * lo solicita expresamente.
+     */
+    process.env.ARCHIVOS_PENDIENTES_HABILITADO =
+      habilitarTrabajador ? 'true' : 'false';
+
+    if (habilitarTrabajador) {
+      // Intervalo mínimo admitido para comprobar el temporizador real.
+      process.env.ARCHIVOS_PENDIENTES_INTERVALO_MS = '1000';
+    }
 
     // Cargamos el módulo después de establecer el entorno temporal.
     const { AppModule } = require('../../dist/app.module');
