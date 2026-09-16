@@ -108,9 +108,9 @@ test(
               `
                 INSERT INTO obra.planos (
                   id_plano, id_proyecto, id_usuario_subida,
-                  titulo, descripcion, url, s3_key, fecha_subida
+                  titulo, descripcion, url, s3_key, fecha_subida, numero_paginas
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1)
               `,
               [
                 idPlano,

@@ -16,6 +16,18 @@ import {
 
 import { PlanosModule } from './modules/planos/planos.module';
 
+import {
+  IncidenciasModule,
+} from './modules/incidencias/incidencias.module';
+
+import {
+  PanoramicasModule,
+} from './modules/panoramicas/panoramicas.module';
+
+import {
+  NotificacionesModule,
+} from './modules/notificaciones/notificaciones.module';
+
 
 
 /**
@@ -25,7 +37,7 @@ import { PlanosModule } from './modules/planos/planos.module';
  * de negocio que componen la aplicación.
  */
 @Module({
-  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule],
+  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule],
   controllers: [AppController],
   providers: [
   AppService,

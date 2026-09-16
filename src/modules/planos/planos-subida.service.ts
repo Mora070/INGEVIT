@@ -54,7 +54,7 @@ export class PlanosSubidaService {
     }
 
     // La inspección no modifica los bytes que se almacenarán.
-    await inspeccionarPlano(contenido);
+    const inspeccion = await inspeccionarPlano(contenido);
 
     return this.persistencia.guardarYRegistrar(
       contenido,
@@ -84,6 +84,7 @@ export class PlanosSubidaService {
           descripcion: datos.descripcion,
           url: `/api/proyectos/${idProyecto}/planos/archivos/${nombreArchivo}`,
           s3_key: clave,
+          numero_paginas: inspeccion.numeroPaginas,
         });
 
         await this.actividades.crear(client, {

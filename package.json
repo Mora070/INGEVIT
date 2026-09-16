@@ -24,6 +24,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
+    "nodemailer": "10.0.10",
     "pdf-lib": "1.17.1",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
@@ -36,6 +37,7 @@
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
     "@types/node": "^24.13.3",
+    "@types/nodemailer": "8.0.2",
     "@types/pg": "^8.23.1",
     "tsx": "^4.20.3",
     "typescript": "5.9"

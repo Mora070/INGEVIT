@@ -178,6 +178,9 @@ test('planos subida HTTP: conserva el original, registra la actividad y rechaza 
             assert.equal(registros.rows.length, 1);
             const registro = registros.rows[0];
 
+            // El PDF generado por esta prueba contiene dos páginas.
+            assert.equal(registro.numero_paginas, 2);
+
             assert.equal(registro.id_plano, plano.id_plano);
             assert.equal(registro.id_usuario_subida, colaborador);
             assert.equal(registro.url, plano.url);

@@ -17,6 +17,8 @@ export interface CrearPlanoInput {
   descripcion: string;
   url: string;
   s3_key: string;
+  /** Número de páginas obtenido al inspeccionar el PDF original. */
+  numero_paginas: number;
 }
 
 /**
@@ -59,9 +61,10 @@ export class PlanosRepository {
           descripcion,
           url,
           s3_key,
-          mime_type
+          mime_type,
+          numero_paginas
         )
-        VALUES ($1, $2, $3, $4, $5, $6, 'application/pdf')
+        VALUES ($1, $2, $3, $4, $5, $6, 'application/pdf', $7)
         RETURNING
           id_plano,
           id_proyecto,
@@ -80,6 +83,7 @@ export class PlanosRepository {
         datos.descripcion,
         datos.url,
         datos.s3_key,
+        datos.numero_paginas,
       ],
     );
 

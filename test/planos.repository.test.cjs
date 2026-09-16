@@ -15,6 +15,7 @@ function crearDatos(cambios = {}) {
     descripcion: 'Primer nivel',
     url: '/api/proyectos/20000000-0000-4000-8000-000000000001/planos/archivos/30000000-0000-4000-8000-000000000001.pdf',
     s3_key: 'planos/30000000-0000-4000-8000-000000000001.pdf',
+    numero_paginas: 2,
     ...cambios,
   };
 }
@@ -68,6 +69,7 @@ test('PlanosRepository.crear: parametriza los datos y devuelve el plano', async 
     datos.descripcion,
     datos.url,
     datos.s3_key,
+    datos.numero_paginas,
   ]);
 });
 

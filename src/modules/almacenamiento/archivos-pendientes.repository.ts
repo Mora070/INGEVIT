@@ -271,5 +271,44 @@ export class ArchivosPendientesRepository {
 
         return fila.referenciado;
     }
+
+    /**
+ * Comprueba referencias de panorámicas en todos los proyectos.
+ * La inactividad del proyecto o del usuario no permite borrar el archivo.
+ */
+    async estaReferenciadoEnPanoramicas(
+        client: PoolClient,
+        clave: string,
+    ): Promise<boolean> {
+        const claveValidada = validarClaveAlmacenamiento(clave);
+
+        const resultado = await client.query<{
+            referenciado: boolean;
+        }>(
+            `
+        SELECT EXISTS (
+          SELECT 1
+          FROM obra.panoramicas
+          WHERE s3_key = $1
+        ) AS referenciado
+      `,
+            [claveValidada],
+        );
+
+        const fila = resultado.rows[0];
+
+        if (
+            resultado.rowCount !== 1 ||
+            resultado.rows.length !== 1 ||
+            !fila ||
+            typeof fila.referenciado !== 'boolean'
+        ) {
+            throw new Error(
+                'No se pudo comprobar si el archivo continúa referenciado.',
+            );
+        }
+
+        return fila.referenciado;
+    }
 }
 

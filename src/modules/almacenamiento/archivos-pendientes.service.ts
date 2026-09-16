@@ -17,8 +17,8 @@ import {
 /**
  * Procesa tareas persistentes de eliminación.
  *
- * Actualmente solo procesa claves de fotografías, porque son
- * las únicas cuya comprobación de referencias está implementada.
+ * Actualmente procesa claves de fotografías, planos y panorámicas,
+ * porque son las categorías cuya comprobación de referencias está implementada
  *
  * No contiene temporizadores ni inicia trabajos automáticamente.
  */
@@ -138,34 +138,24 @@ export class ArchivosPendientesService {
        * Las categorías todavía no implementadas siguen rechazándose.
        */
       if (clave.startsWith('fotografias/')) {
-        const referenciado =
-          await this.pendientes.estaReferenciadoEnFotografias(
-            client,
-            clave,
-          );
-
+        const referenciado = await this.pendientes.estaReferenciadoEnFotografias(client, clave);
         if (referenciado) {
-          throw new Error(
-            'El archivo pendiente continúa referenciado por una fotografía.',
-          );
+          throw new Error('El archivo pendiente continúa referenciado por una fotografía.');
         }
       } else if (clave.startsWith('planos/')) {
-        const referenciado =
-          await this.pendientes.estaReferenciadoEnPlanos(
-            client,
-            clave,
-          );
-
+        const referenciado = await this.pendientes.estaReferenciadoEnPlanos(client, clave);
         if (referenciado) {
-          throw new Error(
-            'El archivo pendiente continúa referenciado por un plano.',
-          );
+          throw new Error('El archivo pendiente continúa referenciado por un plano.');
+        }
+      } else if (clave.startsWith('panoramicas/')) {
+        const referenciado = await this.pendientes.estaReferenciadoEnPanoramicas(client, clave);
+        if (referenciado) {
+          throw new Error('El archivo pendiente continúa referenciado por una panorámica.');
         }
       } else {
-        throw new Error(
-          'La categoría del archivo pendiente todavía no puede procesarse.',
-        );
+        throw new Error('La categoría del archivo pendiente todavía no puede procesarse.');
       }
+
 
 
 

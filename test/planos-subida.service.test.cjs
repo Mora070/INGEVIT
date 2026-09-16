@@ -16,6 +16,7 @@ const datos = { titulo: 'Estructura', descripcion: 'Nivel uno' };
 async function crearPdf() {
   const documento = await PDFDocument.create();
   documento.addPage([200, 300]);
+  documento.addPage([300, 200]);
   return Buffer.from(await documento.save());
 }
 
@@ -100,6 +101,7 @@ test('PlanosSubida: registra el PDF y su actividad con la identidad recibida', a
     descripcion: datos.descripcion,
     url: `/api/proyectos/${proyecto}/planos/archivos/${clave.slice(7)}`,
     s3_key: clave,
+    numero_paginas: 2,
   }]);
 
   assert.deepEqual(llamadas.actividades, [{

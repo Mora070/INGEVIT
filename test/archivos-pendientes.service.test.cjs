@@ -148,15 +148,15 @@ test(
 );
 
 test(
-  'procesarSiguiente: rechaza una categoría todavía no implementada',
+  'procesarSiguiente: rechaza una categoría ajena al almacenamiento',
   async () => {
     const { ejecutar, operaciones } = preparar({
-      clave: 'panoramicas/20000000-0000-4000-8000-000000000002.jpg',
+      clave: 'documentos/20000000-0000-4000-8000-000000000002.pdf',
     });
 
     await assert.rejects(ejecutar, {
       message:
-        'La categoría del archivo pendiente todavía no puede procesarse.',
+        'La clave de almacenamiento tiene un formato no permitido.',
     });
 
     assert.deepEqual(operaciones, ['iniciar', 'bloquear']);

@@ -42,6 +42,14 @@ async function conAplicacionReal(
     'NODE_ENV',
     'ARCHIVOS_PENDIENTES_HABILITADO',
     'ARCHIVOS_PENDIENTES_INTERVALO_MS',
+    'CORREO_PROVEEDOR',
+    'CORREO_SMTP_HOST',
+    'CORREO_SMTP_PORT',
+    'CORREO_REMITENTE_NOMBRE',
+    'CORREO_REMITENTE_DIRECCION',
+    'CORREO_TRABAJADOR_HABILITADO',
+    'CORREO_TRABAJADOR_INTERVALO_MS',
+    'CORREO_TRABAJADOR_MAX_POR_CICLO',
   ];
 
   const valoresAnteriores = new Map(
@@ -64,6 +72,21 @@ async function conAplicacionReal(
     process.env.AUTH_JWT_SECRET = randomBytes(32).toString('hex');
     process.env.AUTH_ALLOWED_ORIGINS = origen;
     process.env.NODE_ENV = 'development';
+    /*
+ * Configuración determinista para construir el módulo de correo.
+ * Las pruebas HTTP habituales no activan el trabajador ni necesitan
+ * que Mailpit esté encendido.
+ */
+    process.env.CORREO_PROVEEDOR = 'mailpit';
+    process.env.CORREO_SMTP_HOST = '127.0.0.1';
+    process.env.CORREO_SMTP_PORT = '1025';
+    process.env.CORREO_REMITENTE_NOMBRE = 'INGEVIT Pruebas';
+    process.env.CORREO_REMITENTE_DIRECCION =
+      'notificaciones@ingevit.test';
+
+    process.env.CORREO_TRABAJADOR_HABILITADO = 'false';
+    process.env.CORREO_TRABAJADOR_INTERVALO_MS = '5000';
+    process.env.CORREO_TRABAJADOR_MAX_POR_CICLO = '10';
     /*
      * El procesamiento automático solo se activa cuando una prueba
      * lo solicita expresamente.
