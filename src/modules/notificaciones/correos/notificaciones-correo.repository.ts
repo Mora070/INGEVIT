@@ -201,6 +201,70 @@ export class NotificacionesCorreoRepository {
         return resultado.rows[0] ?? null;
     }
 
+    /**
+ * Cierra un lote de reservas vencidas sin reenviar mensajes.
+ *
+ * FALLIDA significa que el procesamiento no tiene una confirmación
+ * satisfactoria. No demuestra que SMTP rechazara el correo.
+ *
+ * Libera la reserva y conserva la notificación y sus intentos.
+ * El límite evita actualizar una cantidad ilimitada en una transacción.
+ *
+ * Debe ejecutarse dentro de una transacción breve.
+ */
+    async cerrarReservasVencidas(
+        client: PoolClient,
+        limite: number,
+    ): Promise<number> {
+        if (
+            !Number.isInteger(limite) ||
+            limite < 1 ||
+            limite > 1000
+        ) {
+            throw new Error(
+                'El límite de reservas vencidas debe estar entre 1 y 1000.',
+            );
+        }
+
+        const resultado = await client.query(
+            `
+        WITH vencidas AS (
+          SELECT n.id_notificacion
+          FROM obra.notificaciones n
+          WHERE n.estado_envio_correo = 'PENDIENTE'
+            AND n.correo_reserva IS NOT NULL
+            AND n.correo_reservado_hasta <= clock_timestamp()
+          ORDER BY
+            n.correo_reservado_hasta,
+            n.id_notificacion
+          LIMIT $1::integer
+          FOR UPDATE OF n SKIP LOCKED
+        )
+        UPDATE obra.notificaciones n
+        SET
+          estado_envio_correo = 'FALLIDA',
+          correo_reserva = NULL,
+          correo_reservado_hasta = NULL
+        FROM vencidas v
+        WHERE n.id_notificacion = v.id_notificacion
+      `,
+            [limite],
+        );
+
+        if (
+            resultado.rowCount === null ||
+            !Number.isInteger(resultado.rowCount) ||
+            resultado.rowCount < 0 ||
+            resultado.rowCount > limite
+        ) {
+            throw new Error(
+                'El cierre de reservas devolvió una cantidad inesperada.',
+            );
+        }
+
+        return resultado.rowCount;
+    }
+
     private validarLimites(
         segundosReserva: number,
         maxIntentos: number,

@@ -79,7 +79,7 @@ async function conServidor(
   let app;
 
   try {
-    class AdminHttpTestModule {}
+    class AdminHttpTestModule { }
 
     Module({
       controllers: [UsuariosAdminController],
@@ -97,21 +97,25 @@ async function conServidor(
         {
           provide: TokenService,
           useValue: {
-            async verificarToken(token) {
+            async verificarTokenConVersion(token) {
               if (token !== TOKEN) {
                 throw new UnauthorizedException(
                   'La sesión no es válida o ha expirado.',
                 );
               }
 
-              return ID_SOLICITANTE;
+              return {
+                id_usuario: ID_SOLICITANTE,
+                version_sesion: 0,
+              };
             },
           },
         },
         {
           provide: UsuariosService,
           useValue: {
-            async obtenerMiPerfil(idUsuario) {
+            async obtenerPerfilDeSesion(idUsuario, versionSesion) {
+              assert.equal(versionSesion, 0);
               return crearPerfil(idUsuario, rol);
             },
 

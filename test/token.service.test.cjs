@@ -56,16 +56,20 @@ test('getAuthConfig: rechaza claves ausentes o con formato incorrecto', () => {
   }
 });
 
-test('TokenService: emite un token verificable con identidad y vencimiento correctos', async () => {
+test('TokenService: emite un token verificable con identidad, versión y vencimiento correctos', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
-  const token = await tokenService.emitirToken(ID_USUARIO);
+  const token = await tokenService.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
 
   // verifyAsync comprueba la firma y las opciones configuradas.
   // Decodificar sin verificar no sería suficiente.
   const payload = await jwtService.verifyAsync(token);
 
   assert.equal(payload.sub, ID_USUARIO);
+  assert.equal(payload.version_sesion, 0);
   assert.equal(payload.iss, 'ingevit-backend');
   assert.equal(payload.aud, 'ingevit-api');
 
@@ -79,14 +83,18 @@ test('TokenService: emite un token verificable con identidad y vencimiento corre
   // Detecta la incorporación accidental de datos adicionales.
   assert.deepEqual(
     Object.keys(payload).sort(),
-    ['aud', 'exp', 'iat', 'iss', 'sub'],
+    ['aud', 'exp', 'iat', 'iss', 'sub', 'version_sesion'],
   );
 });
 
 test('TokenService: el verificador rechaza una firma modificada', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
-  const token = await tokenService.emitirToken(ID_USUARIO);
+  const token = await tokenService.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
+
   const [header, payload, firma] = token.split('.');
 
   // Cambiamos el primer carácter para alterar realmente la firma.
@@ -106,7 +114,10 @@ test('TokenService: el verificador rechaza un token firmado con otra clave', asy
   const emisor = crearEscenario();
   const receptor = crearEscenario();
 
-  const token = await emisor.tokenService.emitirToken(ID_USUARIO);
+  const token = await emisor.tokenService.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
 
   await assert.rejects(
     () => receptor.jwtService.verifyAsync(token),
@@ -131,7 +142,10 @@ test('TokenService: el verificador rechaza un token vencido', async () => {
     }),
   );
 
-  const token = await emisorVencido.emitirToken(ID_USUARIO);
+  const token = await emisorVencido.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
 
   await assert.rejects(
     () => jwtService.verifyAsync(token),
@@ -162,7 +176,10 @@ test('TokenService: el verificador rechaza un emisor o destinatario diferente', 
       }),
     );
 
-    const token = await emisor.emitirToken(ID_USUARIO);
+    const token = await emisor.emitirTokenConVersion(
+      ID_USUARIO,
+      0,
+    );
 
     await assert.rejects(
       () => jwtService.verifyAsync(token),
@@ -186,68 +203,78 @@ function comprobarSesionRechazada(error) {
   return true;
 }
 
-test('verificarToken: devuelve el UUID de un token válido', async () => {
+test('verificarTokenConVersion: devuelve la identidad de un token válido', async () => {
   const { tokenService } = crearEscenario();
 
-  const token = await tokenService.emitirToken(ID_USUARIO);
-  const idUsuario = await tokenService.verificarToken(token);
+  const token = await tokenService.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
 
-  assert.equal(idUsuario, ID_USUARIO);
+  const identidad = await tokenService.verificarTokenConVersion(token);
+
+  assert.deepEqual(identidad, {
+    id_usuario: ID_USUARIO,
+    version_sesion: 0,
+  });
 });
 
-test('verificarToken: rechaza una firma realizada con otra clave', async () => {
+test('verificarTokenConVersion: rechaza una firma realizada con otra clave', async () => {
   const emisor = crearEscenario();
   const receptor = crearEscenario();
 
-  const token = await emisor.tokenService.emitirToken(ID_USUARIO);
+  const token = await emisor.tokenService.emitirTokenConVersion(
+    ID_USUARIO,
+    0,
+  );
 
   await assert.rejects(
-    () => receptor.tokenService.verificarToken(token),
+    () => receptor.tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: convierte un token vencido en un rechazo de sesión', async () => {
+test('verificarTokenConVersion: convierte un token vencido en un rechazo de sesión', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
   // Vencimiento pasado para evitar esperas durante la prueba.
   const token = await jwtService.signAsync(
-    { sub: ID_USUARIO },
+    { sub: ID_USUARIO, version_sesion: 0 },
     { expiresIn: -1 },
   );
 
   await assert.rejects(
-    () => tokenService.verificarToken(token),
+    () => tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: rechaza un token que todavía no está vigente', async () => {
+test('verificarTokenConVersion: rechaza un token que todavía no está vigente', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
   const token = await jwtService.signAsync(
-    { sub: ID_USUARIO },
+    { sub: ID_USUARIO, version_sesion: 0 },
     { notBefore: 60 },
   );
 
   await assert.rejects(
-    () => tokenService.verificarToken(token),
+    () => tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: rechaza texto que no representa un JWT', async () => {
+test('verificarTokenConVersion: rechaza texto que no representa un JWT', async () => {
   const { tokenService } = crearEscenario();
 
   for (const token of ['', 'texto-invalido', 'uno.dos.tres']) {
     await assert.rejects(
-      () => tokenService.verificarToken(token),
+      () => tokenService.verificarTokenConVersion(token),
       comprobarSesionRechazada,
     );
   }
 });
 
-test('verificarToken: rechaza un emisor o destinatario incorrecto', async () => {
+test('verificarTokenConVersion: rechaza un emisor o destinatario incorrecto', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
   for (const opciones of [
@@ -255,18 +282,18 @@ test('verificarToken: rechaza un emisor o destinatario incorrecto', async () => 
     { audience: 'otra-api' },
   ]) {
     const token = await jwtService.signAsync(
-      { sub: ID_USUARIO },
+      { sub: ID_USUARIO, version_sesion: 0 },
       opciones,
     );
 
     await assert.rejects(
-      () => tokenService.verificarToken(token),
+      () => tokenService.verificarTokenConVersion(token),
       comprobarSesionRechazada,
     );
   }
 });
 
-test('verificarToken: rechaza un sujeto ausente o que no es un UUID', async () => {
+test('verificarTokenConVersion: rechaza un sujeto ausente o que no es un UUID', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
   /**
@@ -282,16 +309,19 @@ test('verificarToken: rechaza un sujeto ausente o que no es un UUID', async () =
   ];
 
   for (const contenido of contenidosInvalidos) {
-    const token = await jwtService.signAsync(contenido);
+    const token = await jwtService.signAsync({
+      ...contenido,
+      version_sesion: 0,
+    });
 
     await assert.rejects(
-      () => tokenService.verificarToken(token),
+      () => tokenService.verificarTokenConVersion(token),
       comprobarSesionRechazada,
     );
   }
 });
 
-test('verificarToken: rechaza un token firmado sin vencimiento', async () => {
+test('verificarTokenConVersion: rechaza un token firmado sin vencimiento', async () => {
   const { config, tokenService } = crearEscenario();
 
   /**
@@ -308,29 +338,30 @@ test('verificarToken: rechaza un token firmado sin vencimiento', async () => {
 
   const token = await emisorSinVencimiento.signAsync({
     sub: ID_USUARIO,
+    version_sesion: 0,
   });
 
   await assert.rejects(
-    () => tokenService.verificarToken(token),
+    () => tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: rechaza un token firmado sin fecha de emisión', async () => {
+test('verificarTokenConVersion: rechaza un token firmado sin fecha de emisión', async () => {
   const { jwtService, tokenService } = crearEscenario();
 
   const token = await jwtService.signAsync(
-    { sub: ID_USUARIO },
+    { sub: ID_USUARIO, version_sesion: 0 },
     { noTimestamp: true },
   );
 
   await assert.rejects(
-    () => tokenService.verificarToken(token),
+    () => tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: rechaza un vencimiento anterior a la emisión', async () => {
+test('verificarTokenConVersion: rechaza un vencimiento anterior a la emisión', async () => {
   const { config, tokenService } = crearEscenario();
 
   const signOptions = { ...config.signOptions };
@@ -349,17 +380,18 @@ test('verificarToken: rechaza un vencimiento anterior a la emisión', async () =
    */
   const token = await emisor.signAsync({
     sub: ID_USUARIO,
+    version_sesion: 0,
     iat: ahora + 120,
     exp: ahora + 60,
   });
 
   await assert.rejects(
-    () => tokenService.verificarToken(token),
+    () => tokenService.verificarTokenConVersion(token),
     comprobarSesionRechazada,
   );
 });
 
-test('verificarToken: propaga fallos técnicos ajenos a la validación del JWT', async () => {
+test('verificarTokenConVersion: propaga fallos técnicos ajenos a la validación del JWT', async () => {
   const errorOriginal = new Error('Fallo técnico simulado');
 
   /**
@@ -373,7 +405,7 @@ test('verificarToken: propaga fallos técnicos ajenos a la validación del JWT',
   });
 
   await assert.rejects(
-    () => tokenService.verificarToken('TOKEN_FICTICIO'),
+    () => tokenService.verificarTokenConVersion('TOKEN_FICTICIO'),
     (error) => {
       assert.strictEqual(error, errorOriginal);
       return true;

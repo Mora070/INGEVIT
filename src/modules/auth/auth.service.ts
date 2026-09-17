@@ -8,7 +8,7 @@ import { randomBytes } from 'node:crypto';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { PasswordService } from './services/password.service';
 import { toUsuarioResponse } from '../usuarios/mappers/usuario.mapper';
-import type { UsuarioResponse } from '../usuarios/types/usuario.types';
+import type { UsuarioResponse, UsuarioRow, } from '../usuarios/types/usuario.types';
 import { TokenService } from './services/token.service';
 import type { ResultadoAutenticacion } from './types/resultado-autenticacion.types';
 import type { RegisterDto } from './dto/register.dto';
@@ -60,11 +60,19 @@ export class AuthService implements OnModuleInit {
    * - La cuenta está ACTIVA.
    *
    * Todavía no crea una sesión ni emite tokens.
+   * 
+   * 
+   *       /**
+   * Comprueba las credenciales y devuelve la fila interna consultada.
+   *
+   * Conserva juntos el hash verificado y la versión de sesión.
+   * Este resultado no debe salir directamente hacia un controlador.
    */
-  async validarCredenciales(
+  
+  private async autenticarUsuario(
     correo: string,
     password: string,
-  ): Promise<UsuarioResponse> {
+  ): Promise<UsuarioRow> {
     const hashSimulado = this.hashSimulado;
 
     if (hashSimulado === undefined) {
@@ -97,6 +105,17 @@ export class AuthService implements OnModuleInit {
         'Correo o contraseña incorrectos.',
       );
     }
+        return usuario;
+  }
+
+    /**
+   * Valida las credenciales y devuelve exclusivamente el perfil público.
+   */
+  async validarCredenciales(
+    correo: string,
+    password: string,
+  ): Promise<UsuarioResponse> {
+    const usuario = await this.autenticarUsuario(correo, password);
 
     return toUsuarioResponse(usuario);
   }
@@ -113,26 +132,32 @@ export class AuthService implements OnModuleInit {
  *
  * La creación de la cookie pertenece al controlador HTTP.
  */
-async iniciarSesion(
-  correo: string,
-  password: string,
-): Promise<ResultadoAutenticacion> {
-  const usuario = await this.validarCredenciales(
-    correo,
-    password,
-  );
+  /**
+   * Emite un token con la versión de la cuenta cuyas credenciales
+   * acabamos de verificar.
+   *
+   * No realiza una segunda consulta para obtener la versión:
+   * podría corresponder a una contraseña diferente.
+   */
+  async iniciarSesion(
+    correo: string,
+    password: string,
+  ): Promise<ResultadoAutenticacion> {
+    const usuario = await this.autenticarUsuario(
+      correo,
+      password,
+    );
 
-  // La identidad procede del usuario encontrado en PostgreSQL,
-  // nunca de un identificador enviado libremente por el cliente.
-  const tokenAcceso = await this.tokenService.emitirToken(
-    usuario.id_usuario,
-  );
+    const tokenAcceso = await this.tokenService.emitirTokenConVersion(
+      usuario.id_usuario,
+      usuario.version_sesion,
+    );
 
-  return {
-    tokenAcceso,
-    usuario,
-  };
-}
+    return {
+      tokenAcceso,
+      usuario: toUsuarioResponse(usuario),
+    };
+  }
 
 /**
  * Registra una cuenta mediante correo y contraseña.
@@ -172,5 +197,7 @@ async registrar(
 
   return toUsuarioResponse(usuario);
 }
+
+
 
 }

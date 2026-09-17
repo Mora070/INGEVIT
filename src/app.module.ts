@@ -28,6 +28,10 @@ import {
   NotificacionesModule,
 } from './modules/notificaciones/notificaciones.module';
 
+import {
+  UsuariosPerfilModule,
+} from './modules/usuarios/usuarios-perfil.module';
+
 
 
 /**
@@ -37,7 +41,7 @@ import {
  * de negocio que componen la aplicación.
  */
 @Module({
-  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule],
+  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule,UsuariosPerfilModule],
   controllers: [AppController],
   providers: [
   AppService,

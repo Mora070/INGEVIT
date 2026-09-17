@@ -41,19 +41,24 @@ function crearEscenario({ errorToken, errorPerfil } = {}) {
   const perfil = crearPerfil();
 
   const tokenService = {
-    async verificarToken(token) {
+    async verificarTokenConVersion(token) {
       llamadas.push({ operacion: 'verificarToken', valor: token });
 
       if (errorToken) {
         throw errorToken;
       }
 
-      return ID_USUARIO;
+      return {
+        id_usuario: ID_USUARIO,
+        version_sesion: 0,
+      };
+
     },
   };
 
   const usuariosService = {
-    async obtenerMiPerfil(idUsuario) {
+    async obtenerPerfilDeSesion(idUsuario, versionSesion) {
+      assert.equal(versionSesion, 0);
       llamadas.push({
         operacion: 'obtenerMiPerfil',
         valor: idUsuario,

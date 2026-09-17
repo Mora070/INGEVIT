@@ -6,6 +6,8 @@ import {
   IsString,
 } from 'class-validator';
 
+import { PasswordNueva } from '../decorators/password-nueva.decorator';
+
 /**
  * Datos admitidos para crear una cuenta mediante correo y contraseña.
  *
@@ -35,8 +37,7 @@ export class RegisterDto {
    * No se normaliza, no se devuelve en respuestas
    * y no se almacena directamente en PostgreSQL.
    */
-  @IsString({ message: 'La contraseña debe ser un texto.' })
-  @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
+  @PasswordNueva()
   password!: string;
 
   /**

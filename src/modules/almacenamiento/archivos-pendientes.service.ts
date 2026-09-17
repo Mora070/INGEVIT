@@ -15,10 +15,11 @@ import {
 } from './utils/validar-clave-almacenamiento';
 
 /**
- * Procesa tareas persistentes de eliminación.
+ * Procesa tareas persistentes de eliminación de fotografías,
+ * planos, panorámicas y avatares.
  *
- * Actualmente procesa claves de fotografías, planos y panorámicas,
- * porque son las categorías cuya comprobación de referencias está implementada
+ * Antes de borrar cada archivo, comprueba que su categoría
+ * no conserve referencias en la base de datos.
  *
  * No contiene temporizadores ni inicia trabajos automáticamente.
  */
@@ -31,10 +32,10 @@ export class ArchivosPendientesService {
   ) { }
 
   /**
- * Procesa una tarea sin programar automáticamente su reintento.
- *
- * Conserva el comportamiento utilizado por las pruebas existentes.
- */
+   * Procesa una tarea sin programar automáticamente su reintento.
+   *
+   * Conserva el comportamiento utilizado por las pruebas existentes.
+   */
   async procesarSiguiente(): Promise<boolean> {
     return this.procesarUnaTarea();
   }
@@ -138,26 +139,58 @@ export class ArchivosPendientesService {
        * Las categorías todavía no implementadas siguen rechazándose.
        */
       if (clave.startsWith('fotografias/')) {
-        const referenciado = await this.pendientes.estaReferenciadoEnFotografias(client, clave);
+        const referenciado =
+          await this.pendientes.estaReferenciadoEnFotografias(
+            client,
+            clave,
+          );
+
         if (referenciado) {
-          throw new Error('El archivo pendiente continúa referenciado por una fotografía.');
+          throw new Error(
+            'El archivo pendiente continúa referenciado por una fotografía.',
+          );
         }
       } else if (clave.startsWith('planos/')) {
-        const referenciado = await this.pendientes.estaReferenciadoEnPlanos(client, clave);
+        const referenciado =
+          await this.pendientes.estaReferenciadoEnPlanos(
+            client,
+            clave,
+          );
+
         if (referenciado) {
-          throw new Error('El archivo pendiente continúa referenciado por un plano.');
+          throw new Error(
+            'El archivo pendiente continúa referenciado por un plano.',
+          );
         }
       } else if (clave.startsWith('panoramicas/')) {
-        const referenciado = await this.pendientes.estaReferenciadoEnPanoramicas(client, clave);
+        const referenciado =
+          await this.pendientes.estaReferenciadoEnPanoramicas(
+            client,
+            clave,
+          );
+
         if (referenciado) {
-          throw new Error('El archivo pendiente continúa referenciado por una panorámica.');
+          throw new Error(
+            'El archivo pendiente continúa referenciado por una panorámica.',
+          );
+        }
+      } else if (clave.startsWith('avatares/')) {
+        const referenciado =
+          await this.pendientes.estaReferenciadoEnAvatares(
+            client,
+            clave,
+          );
+
+        if (referenciado) {
+          throw new Error(
+            'El archivo pendiente continúa referenciado por una fotografía de perfil.',
+          );
         }
       } else {
-        throw new Error('La categoría del archivo pendiente todavía no puede procesarse.');
+        throw new Error(
+          'La categoría del archivo pendiente todavía no puede procesarse.',
+        );
       }
-
-
-
 
       /*
        * Esperamos el resultado del almacenamiento antes de retirar

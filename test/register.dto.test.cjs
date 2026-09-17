@@ -34,18 +34,18 @@ function comprobarRegistroRechazado(error) {
 test('RegisterDto: acepta el registro con correo y contraseña', async () => {
   const resultado = await validarRegistro({
     correo: 'persona@example.test',
-    password: 'Clave ficticia',
+    password: 'Clave ficticia de registro',
   });
 
   assert.ok(resultado instanceof RegisterDto);
   assert.equal(resultado.correo, 'persona@example.test');
-  assert.equal(resultado.password, 'Clave ficticia');
+  assert.equal(resultado.password, 'Clave ficticia de registro');
 });
 
 test('RegisterDto: acepta los campos de perfil definidos', async () => {
   const resultado = await validarRegistro({
     correo: 'persona@example.test',
-    password: 'Clave ficticia',
+    password: 'Clave ficticia de registro',
     nombre: 'Persona',
     apellidos: 'De prueba',
     telefono: '+57 03001234567',
@@ -61,7 +61,7 @@ test('RegisterDto: acepta los campos de perfil definidos', async () => {
 test('RegisterDto: admite campos opcionales nulos', async () => {
   const resultado = await validarRegistro({
     correo: 'persona@example.test',
-    password: 'Clave ficticia',
+    password: 'Clave ficticia de registro',
     nombre: null,
     apellidos: null,
     telefono: null,
@@ -109,7 +109,7 @@ for (const [campo, valor] of camposNoPermitidos) {
       () =>
         validarRegistro({
           correo: 'persona@example.test',
-          password: 'Clave ficticia',
+          password: 'Clave ficticia de registro',
           [campo]: valor,
         }),
       comprobarRegistroRechazado,
@@ -121,10 +121,10 @@ test('RegisterDto: rechaza credenciales ausentes o con formato incorrecto', asyn
   const entradasInvalidas = [
     {},
     { correo: 'persona@example.test' },
-    { password: 'Clave ficticia' },
-    { correo: '   ', password: 'Clave ficticia' },
-    { correo: 'correo-invalido', password: 'Clave ficticia' },
-    { correo: 123, password: 'Clave ficticia' },
+    { password: 'Clave ficticia de registro' },
+    { correo: '   ', password: 'Clave ficticia de registro'},
+    { correo: 'correo-invalido', password: 'Clave ficticia de registro' },
+    { correo: 123, password: 'Clave ficticia de registro' },
     { correo: 'persona@example.test', password: '' },
     { correo: 'persona@example.test', password: null },
     { correo: 'persona@example.test', password: 123456 },
@@ -148,7 +148,7 @@ test('RegisterDto: rechaza tipos incorrectos en los campos de perfil', async () 
         () =>
           validarRegistro({
             correo: 'persona@example.test',
-            password: 'Clave ficticia',
+            password: 'Clave ficticia de registro',
             [campo]: valor,
           }),
         comprobarRegistroRechazado,

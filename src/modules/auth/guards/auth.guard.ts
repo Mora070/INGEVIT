@@ -17,6 +17,7 @@ import type { AuthRequest } from '../types/auth-request.types';
  * 1. Existencia de una cookie con valor de texto.
  * 2. Firma, vencimiento y contenido del JWT.
  * 3. Existencia y estado actual del usuario en PostgreSQL.
+ * 4. Coincidencia entre la versión del token y la cuenta.
  *
  * No comprueba permisos específicos sobre proyectos.
  */
@@ -58,17 +59,16 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    // No consultamos PostgreSQL hasta haber verificado el token.
-    const idUsuario = await this.tokenService.verificarToken(token);
+    // Verifica firma, fechas, identidad y presencia de la versión.
+    const identidad = await this.tokenService.verificarTokenConVersion(
+      token,
+    );
 
-    /**
-     * Este método consulta el estado actual y rechaza cuentas
-     * inexistentes o inactivas. También devuelve un perfil sin secretos.
-     *
-     * No reutilizamos el estado de una solicitud anterior.
-     */
-    const usuario =
-      await this.usuariosService.obtenerMiPerfil(idUsuario);
+    // Compara con el estado actual de PostgreSQL en cada solicitud.
+    const usuario = await this.usuariosService.obtenerPerfilDeSesion(
+      identidad.id_usuario,
+      identidad.version_sesion,
+    );
 
     request.usuario = usuario;
 

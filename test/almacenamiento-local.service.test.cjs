@@ -112,7 +112,7 @@ test(
 
           assert.deepEqual(
             (await readdir(raiz)).sort(),
-            ['fotografias', 'panoramicas', 'planos'],
+            ['avatares', 'fotografias', 'panoramicas', 'planos']
           );
 
           const clave = `fotografias/${randomUUID()}.jpg`;

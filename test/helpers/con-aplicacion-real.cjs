@@ -29,7 +29,10 @@ const {
  */
 async function conAplicacionReal(
   ejecutar,
-  { habilitarTrabajador = false } = {},
+  {
+    habilitarTrabajador = false,
+    habilitarTrabajadorCorreo = false,
+  } = {},
 ) {
   const raizTemporal = await mkdtemp(
     path.join(tmpdir(), 'ingevit-http-real-'),
@@ -50,6 +53,10 @@ async function conAplicacionReal(
     'CORREO_TRABAJADOR_HABILITADO',
     'CORREO_TRABAJADOR_INTERVALO_MS',
     'CORREO_TRABAJADOR_MAX_POR_CICLO',
+    //'AUTH_RECUPERACION_URL',
+    'AUTH_RECUPERACION_SECRET',
+    'AUTH_GOOGLE_CLIENT_ID',
+    'RECUPERACION_TRABAJADOR_HABILITADO',
   ];
 
   const valoresAnteriores = new Map(
@@ -72,6 +79,16 @@ async function conAplicacionReal(
     process.env.AUTH_JWT_SECRET = randomBytes(32).toString('hex');
     process.env.AUTH_ALLOWED_ORIGINS = origen;
     process.env.NODE_ENV = 'development';
+    process.env.AUTH_RECUPERACION_SECRET =
+      randomBytes(32).toString('hex');
+
+    // Identificador ficticio: las pruebas no deben depender de credenciales reales.
+    // Las pruebas de Google sustituirán el verificador externo.
+    process.env.AUTH_GOOGLE_CLIENT_ID =
+      '123456789-pruebas.apps.googleusercontent.com';
+
+    // Las pruebas habituales no deben enviar correos por esta cola.
+    process.env.RECUPERACION_TRABAJADOR_HABILITADO = 'false';
     /*
  * Configuración determinista para construir el módulo de correo.
  * Las pruebas HTTP habituales no activan el trabajador ni necesitan
@@ -84,9 +101,18 @@ async function conAplicacionReal(
     process.env.CORREO_REMITENTE_DIRECCION =
       'notificaciones@ingevit.test';
 
-    process.env.CORREO_TRABAJADOR_HABILITADO = 'false';
-    process.env.CORREO_TRABAJADOR_INTERVALO_MS = '5000';
-    process.env.CORREO_TRABAJADOR_MAX_POR_CICLO = '10';
+    /*
+     * Las pruebas habituales mantienen el trabajador deshabilitado.
+     * Una prueba de su ciclo de vida puede activarlo expresamente.
+     */
+    process.env.CORREO_TRABAJADOR_HABILITADO =
+      habilitarTrabajadorCorreo ? 'true' : 'false';
+
+    process.env.CORREO_TRABAJADOR_INTERVALO_MS =
+      habilitarTrabajadorCorreo ? '1000' : '5000';
+
+    process.env.CORREO_TRABAJADOR_MAX_POR_CICLO =
+      habilitarTrabajadorCorreo ? '1' : '10';
     /*
      * El procesamiento automático solo se activa cuando una prueba
      * lo solicita expresamente.

@@ -29,6 +29,7 @@ function crearUsuario(cambios = {}) {
     rol: 'USUARIO',
     estado: 'ACTIVO',
     google_sub: null,
+    version_sesion: 0,
     ...cambios,
   };
 }
@@ -92,13 +93,16 @@ function crearEscenario({
     },
   };
 
-/**
- * Registra cada intento de emisión.
- * Permite simular un fallo técnico después de validar las credenciales.
- */
+  /**
+   * Registra cada intento de emisión.
+   * Permite simular un fallo técnico después de validar las credenciales.
+   */
 const tokenService = {
-  async emitirToken(idUsuario) {
-    llamadas.emisiones.push(idUsuario);
+  async emitirTokenConVersion(idUsuario, versionSesion) {
+    llamadas.emisiones.push({
+      idUsuario,
+      versionSesion,
+    });
 
     if (errorEmision) {
       throw errorEmision;
@@ -411,7 +415,10 @@ test('iniciarSesion: emite un token para el usuario autenticado y devuelve su pe
   ]);
 
   // La identidad utilizada para emitir procede del usuario consultado.
-  assert.deepEqual(llamadas.emisiones, [usuario.id_usuario]);
+    assert.deepEqual(llamadas.emisiones, [{
+    idUsuario: usuario.id_usuario,
+    versionSesion: usuario.version_sesion,
+  }]);
 
   // El token forma parte del resultado interno, no del perfil.
   assert.deepEqual(resultado, {
@@ -559,10 +566,10 @@ test('iniciarSesion: propaga un fallo de emisión sin devolver un resultado sati
   );
 
   // Las credenciales se validaron, pero la emisión falló.
-  assert.equal(llamadas.verificaciones.length, 1);
-  assert.deepEqual(llamadas.emisiones, [
-  crearUsuario().id_usuario,
-]);
+  assert.deepEqual(llamadas.emisiones, [{
+    idUsuario: crearUsuario().id_usuario,
+    versionSesion: 0,
+  }]);
 });
 
 /**
@@ -571,3 +578,82 @@ test('iniciarSesion: propaga un fallo de emisión sin devolver un resultado sati
 function ID_USUARIO_PARA_EMISION() {
   return crearUsuario().id_usuario;
 }
+
+test('iniciarSesion: firma la versión almacenada sin incluirla en el perfil público', async () => {
+  const usuario = crearUsuario({ version_sesion: 7 });
+  const { service, llamadas } = crearEscenario({ usuario });
+
+  await service.onModuleInit();
+
+  const resultado = await service.iniciarSesion(
+    usuario.correo,
+    'Clave ficticia',
+  );
+
+  assert.deepEqual(llamadas.emisiones, [{
+    idUsuario: usuario.id_usuario,
+    versionSesion: 7,
+  }]);
+
+  assert.equal(llamadas.correos.length, 1);
+  assert.equal(
+    Object.hasOwn(resultado.usuario, 'version_sesion'),
+    false,
+  );
+  assert.equal(
+    Object.hasOwn(resultado.usuario, 'password_hash'),
+    false,
+  );
+});
+
+test('iniciarSesion: conserva la versión consultada si la cuenta cambia durante la verificación', async () => {
+  let versionAlmacenada = 7;
+  let consultas = 0;
+  const emisiones = [];
+
+  const service = new AuthService(
+    {
+      async buscarPorCorreoParaAutenticacion() {
+        consultas += 1;
+
+        // Representa la fila devuelta por la consulta a PostgreSQL.
+        return crearUsuario({
+          version_sesion: versionAlmacenada,
+        });
+      },
+    },
+    {
+      async generarHash() {
+        return HASH_SIMULADO;
+      },
+
+      async verificar() {
+        // Simula un cambio de contraseña posterior a la consulta.
+        versionAlmacenada = 8;
+        return true;
+      },
+    },
+    {
+      async emitirTokenConVersion(idUsuario, versionSesion) {
+        emisiones.push({ idUsuario, versionSesion });
+        return 'TOKEN_CON_VERSION_ANTERIOR';
+      },
+    },
+  );
+
+  await service.onModuleInit();
+
+  await service.iniciarSesion(
+    'persona@example.test',
+    'Clave ficticia',
+  );
+
+  assert.equal(versionAlmacenada, 8);
+  assert.equal(consultas, 1);
+
+  // No firma la versión nueva usando la contraseña anterior.
+  assert.deepEqual(emisiones, [{
+    idUsuario: crearUsuario().id_usuario,
+    versionSesion: 7,
+  }]);
+});

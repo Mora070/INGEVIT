@@ -54,7 +54,7 @@ test(
 
       assert.deepEqual(
         (await readdir(raiz)).sort(),
-        ['fotografias', 'panoramicas', 'planos'],
+        ['avatares', 'fotografias', 'panoramicas', 'planos']
       );
 
       for (const categoria of [

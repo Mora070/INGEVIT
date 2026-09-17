@@ -310,5 +310,50 @@ export class ArchivosPendientesRepository {
 
         return fila.referenciado;
     }
+
+
+    /**
+ * Comprueba si alguna cuenta conserva este avatar.
+ *
+ * También incluye cuentas inactivas: desactivar una cuenta no elimina
+ * su fotografía de perfil ni autoriza a borrar su archivo.
+ *
+ * Utiliza la misma conexión de la transacción del trabajador.
+ */
+    async estaReferenciadoEnAvatares(
+        client: PoolClient,
+        clave: string,
+    ): Promise<boolean> {
+        const claveValidada = validarClaveAlmacenamiento(clave);
+
+        const resultado = await client.query<{
+            referenciado: boolean;
+        }>(
+            `
+      SELECT EXISTS (
+        SELECT 1
+        FROM obra.usuarios
+        WHERE foto_perfil_key = $1
+      ) AS referenciado
+    `,
+            [claveValidada],
+        );
+
+        const fila = resultado.rows[0];
+
+        // Una respuesta inesperada debe impedir la eliminación del archivo.
+        if (
+            resultado.rowCount !== 1 ||
+            resultado.rows.length !== 1 ||
+            !fila ||
+            typeof fila.referenciado !== 'boolean'
+        ) {
+            throw new Error(
+                'No se pudo comprobar si el avatar continúa referenciado.',
+            );
+        }
+
+        return fila.referenciado;
+    }
 }
 

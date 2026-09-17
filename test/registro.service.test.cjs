@@ -66,7 +66,7 @@ function crearEscenario({ errorHash, errorCreacion } = {}) {
   };
 
   const tokenService = {
-    async emitirToken() {
+    async emitirTokenConVersion() {
       llamadas.push({ operacion: 'token' });
 
       // El registro no debe intentar emitir un token.

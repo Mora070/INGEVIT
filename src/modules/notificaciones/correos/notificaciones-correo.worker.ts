@@ -31,8 +31,7 @@ import type {
  */
 @Injectable()
 export class NotificacionesCorreoWorker
-  implements OnApplicationBootstrap, BeforeApplicationShutdown
-{
+  implements OnApplicationBootstrap, BeforeApplicationShutdown {
   private readonly logger = new Logger(
     NotificacionesCorreoWorker.name,
   );
@@ -46,7 +45,7 @@ export class NotificacionesCorreoWorker
 
   constructor(
     private readonly servicio: NotificacionesCorreoService,
-  ) {}
+  ) { }
 
   /**
    * Arranca después de inicializar los módulos.
@@ -116,6 +115,18 @@ export class NotificacionesCorreoWorker
   private async ejecutarCiclo(
     configuracion: CorreoTrabajadorConfig,
   ): Promise<void> {
+
+    if (this.deteniendo) {
+      return;
+    }
+
+    const recuperadas = await this.servicio.recuperarReservasVencidas();
+
+    if (recuperadas > 0) {
+      this.logger.warn(
+        `Se cerraron ${recuperadas} reservas de correo vencidas sin reenviar mensajes.`,
+      );
+    }
     for (
       let numero = 0;
       numero < configuracion.maxPorCiclo;

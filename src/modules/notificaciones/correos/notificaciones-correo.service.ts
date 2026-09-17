@@ -29,7 +29,21 @@ export class NotificacionesCorreoService {
     private readonly database: DatabaseService,
     private readonly repository: NotificacionesCorreoRepository,
     private readonly correo: CorreoService,
-  ) {}
+  ) { }
+
+
+
+  /**
+ * Cierra hasta 100 reservas vencidas por ciclo.
+ *
+ * La transacción se confirma antes de procesar nuevos envíos.
+ * No reenvía mensajes ni elimina notificaciones.
+ */
+  async recuperarReservasVencidas(): Promise<number> {
+    return this.database.withTransaction(
+      (client) => this.repository.cerrarReservasVencidas(client, 100),
+    );
+  }
 
   async procesarSiguiente(): Promise<ResultadoProcesamientoCorreo> {
     const reservada = await this.database.withTransaction(

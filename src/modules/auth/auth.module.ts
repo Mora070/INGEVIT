@@ -15,6 +15,49 @@ import { TokenService } from './services/token.service';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
+
+
+import {
+  CambiarPasswordController,
+} from './cambiar-password.controller';
+
+import {
+  CambiarPasswordService,
+} from './services/cambiar-password.service';
+
+import { DatabaseModule } from '../../database/database.module';
+import { CorreosModule } from '../correos/correos.module';
+
+import {
+  RecuperacionPasswordController,
+} from './recuperacion-password.controller';
+
+import {
+  RecuperacionCodigoRepository,
+} from './recuperacion-codigo.repository';
+
+import {
+  RecuperacionPasswordService,
+} from './services/recuperacion-password.service';
+
+
+import { GoogleAuthController } from './google-auth.controller';
+import { GoogleCuentasRepository } from './google-cuentas.repository';
+import { GoogleAuthService } from './services/google-auth.service';
+import {
+  GoogleIdentidadService,
+} from './services/google-identidad.service';
+import {
+  VERIFICADOR_GOOGLE,
+  crearVerificadorGoogle,
+} from './google-verificador';
+
+import { RecuperacionColaRepository } from './recuperacion-cola.repository';
+import { RecuperacionColaWorker } from './recuperacion-cola.worker';
+import {
+  RecuperacionSolicitudesService,
+} from './services/recuperacion-solicitudes.service';
+
 /**
  * Agrupa los componentes de autenticación y sus dependencias.
  *
@@ -25,6 +68,8 @@ import { RolesGuard } from './guards/roles.guard';
 @Module({
   imports: [
     UsuariosModule,
+    DatabaseModule,
+    CorreosModule,
 
     JwtModule.registerAsync({
       useFactory: () => getAuthConfig(),
@@ -33,7 +78,14 @@ import { RolesGuard } from './guards/roles.guard';
     // Registra las opciones y los contadores del limitador.
     ThrottlerModule.forRoot(getAuthRateLimitConfig()),
   ],
-  controllers: [AuthController],
+
+  controllers: [
+    AuthController,
+    CambiarPasswordController,
+    RecuperacionPasswordController,
+    GoogleAuthController,
+  ],
+
   providers: [
     AuthService,
     PasswordService,
@@ -41,13 +93,25 @@ import { RolesGuard } from './guards/roles.guard';
     ThrottlerGuard,
     AuthGuard,
     RolesGuard,
+    CambiarPasswordService,
+    RecuperacionCodigoRepository,
+    RecuperacionPasswordService,
+    GoogleCuentasRepository,
+    GoogleIdentidadService,
+    GoogleAuthService,
+    RecuperacionColaRepository,
+    RecuperacionSolicitudesService,
+    RecuperacionColaWorker,
+    {
+      provide: VERIFICADOR_GOOGLE,
+      useFactory: crearVerificadorGoogle,
+    },
   ],
 
   exports: [
-  AuthGuard,
-  RolesGuard,
-  TokenService,
-],
-
+    AuthGuard,
+    RolesGuard,
+    TokenService,
+  ],
 })
-export class AuthModule {}
+export class AuthModule { }

@@ -3,6 +3,10 @@ import { DatabaseService } from '../../database/database.service';
 import type { EstadoUsuario, UsuarioRow } from './types/usuario.types';
 import type { CrearUsuarioTradicionalInput } from './types/crear-usuario.types';
 
+import type {
+  ActualizarPerfilInput,
+} from './types/actualizar-perfil.types';
+
 /**
  * Selección explícita de las columnas del usuario.
  *
@@ -26,7 +30,8 @@ const SELECT_USUARIO = `
     ubicacion,
     rol,
     estado,
-    google_sub
+    google_sub,
+    version_sesion
   FROM obra.usuarios
 `;
 
@@ -149,7 +154,8 @@ export class UsuariosRepository {
         ubicacion,
         rol,
         estado,
-        google_sub
+        google_sub,
+        version_sesion
     `,
       [
         datos.correo.trim(),
@@ -180,12 +186,12 @@ export class UsuariosRepository {
  * El resultado contiene datos internos: debe pasar por el mapper
  * antes de enviarse al cliente.
  */
-async actualizarEstado(
-  idUsuario: string,
-  estado: EstadoUsuario,
-): Promise<UsuarioRow | null> {
-  const result = await this.database.query<UsuarioRow>(
-    `
+  async actualizarEstado(
+    idUsuario: string,
+    estado: EstadoUsuario,
+  ): Promise<UsuarioRow | null> {
+    const result = await this.database.query<UsuarioRow>(
+      `
       UPDATE obra.usuarios
       SET estado = $2::obra.estado_usuario
       WHERE id_usuario = $1::uuid
@@ -201,12 +207,122 @@ async actualizarEstado(
         ubicacion,
         rol,
         estado,
-        google_sub
+        google_sub,
+        version_sesion
     `,
-    [idUsuario, estado],
-  );
+      [idUsuario, estado],
+    );
 
-  return result.rows[0] ?? null;
-}
+    return result.rows[0] ?? null;
+  }
+
+  /**
+   * Actualiza los campos personales de una cuenta activa.
+   *
+   * Los indicadores booleanos distinguen un campo omitido de null.
+   * No usamos COALESCE porque impediría borrar un dato explícitamente.
+   *
+   * La condición de cuenta activa se aplica en el propio UPDATE.
+   * El servicio debe proporcionar la identidad autenticada y rechazar
+   * una actualización sin campos.
+   *
+   * Devuelve null si la cuenta no existe o está inactiva.
+   * El resultado es interno y debe pasar por el mapper del usuario.
+   */
+  async actualizarPerfil(
+    idUsuario: string,
+    datos: ActualizarPerfilInput,
+  ): Promise<UsuarioRow | null> {
+    const resultado = await this.database.query<UsuarioRow>(
+      `
+        UPDATE obra.usuarios
+        SET
+          nombre = CASE
+            WHEN $2::boolean THEN $3::text
+            ELSE nombre
+          END,
+          apellidos = CASE
+            WHEN $4::boolean THEN $5::text
+            ELSE apellidos
+          END,
+          telefono = CASE
+            WHEN $6::boolean THEN $7::text
+            ELSE telefono
+          END,
+          ubicacion = CASE
+            WHEN $8::boolean THEN $9::text
+            ELSE ubicacion
+          END
+        WHERE id_usuario = $1::uuid
+          AND estado = 'ACTIVO'
+        RETURNING
+          id_usuario,
+          nombre,
+          apellidos,
+          foto_perfil_url,
+          correo,
+          telefono,
+          password_hash,
+          fecha_creacion,
+          ubicacion,
+          rol,
+          estado,
+          google_sub,
+          version_sesion
+      `,
+      [
+        idUsuario,
+        datos.nombre !== undefined,
+        datos.nombre ?? null,
+        datos.apellidos !== undefined,
+        datos.apellidos ?? null,
+        datos.telefono !== undefined,
+        datos.telefono ?? null,
+        datos.ubicacion !== undefined,
+        datos.ubicacion ?? null,
+      ],
+    );
+
+    return resultado.rows[0] ?? null;
+  }
+
+  /**
+ * Sustituye el hash únicamente si coincide con el verificado.
+ *
+ * El servicio debe comprobar la contraseña actual y generar
+ * el nuevo hash antes de llamar a este método.
+ *
+ * Ambos hashes proceden del backend, nunca de campos HTTP.
+ *
+ * Devuelve false si:
+ * - La cuenta no existe o está inactiva.
+ * - Otra operación ya cambió la contraseña.
+ * - La cuenta no tiene contraseña local.
+ *
+ * No devuelve datos del usuario ni realiza reintentos.
+ * 
+ * * Incrementa la versión de sesión en la misma sentencia.
+* Si no coincide el hash o la cuenta está inactiva, no modifica
+* ni la contraseña ni la versión.
+
+ */
+  async actualizarPasswordSiCoincide(
+    idUsuario: string,
+    hashActual: string,
+    hashNuevo: string,
+  ): Promise<boolean> {
+    const resultado = await this.database.query(
+      `
+        UPDATE obra.usuarios
+        SET password_hash = $3::text, version_sesion = version_sesion + 1
+        WHERE id_usuario = $1::uuid
+          AND estado = 'ACTIVO'
+          AND password_hash = $2::text
+      `,
+      [idUsuario, hashActual, hashNuevo],
+    );
+
+    return resultado.rowCount === 1;
+  }
 
 }

@@ -32,6 +32,11 @@ export interface UsuarioRow {
   rol: RolUsuario;
   estado: EstadoUsuario;
   google_sub: string | null;
+    /**
+   * Versión utilizada para invalidar sesiones anteriores.
+   * Es información interna y no forma parte del perfil público.
+   */
+  version_sesion: number;
 }
 
 /**

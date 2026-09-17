@@ -170,9 +170,13 @@ test('autenticación: registra, inicia sesión y respeta la inactivación de la 
     );
 
     assert.equal(sesion.usuario.id_usuario, perfil.id_usuario);
-    assert.equal(
-      await tokenService.verificarToken(sesion.tokenAcceso),
-      perfil.id_usuario,
+
+    assert.deepEqual(
+      await tokenService.verificarTokenConVersion(sesion.tokenAcceso),
+      {
+        id_usuario: perfil.id_usuario,
+        version_sesion: 0,
+      },
     );
 
     // 4. Acceso mediante el guard y el token emitido.
@@ -212,9 +216,12 @@ test('autenticación: registra, inicia sesión y respeta la inactivación de la 
     );
 
     // El JWT continúa siendo criptográficamente válido.
-    assert.equal(
-      await tokenService.verificarToken(sesion.tokenAcceso),
-      perfil.id_usuario,
+    assert.deepEqual(
+      await tokenService.verificarTokenConVersion(sesion.tokenAcceso),
+      {
+        id_usuario: perfil.id_usuario,
+        version_sesion: 0,
+      },
     );
 
     // Pero el estado actual de la cuenta impide usarlo.

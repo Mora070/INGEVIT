@@ -53,6 +53,7 @@ const cookieParser = require('cookie-parser');
 
 const ORIGIN = 'http://127.0.0.1:3000';
 const TOKEN = 'TOKEN_FICTICIO_HTTP';
+const ID_USUARIO = '10000000-0000-4000-8000-000000000001';
 
 function crearPerfil() {
   return {
@@ -157,21 +158,25 @@ async function conServidor(operation, errorAutenticacion, errorPerfil, errorRegi
         {
           provide: TokenService,
           useValue: {
-            async verificarToken(token) {
+            async verificarTokenConVersion(token) {
               if (token !== TOKEN) {
                 throw new UnauthorizedException(
                   'La sesión no es válida o ha expirado.',
                 );
               }
 
-              return crearPerfil().id_usuario;
+              return {
+                id_usuario: ID_USUARIO,
+                version_sesion: 0,
+              };
             },
           },
         },
         {
           provide: UsuariosService,
           useValue: {
-            async obtenerMiPerfil(idUsuario) {
+            async obtenerPerfilDeSesion(idUsuario, versionSesion) {
+              assert.equal(versionSesion, 0);
               if (errorPerfil) {
                 throw errorPerfil;
               }
@@ -286,7 +291,7 @@ async function conServidor(operation, errorAutenticacion, errorPerfil, errorRegi
     }
 
 
-    await operation({ enviar, consultarPerfil, cerrarSesion,registrarCuenta, llamadas, registros });
+    await operation({ enviar, consultarPerfil, cerrarSesion, registrarCuenta, llamadas, registros });
   } finally {
     try {
       if (app) {
@@ -766,7 +771,7 @@ test('POST register: rechaza datos inválidos y campos internos antes de registr
   await conServidor(async ({ registrarCuenta, registros }) => {
     const credenciales = {
       correo: 'persona@example.test',
-      password: 'Clave ficticia',
+      password: 'Clave ficticia de registro',
     };
 
     const entradasInvalidas = [
@@ -797,7 +802,7 @@ test('POST register: devuelve 409 cuando el servicio rechaza un correo duplicado
       const response = await registrarCuenta(
         {
           correo: 'persona@example.test',
-          password: 'Clave ficticia',
+          password: 'Clave ficticia de registro',
         },
         ORIGIN,
       );
@@ -827,7 +832,7 @@ test('POST register: rechaza un origen ausente o no autorizado', async () => {
       const response = await registrarCuenta(
         {
           correo: 'persona@example.test',
-          password: 'Clave ficticia',
+          password: 'Clave ficticia de registro',
         },
         origin,
       );
@@ -851,7 +856,7 @@ test('POST register: bloquea la solicitud número 11 antes de llamar al servicio
       const response = await registrarCuenta(
         {
           correo: `persona-${numero}@example.test`,
-          password: 'Clave ficticia',
+          password: 'Clave ficticia de registro',
         },
         ORIGIN,
       );
@@ -863,7 +868,7 @@ test('POST register: bloquea la solicitud número 11 antes de llamar al servicio
     const response = await registrarCuenta(
       {
         correo: 'persona-bloqueada@example.test',
-        password: 'Clave ficticia',
+        password: 'Clave ficticia de registro',
       },
       ORIGIN,
     );

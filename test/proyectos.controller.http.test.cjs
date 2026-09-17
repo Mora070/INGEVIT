@@ -119,21 +119,25 @@ async function conServidor(
         {
           provide: TokenService,
           useValue: {
-            async verificarToken(token) {
+            async verificarTokenConVersion(token) {
               if (token !== TOKEN) {
                 throw new UnauthorizedException(
                   'La sesión no es válida o ha expirado.',
                 );
               }
 
-              return ID_USUARIO;
+              return {
+                id_usuario: ID_USUARIO,
+                version_sesion: 0,
+              };
             },
           },
         },
         {
           provide: UsuariosService,
           useValue: {
-            async obtenerMiPerfil(idUsuario) {
+            async obtenerPerfilDeSesion(idUsuario, versionSesion) {
+              assert.equal(versionSesion, 0);
               if (errorPerfil) {
                 throw errorPerfil;
               }
