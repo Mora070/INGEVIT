@@ -1,0 +1,395 @@
+.form {
+  display: grid;
+
+  gap: 1.25rem;
+}
+
+.section {
+  display: grid;
+
+  gap: 1rem;
+
+  padding:
+    1.1rem;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 9%);
+
+  border-radius: 12px;
+}
+
+.sectionHeader {
+  display: grid;
+
+  gap: 0.2rem;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.sectionHeader p {
+  margin: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.fields {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 1rem;
+}
+
+.field {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.4rem;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.field > span {
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+
+  color:
+    var(--color-text);
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.8rem;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.field input,
+.field select {
+  min-height: 44px;
+
+  padding:
+    0.65rem
+    0.8rem;
+}
+
+.field textarea {
+  min-height: 110px;
+
+  padding:
+    0.75rem
+    0.8rem;
+
+  line-height: 1.5;
+
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color:
+    var(--color-text-muted);
+}
+
+.field input:hover:not(:disabled),
+.field textarea:hover:not(:disabled),
+.field select:hover:not(:disabled) {
+  background:
+    #fcfcfb;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+
+  border-color:
+    var(--color-brand-orange);
+
+  box-shadow:
+    0 0 0 3px
+    rgb(234 117 26 / 11%);
+}
+
+.field input:disabled,
+.field textarea:disabled,
+.field select:disabled {
+  cursor: not-allowed;
+
+  color:
+    var(--color-text-muted);
+
+  background:
+    #f3f4f2;
+
+  opacity: 0.8;
+}
+
+.field select {
+  appearance: none;
+
+  padding-right: 2.5rem;
+
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--color-text-secondary) 50%
+    ),
+    linear-gradient(
+      135deg,
+      var(--color-text-secondary) 50%,
+      transparent 50%
+    );
+
+  background-position:
+    calc(100% - 17px)
+      calc(50% - 2px),
+    calc(100% - 12px)
+      calc(50% - 2px);
+
+  background-size:
+    5px 5px,
+    5px 5px;
+
+  background-repeat:
+    no-repeat;
+}
+
+.locationHelp {
+  margin: -0.2rem 0 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.6rem;
+
+  padding:
+    0.8rem
+    0.9rem;
+
+  color:
+    var(--color-error);
+
+  background:
+    var(--color-error-background);
+
+  border:
+    1px solid
+    rgb(166 55 46 / 15%);
+
+  border-radius: 9px;
+
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+.error svg {
+  flex: 0 0 auto;
+
+  width: 19px;
+  height: 19px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 0.65rem;
+
+  padding-top: 0.2rem;
+}
+
+.cancelButton,
+.submitButton {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    0.6rem
+    0.95rem;
+
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.76rem;
+  font-weight: 700;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.cancelButton {
+  color:
+    var(--color-text-secondary);
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    var(--color-border);
+}
+
+.cancelButton:hover:not(:disabled) {
+  color:
+    var(--color-text-strong);
+
+  background:
+    #f7f7f5;
+
+  border-color:
+    var(--color-border-strong);
+}
+
+.submitButton {
+  color: #ffffff;
+
+  background:
+    var(--color-brand-orange);
+
+  border:
+    1px solid
+    var(--color-brand-orange);
+
+  box-shadow:
+    0 7px 16px
+    rgb(234 117 26 / 16%);
+}
+
+.submitButton:hover:not(:disabled) {
+  background:
+    var(--color-brand-orange-hover);
+
+  border-color:
+    var(--color-brand-orange-hover);
+
+  box-shadow:
+    0 9px 20px
+    rgb(234 117 26 / 22%);
+}
+
+.cancelButton:focus-visible,
+.submitButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  cursor: wait;
+
+  opacity: 0.58;
+}
+
+@media (max-width: 700px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldFull {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding:
+      0.9rem;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+
+    align-items: stretch;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field input,
+  .field textarea,
+  .field select,
+  .cancelButton,
+  .submitButton {
+    transition: none;
+  }
+}

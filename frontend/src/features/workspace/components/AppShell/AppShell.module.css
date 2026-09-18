@@ -1,0 +1,672 @@
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: grid;
+
+  grid-template-columns: 230px minmax(0, 1fr);
+  grid-template-rows: 78px minmax(0, 1fr);
+
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar content";
+
+  background: #f7f7f5;
+
+  color: var(--color-text);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+/* =========================
+   BARRA SUPERIOR
+   ========================= */
+
+.topbar {
+  grid-area: topbar;
+
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-width: 0;
+
+  padding:
+    0
+    clamp(1.25rem, 3vw, 2rem);
+
+  background: #ffffff;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 8%);
+
+  box-shadow:
+    0 1px 8px
+    rgb(40 42 44 / 3%);
+}
+
+.brand {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+}
+
+.brandLogo {
+  display: block;
+
+  width: auto;
+  height: 52px;
+  max-width: 210px;
+
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* =========================
+   ÁREA DE USUARIO
+   ========================= */
+
+.userArea {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.75rem;
+}
+
+.notificationButton,
+.userMenuButton {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  color: var(--color-brand-charcoal);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 10px;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.notificationButton:hover,
+.userMenuButton:hover {
+  color: var(--color-brand-orange);
+
+  background:
+    rgb(234 117 26 / 7%);
+}
+
+.notificationButton:focus-visible,
+.userMenuButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.notificationButton svg {
+  width: 24px;
+  height: 24px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.notificationDot {
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  width: 8px;
+  height: 8px;
+
+  background: var(--color-brand-orange);
+
+  border:
+    2px solid
+    #ffffff;
+
+  border-radius: 50%;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 44px;
+  height: 44px;
+
+  color: #ffffff;
+
+  background:
+    var(--color-brand-charcoal-dark);
+
+  border-radius: 50%;
+
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+}
+
+.userInfo {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.1rem;
+
+  line-height: 1.2;
+}
+
+.userInfo strong {
+  max-width: 180px;
+
+  overflow: hidden;
+
+  color: var(--color-text-strong);
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userInfo span {
+  color: var(--color-text-secondary);
+
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.userMenuButton svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================
+   SIDEBAR
+   ========================= */
+
+.sidebar {
+  grid-area: sidebar;
+
+  position: sticky;
+  top: 78px;
+
+  height:
+    calc(100vh - 78px);
+
+  height:
+    calc(100dvh - 78px);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding:
+    1.4rem
+    1rem
+    1.25rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      #2f3133 0%,
+      #393b3e 100%
+    );
+
+  overflow-y: auto;
+}
+
+.navigation {
+  display: grid;
+
+  gap: 0.5rem;
+}
+
+.navItem,
+.supportButton,
+.logoutButton {
+  width: 100%;
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.85rem;
+
+  padding:
+    0.75rem
+    0.9rem;
+
+  color:
+    rgb(255 255 255 / 82%);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 9px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.84rem;
+  font-weight: 600;
+
+  text-align: left;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.navItem svg,
+.supportButton svg,
+.logoutButton svg {
+  flex: 0 0 auto;
+
+  width: 23px;
+  height: 23px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navItem:hover,
+.supportButton:hover,
+.logoutButton:hover:not(:disabled) {
+  color: #ffffff;
+
+  background:
+    rgb(255 255 255 / 7%);
+}
+
+.navItem:active,
+.supportButton:active,
+.logoutButton:active:not(:disabled) {
+  transform:
+    translateY(1px);
+}
+
+.navItem:focus-visible,
+.supportButton:focus-visible,
+.logoutButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+/* opción activa */
+.navItemActive {
+  color:
+    var(--color-brand-charcoal-dark);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6a42f 0%,
+      var(--color-brand-orange) 100%
+    );
+
+  box-shadow:
+    0 8px 20px
+    rgb(234 117 26 / 22%);
+}
+
+.navItemActive:hover {
+  color:
+    var(--color-brand-charcoal-dark);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8ac3b 0%,
+      #ef7f22 100%
+    );
+}
+
+/* =========================
+   PARTE INFERIOR SIDEBAR
+   ========================= */
+
+.sidebarBottom {
+  display: grid;
+
+  gap: 0.45rem;
+
+  padding-top: 1rem;
+
+  border-top:
+    1px solid
+    rgb(255 255 255 / 10%);
+}
+
+.supportButton {
+  color:
+    rgb(255 255 255 / 80%);
+}
+
+.logoutButton {
+  color:
+    rgb(255 255 255 / 72%);
+}
+
+.logoutButton:hover:not(:disabled) {
+  color: #ffffff;
+
+  background:
+    rgb(166 55 46 / 18%);
+}
+
+.logoutButton:disabled {
+  cursor: wait;
+
+  opacity: 0.55;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+   ========================= */
+
+.content {
+  grid-area: content;
+
+  min-width: 0;
+  min-height: 0;
+
+  padding:
+    clamp(1.5rem, 3vw, 2.4rem);
+
+  background:
+    #f7f7f5;
+}
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 1000px) {
+  .app {
+    grid-template-columns:
+      190px
+      minmax(0, 1fr);
+  }
+
+  .brandLogo {
+    height: 48px;
+    max-width: 185px;
+  }
+
+  .sidebar {
+    padding:
+      1.25rem
+      0.75rem
+      1rem;
+  }
+
+  .navItem,
+  .supportButton,
+  .logoutButton {
+    padding:
+      0.7rem
+      0.75rem;
+
+    gap: 0.7rem;
+
+    font-size: 0.8rem;
+  }
+
+  .userInfo strong {
+    max-width: 130px;
+  }
+}
+
+/* =========================
+   MÓVIL / TABLET PEQUEÑA
+   ========================= */
+
+@media (max-width: 760px) {
+  .app {
+    display: block;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    padding-bottom: 72px;
+  }
+
+  .topbar {
+    position: sticky;
+
+    min-height: 68px;
+
+    padding:
+      0
+      1rem;
+  }
+
+  .brandLogo {
+    height: 42px;
+    max-width: 155px;
+  }
+
+  .userArea {
+    gap: 0.45rem;
+  }
+
+  .notificationButton {
+    width: 38px;
+    height: 38px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+
+    font-size: 0.74rem;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .userMenuButton {
+    display: none;
+  }
+
+  .sidebar {
+    position: fixed;
+
+    z-index: 60;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+
+    width: 100%;
+    height: 72px;
+
+    display: block;
+
+    padding:
+      0.45rem
+      0.65rem;
+
+    background:
+      rgb(47 49 51 / 98%);
+
+    border-top:
+      1px solid
+      rgb(255 255 255 / 8%);
+
+    box-shadow:
+      0 -8px 30px
+      rgb(40 42 44 / 12%);
+
+    overflow: visible;
+  }
+
+  .navigation {
+    height: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(3, 1fr);
+
+    gap: 0.4rem;
+  }
+
+  .navItem {
+    min-height: 100%;
+
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 0.15rem;
+
+    padding:
+      0.35rem
+      0.2rem;
+
+    border-radius: 8px;
+
+    font-size: 0.65rem;
+  }
+
+  .navItem svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .sidebarBottom {
+    display: none;
+  }
+
+  .content {
+    padding:
+      1.25rem
+      1rem
+      1.5rem;
+  }
+}
+
+/* =========================
+   MÓVIL PEQUEÑO
+   ========================= */
+
+@media (max-width: 420px) {
+  .topbar {
+    min-height: 64px;
+
+    padding:
+      0
+      0.75rem;
+  }
+
+  .brandLogo {
+    height: 38px;
+    max-width: 135px;
+  }
+
+  .notificationButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+
+    font-size: 0.68rem;
+  }
+
+  .sidebar {
+    height: 68px;
+
+    padding:
+      0.4rem
+      0.45rem;
+  }
+
+  .navItem {
+    font-size: 0.61rem;
+  }
+
+  .navItem svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .content {
+    padding:
+      1rem
+      0.75rem
+      1.25rem;
+  }
+}
+
+/* =========================
+   REDUCIR MOVIMIENTO
+   ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .notificationButton,
+  .userMenuButton,
+  .navItem,
+  .supportButton,
+  .logoutButton {
+    transition: none;
+  }
+}

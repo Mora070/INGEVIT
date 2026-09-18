@@ -1,0 +1,354 @@
+.page {
+  position: relative;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: grid;
+  place-items: center;
+
+  padding: clamp(1rem, 4vw, 2.5rem);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8f8f6 0%,
+      #ffffff 48%,
+      #f4f4f1 100%
+    );
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.topography {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    url('../../../../assets/branding/topografia-auth.svg');
+
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+
+  opacity: 0.38;
+
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+
+  width: min(100%, 450px);
+
+  padding:
+    clamp(2rem, 5vw, 3rem)
+    clamp(1.4rem, 5vw, 2.7rem);
+
+  background:
+    rgb(255 255 255 / 95%);
+
+  border:
+    1px solid
+    rgb(57 59 62 / 8%);
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 20px 60px
+    rgb(40 42 44 / 11%);
+
+  backdrop-filter: blur(10px);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+.header {
+  margin-bottom: 1.7rem;
+
+  text-align: center;
+}
+
+.logoFrame {
+  position: relative;
+
+  width: 100%;
+  height: 88px;
+
+  margin-bottom: 0.8rem;
+
+  overflow: visible;
+}
+
+.logo {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  display: block;
+
+  width: auto;
+  height: 78px;
+
+  max-width: none;
+
+  object-fit: contain;
+
+  transform:
+    translate(-50%, -50%)
+    scale(1.35);
+
+  transform-origin: center;
+}
+
+.title {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size:
+    clamp(1.8rem, 4vw, 2.3rem);
+
+  font-weight: 700;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.025em;
+}
+
+.description {
+  max-width: 340px;
+
+  margin:
+    0.55rem auto
+    0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.86rem;
+  font-weight: 400;
+
+  line-height: 1.5;
+}
+
+.message {
+  margin-bottom: 0.9rem;
+
+  padding:
+    0.75rem
+    0.85rem;
+
+  color:
+    var(--color-brand-olive);
+
+  background:
+    var(--color-brand-olive-soft);
+
+  border:
+    1px solid
+    rgb(88 107 60 / 20%);
+
+  border-radius: 9px;
+
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.email {
+  margin:
+    0 0
+    1rem;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.76rem;
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+.email strong {
+  display: block;
+
+  margin-top: 0.2rem;
+
+  color:
+    var(--color-text-strong);
+
+  font-weight: 700;
+}
+
+.primaryButton {
+  width: 100%;
+  min-height: 46px;
+
+  padding:
+    0.7rem
+    1rem;
+
+  color: #ffffff;
+
+  background:
+    var(--color-brand-orange);
+
+  border: 0;
+  border-radius: 8px;
+
+  font: inherit;
+
+  font-size: 0.86rem;
+  font-weight: 700;
+
+  letter-spacing: 0.015em;
+
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.primaryButton:hover {
+  background:
+    var(--color-brand-orange-hover);
+
+  box-shadow:
+    0 8px 22px
+    rgb(234 117 26 / 20%);
+}
+
+.backPrompt {
+  margin-top: 1.25rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 0.3rem;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.78rem;
+}
+
+.backButton {
+  padding: 0;
+
+  color:
+    var(--color-brand-orange);
+
+  background: transparent;
+
+  border: 0;
+
+  font: inherit;
+  font-weight: 700;
+}
+
+.backButton:hover {
+  color:
+    var(--color-brand-orange-hover);
+
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0;
+
+    place-items: stretch;
+  }
+
+  .card {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding:
+      2rem
+      clamp(1rem, 7vw, 2rem);
+
+    border: 0;
+    border-radius: 0;
+
+    box-shadow: none;
+
+    background:
+      rgb(255 255 255 / 92%);
+  }
+
+  .topography {
+    background-position:
+      center bottom;
+
+    background-size:
+      auto 75%;
+
+    opacity: 0.22;
+  }
+
+  .logoFrame {
+    height: 82px;
+  }
+
+  .logo {
+    height: 72px;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.25);
+  }
+}
+
+@media (max-width: 380px) {
+  .card {
+    padding:
+      1.4rem
+      1rem;
+  }
+
+  .header {
+    margin-bottom: 1.4rem;
+  }
+
+  .logoFrame {
+    height: 72px;
+  }
+
+  .logo {
+    height: 64px;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1.18);
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .description {
+    font-size: 0.82rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryButton,
+  .backButton {
+    transition: none;
+  }
+}

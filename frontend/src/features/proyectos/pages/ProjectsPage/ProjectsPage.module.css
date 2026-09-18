@@ -1,0 +1,1261 @@
+.page {
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 1.5rem;
+
+  margin-bottom: 1.4rem;
+}
+
+.title {
+  margin: 0;
+
+  color: var(--color-text-strong);
+
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 700;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  margin: 0.5rem 0 0;
+
+  max-width: 520px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.createButton {
+  min-height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.55rem;
+
+  padding:
+    0.7rem
+    1rem;
+
+  color: #ffffff;
+
+  background:
+    var(--color-brand-orange);
+
+  border: 0;
+  border-radius: 9px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  box-shadow:
+    0 8px 18px
+    rgb(234 117 26 / 18%);
+
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.createButton svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.createButton:hover {
+  background:
+    var(--color-brand-orange-hover);
+
+  box-shadow:
+    0 10px 22px
+    rgb(234 117 26 / 24%);
+}
+
+.createButton:active {
+  transform:
+    translateY(1px);
+}
+
+.createButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 3px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 1rem;
+
+  margin-bottom: 1rem;
+
+  padding:
+    0.9rem
+    1rem;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 9%);
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 6px 20px
+    rgb(40 42 44 / 4%);
+}
+
+.searchBox {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width:
+    min(
+      100%,
+      340px
+    );
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 42px;
+
+  padding:
+    0.65rem
+    2.8rem
+    0.65rem
+    0.85rem;
+
+  color:
+    var(--color-text);
+
+  background: #fbfbfa;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.8rem;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.searchInput::placeholder {
+  color:
+    var(--color-text-muted);
+}
+
+.searchInput:hover {
+  background: #ffffff;
+}
+
+.searchInput:focus {
+  outline: none;
+
+  background: #ffffff;
+
+  border-color:
+    var(--color-brand-orange);
+
+  box-shadow:
+    0 0 0 3px
+    rgb(234 117 26 / 11%);
+}
+
+.searchIcon {
+  position: absolute;
+
+  top: 50%;
+  right: 0.8rem;
+
+  width: 19px;
+  height: 19px;
+
+  transform:
+    translateY(-50%);
+
+  fill: none;
+
+  stroke:
+    var(--color-brand-charcoal);
+
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  pointer-events: none;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+
+  gap: 0.4rem;
+
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  min-height: 36px;
+
+  padding:
+    0.45rem
+    0.75rem;
+
+  color:
+    var(--color-text-secondary);
+
+  background: transparent;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.73rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.filterButton:hover {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+}
+
+.filterButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.filterButtonActive {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  border-color:
+    rgb(234 117 26 / 25%);
+}
+
+.projectsPanel {
+  min-height: 460px;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 9%);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 24px
+    rgb(40 42 44 / 5%);
+
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 68px;
+
+  padding:
+    0.9rem
+    1rem;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 8%);
+}
+
+.panelHeader h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.panelHeader p {
+  margin: 0.18rem 0 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.69rem;
+}
+
+.projectGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 1rem;
+
+  padding: 1rem;
+}
+
+.projectCard {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 10%);
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.projectCard:hover {
+  border-color:
+    rgb(234 117 26 / 24%);
+
+  box-shadow:
+    0 10px 26px
+    rgb(40 42 44 / 8%);
+
+  transform:
+    translateY(-2px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding:
+    0.9rem
+    0.95rem
+    0.5rem;
+}
+
+.projectIcon {
+  display: grid;
+  place-items: center;
+
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 auto;
+
+  color:
+    var(--color-brand-olive);
+
+  background:
+    var(--color-brand-olive-soft);
+
+  border-radius: 9px;
+}
+
+.projectIcon svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 26px;
+
+  padding:
+    0.25rem
+    0.6rem;
+
+  border-radius: 999px;
+
+  font-size: 0.67rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.statusActive {
+  color:
+    var(--color-brand-olive);
+
+  background:
+    var(--color-brand-olive-soft);
+}
+
+.statusPaused {
+  color: #98620d;
+
+  background: #fff5da;
+}
+
+.statusFinished {
+  color:
+    var(--color-text-secondary);
+
+  background:
+    #eceeed;
+}
+
+.cardContent {
+  flex: 1;
+
+  padding:
+    0.35rem
+    0.95rem
+    1rem;
+}
+
+.cardContent h3 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.96rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description {
+  display: -webkit-box;
+
+  min-height: 42px;
+
+  margin:
+    0.4rem
+    0
+    1rem;
+
+  overflow: hidden;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.73rem;
+  line-height: 1.45;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.projectData {
+  display: grid;
+
+  gap: 0.7rem;
+
+  margin: 0;
+}
+
+.projectData div {
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    92px
+    minmax(0, 1fr);
+
+  align-items: baseline;
+
+  gap: 0.5rem;
+}
+
+.projectData dt {
+  margin: 0;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.projectData dd {
+  margin: 0;
+
+  overflow: hidden;
+
+  color:
+    var(--color-text);
+
+  font-size: 0.7rem;
+  font-weight: 500;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  margin-top: auto;
+
+  padding:
+    0.75rem
+    0.95rem;
+
+  background: #fbfbfa;
+
+  border-top:
+    1px solid
+    rgb(57 59 62 / 7%);
+}
+
+.locationStatus {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.4rem;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.66rem;
+}
+
+.locationStatus svg {
+  flex: 0 0 auto;
+
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+
+  stroke:
+    var(--color-brand-olive);
+
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.locationStatus span {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openButton {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.25rem;
+
+  flex: 0 0 auto;
+
+  padding:
+    0.35rem
+    0.45rem;
+
+  color:
+    var(--color-brand-orange);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.openButton svg {
+  width: 15px;
+  height: 15px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.openButton:hover {
+  background:
+    var(--color-brand-orange-soft);
+}
+
+.openButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.state {
+  min-height: 390px;
+
+  display: grid;
+  place-items: center;
+  align-content: center;
+
+  gap: 0.6rem;
+
+  padding: 2rem;
+
+  text-align: center;
+}
+
+.state h3 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.state p {
+  max-width: 330px;
+
+  margin: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.stateIcon,
+.stateIconError {
+  width: 46px;
+  height: 46px;
+
+  fill: none;
+
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stateIcon {
+  stroke:
+    var(--color-brand-olive);
+}
+
+.stateIconError {
+  stroke:
+    var(--color-error);
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+
+  border:
+    3px solid
+    rgb(57 59 62 / 12%);
+
+  border-top-color:
+    var(--color-brand-orange);
+
+  border-radius: 50%;
+
+  animation:
+    projects-loading-spin
+    800ms linear infinite;
+}
+
+.retryButton,
+.emptyCreateButton {
+  min-height: 38px;
+
+  margin-top: 0.35rem;
+
+  padding:
+    0.5rem
+    0.85rem;
+
+  border: 0;
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.74rem;
+  font-weight: 700;
+
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.retryButton {
+  color: #ffffff;
+
+  background:
+    var(--color-brand-orange);
+}
+
+.retryButton:hover {
+  background:
+    var(--color-brand-orange-hover);
+}
+
+.emptyCreateButton {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+}
+
+.emptyCreateButton:hover {
+  background:
+    rgb(234 117 26 / 14%);
+}
+
+.retryButton:focus-visible,
+.emptyCreateButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+/* =========================
+   MODAL NUEVO PROYECTO
+   ========================= */
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1.5rem;
+
+  background:
+    rgb(24 26 27 / 58%);
+
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width:
+    min(
+      100%,
+      860px
+    );
+
+  max-height:
+    calc(100vh - 3rem);
+
+  max-height:
+    calc(100dvh - 3rem);
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    #f7f7f5;
+
+  border:
+    1px solid
+    rgb(255 255 255 / 18%);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 26px 70px
+    rgb(0 0 0 / 26%);
+
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    1.15rem
+    1.25rem;
+
+  background: #ffffff;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 8%);
+}
+
+.modalHeader > div {
+  min-width: 0;
+}
+
+.modalEyebrow {
+  display: block;
+
+  margin-bottom: 0.3rem;
+
+  color:
+    var(--color-brand-orange);
+
+  font-size: 0.66rem;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modalHeader h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 1.15rem;
+  font-weight: 700;
+
+  letter-spacing: -0.015em;
+}
+
+.modalHeader p {
+  margin:
+    0.35rem
+    0
+    0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.modalCloseButton {
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 8px;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.modalCloseButton svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modalCloseButton:hover {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+}
+
+.modalCloseButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.modalContent {
+  overflow-y: auto;
+
+  padding:
+    1.15rem;
+
+  overscroll-behavior: contain;
+}
+
+/* =========================
+   UTILIDADES
+   ========================= */
+
+.srOnly {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+
+  white-space: nowrap;
+
+  border: 0;
+}
+
+@keyframes projects-loading-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1200px) {
+  .projectGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 900px) {
+  .pageHeader {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .createButton {
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .searchBox {
+    width: 100%;
+  }
+
+  .filters {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .projectGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    overflow-x: auto;
+
+    flex-wrap: nowrap;
+
+    padding-bottom: 0.2rem;
+
+    scrollbar-width: thin;
+  }
+
+  .filterButton {
+    flex: 0 0 auto;
+  }
+
+  .modalBackdrop {
+    padding:
+      0.75rem;
+  }
+
+  .modal {
+    max-height:
+      calc(100vh - 1.5rem);
+
+    max-height:
+      calc(100dvh - 1.5rem);
+
+    border-radius:
+      13px;
+  }
+
+  .modalHeader {
+    padding:
+      1rem;
+  }
+
+  .modalContent {
+    padding:
+      0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    margin-bottom:
+      1rem;
+  }
+
+  .title {
+    font-size:
+      1.7rem;
+  }
+
+  .subtitle {
+    font-size:
+      0.82rem;
+  }
+
+  .toolbar {
+    padding:
+      0.75rem;
+  }
+
+  .projectsPanel {
+    border-radius:
+      11px;
+  }
+
+  .panelHeader {
+    min-height:
+      60px;
+
+    padding:
+      0.8rem;
+  }
+
+  .projectGrid {
+    gap:
+      0.75rem;
+
+    padding:
+      0.75rem;
+  }
+
+  .cardFooter {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .openButton {
+    width:
+      100%;
+
+    justify-content:
+      center;
+
+    min-height:
+      34px;
+
+    background:
+      var(--color-brand-orange-soft);
+  }
+
+  .projectData div {
+    grid-template-columns:
+      82px
+      minmax(0, 1fr);
+  }
+
+  .state {
+    min-height:
+      330px;
+
+    padding:
+      1.25rem;
+  }
+
+  .modalBackdrop {
+    align-items:
+      flex-end;
+
+    padding: 0;
+  }
+
+  .modal {
+    width:
+      100%;
+
+    max-height:
+      94vh;
+
+    max-height:
+      94dvh;
+
+    border-radius:
+      16px
+      16px
+      0
+      0;
+  }
+
+  .modalHeader {
+    padding:
+      0.95rem;
+  }
+
+  .modalHeader h2 {
+    font-size:
+      1.05rem;
+  }
+
+  .modalContent {
+    padding:
+      0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .createButton,
+  .filterButton,
+  .projectCard,
+  .openButton,
+  .retryButton,
+  .emptyCreateButton,
+  .searchInput,
+  .modalCloseButton {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
