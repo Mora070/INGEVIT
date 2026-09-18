@@ -17,3 +17,7 @@ coverage/
 
 # Archivos temporales de TypeScript
 *.tsbuildinfo
+
+# Archivos y herramientas locales
+storage/
+herramientas/
