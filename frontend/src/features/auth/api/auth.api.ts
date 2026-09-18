@@ -6,6 +6,17 @@ export interface CredencialesLogin {
   password: string;
 }
 
+
+export interface DatosRegistro {
+  correo: string;
+  password: string;
+  nombre?: string | null;
+  apellidos?: string | null;
+  telefono?: string | null;
+  ubicacion?: string | null;
+}
+
+
 /**
  * Consulta la sesión al abrir o recargar la aplicación.
  *
@@ -39,6 +50,24 @@ export function iniciarSesion(
     ...cuerpoJson(credenciales),
   });
 }
+
+
+/**
+ * Crea una cuenta local.
+ *
+ * El backend devuelve únicamente el perfil creado.
+ * Registrar una cuenta no inicia sesión automáticamente.
+ */
+export function registrarUsuario(
+  datos: DatosRegistro,
+): Promise<Usuario> {
+  return http<Usuario>('/api/auth/register', {
+    method: 'POST',
+    ...cuerpoJson(datos),
+  });
+}
+
+
 
 /**
  * Solicita al backend que retire la cookie.

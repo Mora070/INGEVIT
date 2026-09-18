@@ -1,0 +1,397 @@
+.page {
+  position: relative;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: grid;
+  place-items: center;
+
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8f8f6 0%,
+      #ffffff 48%,
+      #f4f4f1 100%
+    );
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.topography {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    url('../../../../assets/branding/topografia-auth.svg');
+
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+
+  opacity: 0.38;
+
+  pointer-events: none;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+
+  width: min(100%, 1040px);
+  min-height: min(640px, calc(100dvh - 2rem));
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 0.92fr)
+    minmax(380px, 0.72fr);
+
+  background: rgb(255 255 255 / 94%);
+
+  border: 1px solid rgb(57 59 62 / 8%);
+  border-radius: 22px;
+
+  box-shadow:
+    0 20px 60px rgb(40 42 44 / 10%);
+
+  overflow: hidden;
+
+  backdrop-filter: blur(10px);
+}
+
+.brandPanel {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  padding: clamp(2rem, 4vw, 3.5rem);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgb(40 42 44 / 98%),
+      rgb(57 59 62 / 96%)
+    );
+
+  overflow: hidden;
+}
+
+.brandPanel::before {
+  content: '';
+
+  position: absolute;
+
+  width: 420px;
+  height: 420px;
+
+  right: -180px;
+  top: -120px;
+
+  border: 1px solid rgb(234 117 26 / 28%);
+  border-radius: 50%;
+}
+
+.brandPanel::after {
+  content: '';
+
+  position: absolute;
+
+  width: 340px;
+  height: 340px;
+
+  left: -190px;
+  bottom: -160px;
+
+  border: 1px solid rgb(88 107 60 / 45%);
+  border-radius: 50%;
+}
+
+.brandContent {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 540px;
+}
+
+/* Logo principal del panel oscuro: ingevit-logo.png */
+.mainLogo {
+  display: block;
+
+  width: min(100%, 370px);
+  max-height: 175px;
+
+  margin:
+    -0.8rem auto
+    clamp(2rem, 4vh, 3rem);
+
+  object-fit: contain;
+}
+
+.brandText {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.eyebrow {
+  margin: 0;
+
+  color: var(--color-brand-orange);
+
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.brandTitle {
+  max-width: 460px;
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.brandDescription {
+  max-width: 460px;
+  margin: 0;
+
+  color: rgb(255 255 255 / 70%);
+
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.brandAccent {
+  position: absolute;
+
+  right: 0;
+  bottom: 0;
+
+  width: 45%;
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-brand-olive),
+      var(--color-brand-orange)
+    );
+}
+
+.formPanel {
+  display: flex;
+  align-items: center;
+
+  padding: clamp(1.5rem, 3.5vw, 3rem);
+
+  background: rgb(255 255 255 / 92%);
+}
+
+.formContainer {
+  width: min(100%, 420px);
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+/*
+ * Contenedor del logo secundario.
+ *
+ * La altura permanece fija para que "Crea tu cuenta"
+ * NO se mueva aunque agrandemos visualmente el logo.
+ */
+.formLogoFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 90px; /* 🔹 aumenta un poco la altura */
+  margin-bottom: 1.5rem; /* 🔹 más espacio debajo del logo */
+}
+
+
+.formLogo {
+  display: block;
+  height: 80px;
+  object-fit: contain;
+  transform: scale(1.55);
+  transform-origin: center; /* centra el punto de escala */
+  margin: 0 auto; /* centra horizontalmente */
+}
+
+
+
+.title {
+  margin: 0;
+
+  color: var(--color-text-strong);
+
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+
+  text-align: left;
+}
+
+.description {
+  margin: 0.55rem 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.88rem;
+  line-height: 1.5;
+
+  text-align: left;
+}
+
+.loginPrompt {
+  margin-top: 1.15rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 0.3rem;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.82rem;
+}
+
+.loginButton {
+  padding: 0;
+
+  color: var(--color-brand-orange);
+  background: transparent;
+
+  border: 0;
+
+  font: inherit;
+  font-weight: 800;
+}
+
+.loginButton:hover {
+  color: var(--color-brand-orange-hover);
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .shell {
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    grid-template-columns: 1fr;
+
+    border: 0;
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+
+  .brandPanel {
+    display: none;
+  }
+
+  .formPanel {
+    align-items: flex-start;
+
+    padding:
+      clamp(2rem, 8vw, 4rem)
+      clamp(1.25rem, 7vw, 3rem);
+  }
+
+  .formContainer {
+    max-width: 520px;
+  }
+
+  .header {
+    text-align: center;
+  }
+
+  .formLogoFrame {
+    height: 76px;
+    margin-bottom: 1rem;
+  }
+
+  .formLogo {
+    height: 76px;
+
+    transform: scale(1.4);
+  }
+
+  .title,
+  .description {
+    text-align: center;
+  }
+
+  .topography {
+    background-position: center bottom;
+    background-size: auto 75%;
+
+    opacity: 0.24;
+  }
+}
+
+@media (max-width: 480px) {
+  .formPanel {
+    align-items: flex-start;
+
+    padding:
+      1.4rem
+      1rem
+      2rem;
+  }
+
+  .header {
+    margin-bottom: 1.3rem;
+  }
+
+  .formLogoFrame {
+    height: 66px;
+    margin-bottom: 0.9rem;
+  }
+
+  .formLogo {
+    height: 66px;
+
+    transform: scale(1.28);
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .description {
+    font-size: 0.84rem;
+  }
+
+  .topography {
+    background-size: auto 58%;
+
+    opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginButton {
+    transition: none;
+  }
+}
