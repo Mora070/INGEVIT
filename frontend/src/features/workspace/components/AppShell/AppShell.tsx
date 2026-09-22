@@ -1,6 +1,14 @@
-import type { ReactNode } from 'react';
+import {
+  useMemo,
+} from 'react';
 
-import type { Usuario } from '../../../auth/types/usuario';
+import type {
+  ReactNode,
+} from 'react';
+
+import type {
+  Usuario,
+} from '../../../auth/types/usuario';
 
 import logoIngevit from '../../../../assets/branding/ingevit-logo2.png';
 
@@ -85,6 +93,22 @@ export function AppShell({
   const iniciales =
     obtenerIniciales(usuario);
 
+  const avatarUrl =
+    useMemo(() => {
+      if (!usuario.foto_perfil_url) {
+        return null;
+      }
+
+      const separador =
+        usuario.foto_perfil_url.includes('?')
+          ? '&'
+          : '?';
+
+      return `${usuario.foto_perfil_url}${separador}v=${Date.now()}`;
+    }, [
+      usuario.foto_perfil_url,
+    ]);
+
   return (
     <div className={styles.app}>
       <header className={styles.topbar}>
@@ -121,7 +145,15 @@ export function AppShell({
           </button>
 
           <div className={styles.avatar}>
-            {iniciales}
+            {avatarUrl ? (
+              <img
+                className={styles.avatarImage}
+                src={avatarUrl}
+                alt=""
+              />
+            ) : (
+              iniciales
+            )}
           </div>
 
           <div className={styles.userInfo}>
@@ -235,6 +267,7 @@ export function AppShell({
                 cy="8"
                 r="4"
               />
+
               <path d="M4 21a8 8 0 0 1 16 0" />
             </svg>
 
@@ -258,7 +291,9 @@ export function AppShell({
                 cy="12"
                 r="9"
               />
+
               <path d="M9.5 9a2.5 2.5 0 1 1 4.2 1.82C12.8 11.55 12 12.2 12 14" />
+
               <path d="M12 18h.01" />
             </svg>
 

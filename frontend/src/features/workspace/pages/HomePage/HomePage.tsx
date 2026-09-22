@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -7,6 +8,12 @@ import { useProyectos } from '../../../proyectos/hooks/useProyectos';
 import { ProjectsMap } from '../../../proyectos/components/ProjectsMap/ProjectsMap';
 
 import styles from './HomePage.module.css';
+
+type FiltroEstado =
+  | 'TODOS'
+  | 'ACTIVA'
+  | 'PAUSA'
+  | 'FINALIZADA';
 
 function formatearEstado(
   estado: 'ACTIVA' | 'PAUSA' | 'FINALIZADA',
@@ -40,16 +47,62 @@ function formatearFecha(
 }
 
 export function HomePage() {
-  const [busqueda, setBusqueda] =
-    useState('');
+  const [
+    busqueda,
+    setBusqueda,
+  ] = useState('');
+
+  const [
+    filtroEstado,
+    setFiltroEstado,
+  ] = useState<FiltroEstado>('TODOS');
+
+  const [
+    mostrandoFiltros,
+    setMostrandoFiltros,
+  ] = useState(false);
+
+  const [
+    pagina,
+    setPagina,
+  ] = useState(1);
+
+  const [
+    proyectoSeleccionadoId,
+    setProyectoSeleccionadoId,
+  ] = useState<string | null>(null);
+
+  const limite = 20;
 
   const {
     cargando,
     proyectos,
     total,
+    totalPaginas,
     error,
     recargar,
-  } = useProyectos(1, 20);
+  } = useProyectos(
+    pagina,
+    limite,
+  );
+
+  useEffect(() => {
+    if (
+      totalPaginas > 0 &&
+      pagina > totalPaginas
+    ) {
+      setPagina(totalPaginas);
+    }
+  }, [
+    pagina,
+    totalPaginas,
+  ]);
+
+  useEffect(() => {
+    setProyectoSeleccionadoId(null);
+  }, [
+    pagina,
+  ]);
 
   const proyectosFiltrados =
     useMemo(() => {
@@ -58,12 +111,21 @@ export function HomePage() {
           .trim()
           .toLowerCase();
 
-      if (!termino) {
-        return proyectos;
-      }
-
       return proyectos.filter(
         (proyecto) => {
+          const coincideEstado =
+            filtroEstado === 'TODOS' ||
+            proyecto.estado_proyecto ===
+              filtroEstado;
+
+          if (!coincideEstado) {
+            return false;
+          }
+
+          if (!termino) {
+            return true;
+          }
+
           const texto = [
             proyecto.nombre,
             proyecto.direccion,
@@ -78,7 +140,11 @@ export function HomePage() {
           );
         },
       );
-    }, [busqueda, proyectos]);
+    }, [
+      busqueda,
+      filtroEstado,
+      proyectos,
+    ]);
 
   const proyectosConUbicacion =
     useMemo(
@@ -90,6 +156,42 @@ export function HomePage() {
         ),
       [proyectosFiltrados],
     );
+
+  const hayFiltrosActivos =
+    filtroEstado !== 'TODOS';
+
+  const desde =
+    total === 0
+      ? 0
+      : (pagina - 1) * limite + 1;
+
+  const hasta =
+    Math.min(
+      pagina * limite,
+      total,
+    );
+
+  function paginaAnterior() {
+    setPagina((paginaActual) =>
+      Math.max(
+        1,
+        paginaActual - 1,
+      ),
+    );
+  }
+
+  function paginaSiguiente() {
+    setPagina((paginaActual) =>
+      Math.min(
+        totalPaginas,
+        paginaActual + 1,
+      ),
+    );
+  }
+
+  function limpiarFiltros() {
+    setFiltroEstado('TODOS');
+  }
 
   return (
     <section className={styles.page}>
@@ -115,11 +217,11 @@ export function HomePage() {
               placeholder="Buscar proyecto..."
               className={styles.searchInput}
               value={busqueda}
-              onChange={(event) =>
+              onChange={(event) => {
                 setBusqueda(
                   event.target.value,
-                )
-              }
+                );
+              }}
             />
 
             <svg
@@ -132,13 +234,28 @@ export function HomePage() {
                 cy="11"
                 r="7"
               />
+
               <path d="m20 20-4-4" />
             </svg>
           </label>
 
           <button
-            className={styles.filterButton}
+            className={`${styles.filterButton} ${
+              mostrandoFiltros ||
+              hayFiltrosActivos
+                ? styles.filterButtonActive
+                : ''
+            }`}
             type="button"
+            onClick={() => {
+              setMostrandoFiltros(
+                (valorActual) =>
+                  !valorActual,
+              );
+            }}
+            aria-expanded={
+              mostrandoFiltros
+            }
           >
             <svg
               viewBox="0 0 24 24"
@@ -152,9 +269,110 @@ export function HomePage() {
             <span>
               Filtros
             </span>
+
+            {hayFiltrosActivos && (
+              <span
+                className={
+                  styles.filterIndicator
+                }
+                aria-label="Hay filtros activos"
+              />
+            )}
           </button>
         </div>
       </header>
+
+      {mostrandoFiltros && (
+        <section
+          className={styles.filtersPanel}
+          aria-label="Filtros de proyectos"
+        >
+          <div
+            className={
+              styles.filterGroup
+            }
+          >
+            <span
+              className={
+                styles.filterLabel
+              }
+            >
+              Estado del proyecto
+            </span>
+
+            <div
+              className={
+                styles.filterOptions
+              }
+            >
+              {(
+                [
+                  [
+                    'TODOS',
+                    'Todos',
+                  ],
+                  [
+                    'ACTIVA',
+                    'Activas',
+                  ],
+                  [
+                    'PAUSA',
+                    'En pausa',
+                  ],
+                  [
+                    'FINALIZADA',
+                    'Finalizadas',
+                  ],
+                ] as const
+              ).map(
+                ([
+                  valor,
+                  etiqueta,
+                ]) => (
+                  <button
+                    key={valor}
+                    className={`${styles.filterOption} ${
+                      filtroEstado ===
+                      valor
+                        ? styles.filterOptionActive
+                        : ''
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      setFiltroEstado(
+                        valor,
+                      );
+
+                      setProyectoSeleccionadoId(
+                        null,
+                      );
+                    }}
+                  >
+                    {etiqueta}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+
+          {hayFiltrosActivos && (
+            <button
+              className={
+                styles.clearFiltersButton
+              }
+              type="button"
+              onClick={() => {
+                limpiarFiltros();
+                setProyectoSeleccionadoId(
+                  null,
+                );
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </section>
+      )}
 
       <div className={styles.dashboardGrid}>
         <article className={styles.panel}>
@@ -165,6 +383,7 @@ export function HomePage() {
                 aria-hidden="true"
               >
                 <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
+
                 <circle
                   cx="12"
                   cy="10"
@@ -209,7 +428,12 @@ export function HomePage() {
 
           <div className={styles.mapContainer}>
             <ProjectsMap
-              proyectos={proyectosConUbicacion}
+              proyectos={
+                proyectosConUbicacion
+              }
+              proyectoSeleccionadoId={
+                proyectoSeleccionadoId
+              }
             />
           </div>
         </article>
@@ -247,9 +471,15 @@ export function HomePage() {
               </div>
             </div>
 
-            <div className={styles.viewButtons}>
+            <div
+              className={
+                styles.viewButtons
+              }
+            >
               <button
-                className={styles.iconButton}
+                className={
+                  styles.iconButton
+                }
                 type="button"
                 aria-label="Vista de tarjetas"
               >
@@ -263,18 +493,21 @@ export function HomePage() {
                     width="7"
                     height="7"
                   />
+
                   <rect
                     x="14"
                     y="3"
                     width="7"
                     height="7"
                   />
+
                   <rect
                     x="3"
                     y="14"
                     width="7"
                     height="7"
                   />
+
                   <rect
                     x="14"
                     y="14"
@@ -354,6 +587,7 @@ export function HomePage() {
                     cy="12"
                     r="9"
                   />
+
                   <path d="M12 7v6" />
                   <path d="M12 17h.01" />
                 </svg>
@@ -384,7 +618,7 @@ export function HomePage() {
             {!cargando &&
               !error &&
               proyectosFiltrados.length ===
-              0 && (
+                0 && (
                 <div
                   className={
                     styles.emptyState
@@ -399,14 +633,16 @@ export function HomePage() {
                   </svg>
 
                   <h3>
-                    {busqueda.trim()
+                    {busqueda.trim() ||
+                    hayFiltrosActivos
                       ? 'No encontramos proyectos'
                       : 'Aún no tienes proyectos'}
                   </h3>
 
                   <p>
-                    {busqueda.trim()
-                      ? 'Prueba con otro nombre, dirección o contratante.'
+                    {busqueda.trim() ||
+                    hayFiltrosActivos
+                      ? 'Prueba cambiando la búsqueda o los filtros.'
                       : 'Cuando tengas proyectos disponibles aparecerán en esta lista.'}
                   </p>
                 </div>
@@ -415,115 +651,239 @@ export function HomePage() {
             {!cargando &&
               !error &&
               proyectosFiltrados.length >
-              0 && (
+                0 && (
                 <div
                   className={
                     styles.projectRows
                   }
                 >
                   {proyectosFiltrados.map(
-                    (proyecto) => (
-                      <button
-                        key={
-                          proyecto.id_proyecto
-                        }
-                        className={
-                          styles.projectRow
-                        }
-                        type="button"
-                      >
-                        <div
-                          className={
-                            styles.projectMain
+                    (proyecto) => {
+                      const seleccionado =
+                        proyecto.id_proyecto ===
+                        proyectoSeleccionadoId;
+
+                      const tieneUbicacion =
+                        proyecto.latitud !==
+                          null &&
+                        proyecto.longitud !==
+                          null;
+
+                      return (
+                        <button
+                          key={
+                            proyecto.id_proyecto
+                          }
+                          className={`${styles.projectRow} ${
+                            seleccionado
+                              ? styles.projectRowSelected
+                              : ''
+                          }`}
+                          type="button"
+                          onClick={() => {
+                            if (
+                              !tieneUbicacion
+                            ) {
+                              setProyectoSeleccionadoId(
+                                null,
+                              );
+
+                              return;
+                            }
+
+                            setProyectoSeleccionadoId(
+                              proyecto.id_proyecto,
+                            );
+                          }}
+                          aria-pressed={
+                            seleccionado
+                          }
+                          title={
+                            tieneUbicacion
+                              ? 'Ver proyecto en el mapa'
+                              : 'Este proyecto no tiene ubicación registrada'
                           }
                         >
                           <div
                             className={
-                              styles.projectIcon
+                              styles.projectMain
                             }
-                            aria-hidden="true"
+                          >
+                            <div
+                              className={
+                                styles.projectIcon
+                              }
+                              aria-hidden="true"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M3 7.5h6l2-2h10v14H3z" />
+                                <path d="M3 10h18" />
+                              </svg>
+                            </div>
+
+                            <div
+                              className={
+                                styles.projectText
+                              }
+                            >
+                              <strong>
+                                {
+                                  proyecto.nombre
+                                }
+                              </strong>
+
+                              <span>
+                                {
+                                  proyecto.contratante
+                                }
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            className={
+                              styles.projectLocation
+                            }
                           >
                             <svg
                               viewBox="0 0 24 24"
+                              aria-hidden="true"
                             >
-                              <path d="M3 7.5h6l2-2h10v14H3z" />
-                              <path d="M3 10h18" />
-                            </svg>
-                          </div>
+                              <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
 
-                          <div
-                            className={
-                              styles.projectText
-                            }
-                          >
-                            <strong>
-                              {
-                                proyecto.nombre
-                              }
-                            </strong>
+                              <circle
+                                cx="12"
+                                cy="10"
+                                r="2"
+                              />
+                            </svg>
 
                             <span>
                               {
-                                proyecto.contratante
+                                proyecto.direccion
                               }
                             </span>
                           </div>
-                        </div>
 
-                        <div
-                          className={
-                            styles.projectLocation
-                          }
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
-                            <circle
-                              cx="12"
-                              cy="10"
-                              r="2"
-                            />
-                          </svg>
-
-                          <span>
-                            {
-                              proyecto.direccion
-                            }
-                          </span>
-                        </div>
-
-                        <div>
-                          <span
-                            className={`${styles.statusBadge} ${proyecto.estado_proyecto ===
+                          <div>
+                            <span
+                              className={`${styles.statusBadge} ${
+                                proyecto.estado_proyecto ===
                                 'ACTIVA'
-                                ? styles.statusActive
-                                : proyecto.estado_proyecto ===
-                                  'PAUSA'
-                                  ? styles.statusPaused
-                                  : styles.statusFinished
+                                  ? styles.statusActive
+                                  : proyecto.estado_proyecto ===
+                                      'PAUSA'
+                                    ? styles.statusPaused
+                                    : styles.statusFinished
                               }`}
+                            >
+                              {formatearEstado(
+                                proyecto.estado_proyecto,
+                              )}
+                            </span>
+                          </div>
+
+                          <span
+                            className={
+                              styles.projectDate
+                            }
                           >
-                            {formatearEstado(
-                              proyecto.estado_proyecto,
+                            {formatearFecha(
+                              proyecto.fecha_inicio,
                             )}
                           </span>
-                        </div>
-
-                        <span
-                          className={
-                            styles.projectDate
-                          }
-                        >
-                          {formatearFecha(
-                            proyecto.fecha_inicio,
-                          )}
-                        </span>
-                      </button>
-                    ),
+                        </button>
+                      );
+                    },
                   )}
                 </div>
+              )}
+
+            {!cargando &&
+              !error &&
+              totalPaginas > 1 && (
+                <footer
+                  className={
+                    styles.pagination
+                  }
+                >
+                  <span
+                    className={
+                      styles.paginationInfo
+                    }
+                  >
+                    Mostrando {desde}–{hasta}{' '}
+                    de {total}
+                  </span>
+
+                  <div
+                    className={
+                      styles.paginationControls
+                    }
+                  >
+                    <button
+                      className={
+                        styles.paginationButton
+                      }
+                      type="button"
+                      onClick={
+                        paginaAnterior
+                      }
+                      disabled={
+                        pagina <= 1
+                      }
+                      aria-label="Página anterior"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path d="m15 18-6-6 6-6" />
+                      </svg>
+
+                      <span>
+                        Anterior
+                      </span>
+                    </button>
+
+                    <span
+                      className={
+                        styles.currentPage
+                      }
+                    >
+                      Página {pagina} de{' '}
+                      {totalPaginas}
+                    </span>
+
+                    <button
+                      className={
+                        styles.paginationButton
+                      }
+                      type="button"
+                      onClick={
+                        paginaSiguiente
+                      }
+                      disabled={
+                        pagina >=
+                        totalPaginas
+                      }
+                      aria-label="Página siguiente"
+                    >
+                      <span>
+                        Siguiente
+                      </span>
+
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
+                </footer>
               )}
           </div>
         </article>

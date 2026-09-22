@@ -15,6 +15,13 @@ import styles from './ProjectsMap.module.css';
 
 interface ProjectsMapProps {
   proyectos: Proyecto[];
+  proyectoSeleccionadoId?: string | null;
+}
+
+interface MarcadorProyecto {
+  idProyecto: string;
+  marcador: mapboxgl.Marker;
+  popup: mapboxgl.Popup;
 }
 
 const CENTRO_INICIAL: [
@@ -25,17 +32,50 @@ const CENTRO_INICIAL: [
   4.5709,
 ];
 
+function crearContenidoPopup(
+  proyecto: Proyecto,
+): HTMLElement {
+  const contenedor =
+    document.createElement('div');
+
+  const nombre =
+    document.createElement('strong');
+
+  const direccion =
+    document.createElement('p');
+
+  nombre.textContent =
+    proyecto.nombre;
+
+  direccion.textContent =
+    proyecto.direccion;
+
+  contenedor.append(
+    nombre,
+    direccion,
+  );
+
+  return contenedor;
+}
+
 export function ProjectsMap({
   proyectos,
+  proyectoSeleccionadoId = null,
 }: ProjectsMapProps) {
   const mapContainer =
-    useRef<HTMLDivElement | null>(null);
+    useRef<HTMLDivElement | null>(
+      null,
+    );
 
   const map =
-    useRef<mapboxgl.Map | null>(null);
+    useRef<mapboxgl.Map | null>(
+      null,
+    );
 
   const marcadores =
-    useRef<mapboxgl.Marker[]>([]);
+    useRef<MarcadorProyecto[]>(
+      [],
+    );
 
   useEffect(() => {
     const accessToken =
@@ -78,6 +118,18 @@ export function ProjectsMap({
     );
 
     return () => {
+      marcadores.current.forEach(
+        ({
+          marcador,
+          popup,
+        }) => {
+          popup.remove();
+          marcador.remove();
+        },
+      );
+
+      marcadores.current = [];
+
       map.current?.remove();
 
       map.current = null;
@@ -90,7 +142,11 @@ export function ProjectsMap({
     }
 
     marcadores.current.forEach(
-      (marcador) => {
+      ({
+        marcador,
+        popup,
+      }) => {
+        popup.remove();
         marcador.remove();
       },
     );
@@ -108,6 +164,12 @@ export function ProjectsMap({
       proyectosConCoordenadas.length ===
       0
     ) {
+      map.current.flyTo({
+        center:
+          CENTRO_INICIAL,
+        zoom: 4.5,
+      });
+
       return;
     }
 
@@ -126,12 +188,11 @@ export function ProjectsMap({
         const popup =
           new mapboxgl.Popup({
             offset: 18,
-          }).setHTML(`
-            <div>
-              <strong>${proyecto.nombre}</strong>
-              <p>${proyecto.direccion}</p>
-            </div>
-          `);
+          }).setDOMContent(
+            crearContenidoPopup(
+              proyecto,
+            ),
+          );
 
         const marcador =
           new mapboxgl.Marker({
@@ -144,9 +205,12 @@ export function ProjectsMap({
             .setPopup(popup)
             .addTo(map.current!);
 
-        marcadores.current.push(
+        marcadores.current.push({
+          idProyecto:
+            proyecto.id_proyecto,
           marcador,
-        );
+          popup,
+        });
 
         bounds.extend([
           proyecto.longitud,
@@ -185,7 +249,62 @@ export function ProjectsMap({
         maxZoom: 13,
       },
     );
-  }, [proyectos]);
+  }, [
+    proyectos,
+  ]);
+
+  useEffect(() => {
+    if (
+      !map.current ||
+      !proyectoSeleccionadoId
+    ) {
+      return;
+    }
+
+    const proyectoSeleccionado =
+      proyectos.find(
+        (proyecto) =>
+          proyecto.id_proyecto ===
+          proyectoSeleccionadoId,
+      );
+
+    if (
+      !proyectoSeleccionado ||
+      proyectoSeleccionado.latitud ===
+        null ||
+      proyectoSeleccionado.longitud ===
+        null
+    ) {
+      return;
+    }
+
+    const marcadorSeleccionado =
+      marcadores.current.find(
+        ({ idProyecto }) =>
+          idProyecto ===
+          proyectoSeleccionadoId,
+      );
+
+    map.current.flyTo({
+      center: [
+        proyectoSeleccionado.longitud,
+        proyectoSeleccionado.latitud,
+      ],
+      zoom: 14,
+      essential: true,
+    });
+
+    if (
+      marcadorSeleccionado &&
+      !marcadorSeleccionado.popup.isOpen()
+    ) {
+      marcadorSeleccionado.marcador
+        .togglePopup();
+    }
+  }, [
+    proyectoSeleccionadoId,
+    proyectos,
+  ]);
 
   const tokenConfigurado =
     Boolean(
@@ -205,8 +324,9 @@ export function ProjectsMap({
           </strong>
 
           <span>
-            Agrega VITE_MAPBOX_ACCESS_TOKEN
-            al entorno del frontend.
+            Agrega
+            VITE_MAPBOX_ACCESS_TOKEN al
+            entorno del frontend.
           </span>
         </div>
       )}

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 
 import { cerrarSesion } from './features/auth/api/auth.api';
 import { useSesion } from './features/auth/hooks/useSesion';
-
+import { ProfilePage } from './features/profile/pages/ProfilePage/ProfilePage';
 import { LoginPage } from './features/auth/pages/LoginPage/LoginPage';
 import { RecoveryPage } from './features/auth/pages/RecoveryPage/RecoveryPage';
 import { RegisterPage } from './features/auth/pages/RegisterPage/RegisterPage';
@@ -211,15 +211,10 @@ export default function App() {
       )}
 
       {seccionWorkspace === 'perfil' && (
-        <section>
-          <h1>
-            Mi Perfil
-          </h1>
-
-          <p>
-            Esta sección la construiremos después.
-          </p>
-        </section>
+        <ProfilePage
+          usuario={estado.usuario}
+          onUsuarioActualizado={actualizarUsuario}
+        />
       )}
     </AppShell>
   );
