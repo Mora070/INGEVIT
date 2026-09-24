@@ -119,6 +119,8 @@ function crearFormulario(contenido = Buffer.from([1, 2, 3])) {
   const formulario = new FormData();
 
   formulario.append('titulo', 'Avance de obra');
+  formulario.append('latitud', '4.711');
+  formulario.append('longitud', '-74.0721');
   formulario.append(
     'archivo',
     new Blob([contenido], { type: 'image/jpeg' }),
@@ -150,6 +152,8 @@ test('POST fotografía: recibe el archivo y devuelve HTTP 201', async () => {
     assert.equal(idProyecto, ID_PROYECTO);
     assert.equal(idUsuario, ID_USUARIO);
     assert.equal(datos.titulo, 'Avance de obra');
+    assert.equal(datos.latitud, 4.711);
+    assert.equal(datos.longitud, -74.0721);
     assert.ok(Buffer.isBuffer(buffer));
     assert.deepEqual(buffer, contenido);
   });
@@ -159,6 +163,8 @@ test('POST fotografía: rechaza una petición sin archivo', async () => {
   await conAplicacion(async ({ url, llamadas }) => {
     const formulario = new FormData();
     formulario.append('titulo', 'Avance de obra');
+    formulario.append('latitud', '4.711');
+    formulario.append('longitud', '-74.0721');
 
     const resultado = await fetch(url, {
       method: 'POST',
@@ -259,6 +265,8 @@ test(
       const formulario = new FormData();
 
       formulario.append('titulo', 'Avance de obra');
+      formulario.append('latitud', '4.711');
+      formulario.append('longitud', '-74.0721');
 
       // El contrato HTTP exige el nombre de campo "archivo".
       formulario.append(
@@ -349,3 +357,76 @@ test(
     });
   },
 );
+
+for (const campo of ['latitud', 'longitud']) {
+  test(`POST fotografía: rechaza ${campo} ausente`, async () => {
+    await conAplicacion(async ({ url, llamadas }) => {
+      const formulario = crearFormulario();
+      formulario.delete(campo);
+
+      const resultado = await fetch(url, {
+        method: 'POST',
+        body: formulario,
+      });
+
+      await resultado.json();
+
+      assert.equal(resultado.status, 400);
+      assert.equal(llamadas.length, 0);
+    });
+  });
+}
+
+test('POST fotografía: rechaza una latitud vacía', async () => {
+  await conAplicacion(async ({ url, llamadas }) => {
+    const formulario = crearFormulario();
+    formulario.set('latitud', '');
+
+    const resultado = await fetch(url, {
+      method: 'POST',
+      body: formulario,
+    });
+
+    await resultado.json();
+
+    assert.equal(resultado.status, 400);
+    assert.equal(llamadas.length, 0);
+  });
+});
+
+test('POST fotografía: rechaza una longitud fuera de rango', async () => {
+  await conAplicacion(async ({ url, llamadas }) => {
+    const formulario = crearFormulario();
+    formulario.set('longitud', '180.0001');
+
+    const resultado = await fetch(url, {
+      method: 'POST',
+      body: formulario,
+    });
+
+    await resultado.json();
+
+    assert.equal(resultado.status, 400);
+    assert.equal(llamadas.length, 0);
+  });
+});
+
+test('POST fotografía: conserva las coordenadas cero', async () => {
+  await conAplicacion(async ({ url, llamadas }) => {
+    const formulario = crearFormulario();
+    formulario.set('latitud', '0');
+    formulario.set('longitud', '0');
+
+    const resultado = await fetch(url, {
+      method: 'POST',
+      body: formulario,
+    });
+
+    await resultado.json();
+
+    assert.equal(resultado.status, 201);
+    assert.equal(llamadas.length, 1);
+    assert.equal(llamadas[0][2].latitud, 0);
+    assert.equal(llamadas[0][2].longitud, 0);
+  });
+});

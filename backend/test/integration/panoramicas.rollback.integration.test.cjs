@@ -101,7 +101,11 @@ for (const operacion of ['subida', 'edicion', 'eliminacion']) {
           panoramica = await subida.subir(
             proyecto,
             usuario,
-            { titulo: 'Título original' },
+            {
+              titulo: 'Título original',
+              latitud: 4.711,
+              longitud: -74.0721,
+            },
             contenido,
           );
         }
@@ -200,7 +204,11 @@ for (const operacion of ['subida', 'edicion', 'eliminacion']) {
             return subida.subir(
               proyecto,
               usuario,
-              { titulo: 'Título original' },
+              {
+                titulo: 'Título original',
+                latitud: 4.711,
+                longitud: -74.0721,
+              },
               contenido,
             );
           }

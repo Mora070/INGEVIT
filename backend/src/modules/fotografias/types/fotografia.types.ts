@@ -14,6 +14,9 @@ export interface FotografiaRow {
   /** Clave del archivo original conservado sin modificar sus bytes. */
   original_s3_key: string;
   fecha_subida: Date;
+  /** PostgreSQL devuelve numeric como texto; null indica ubicación pendiente. */
+  latitud: string | null;
+  longitud: string | null;
 }
 
 /**
@@ -31,4 +34,7 @@ export interface FotografiaResponse {
   titulo: string;
   url: string;
   fecha_subida: string;
+  /** Coordenadas WGS84; ambas null para fotografías antiguas sin ubicación. */
+  latitud: number | null;
+  longitud: number | null;
 }

@@ -33,20 +33,56 @@ import {
 } from './incidencias-consulta.repository';
 
 import {
-  IncidenciasEdicionService,
+    IncidenciasEdicionService,
 } from './incidencias-edicion.service';
 
 import {
-  IncidenciasEdicionController,
+    IncidenciasEdicionController,
 } from './incidencias-edicion.controller';
 
 import {
-  IncidenciasEliminacionService,
+    IncidenciasEliminacionService,
 } from './incidencias-eliminacion.service';
 
 import {
-  IncidenciasEliminacionController,
+    IncidenciasEliminacionController,
 } from './incidencias-eliminacion.controller';
+
+import {
+    IncidenciasMapaCreacionService,
+} from './incidencias-mapa-creacion.service';
+
+import {
+    IncidenciasMapaCreacionController,
+} from './incidencias-mapa-creacion.controller';
+
+import {
+    IncidenciasMapaConsultaRepository,
+} from './incidencias-mapa-consulta.repository';
+
+import {
+    IncidenciasMapaConsultaService,
+} from './incidencias-mapa-consulta.service';
+
+import {
+    IncidenciasMapaConsultaController,
+} from './incidencias-mapa-consulta.controller';
+
+import {
+  IncidenciasMapaEdicionService,
+} from './incidencias-mapa-edicion.service';
+
+import {
+  IncidenciasMapaEdicionController,
+} from './incidencias-mapa-edicion.controller';
+
+import {
+  IncidenciasMapaEliminacionService,
+} from './incidencias-mapa-eliminacion.service';
+
+import {
+  IncidenciasMapaEliminacionController,
+} from './incidencias-mapa-eliminacion.controller';
 
 /**
  * Agrupa las operaciones sobre incidencias.
@@ -59,7 +95,7 @@ import {
         UsuariosModule,
         ActividadesModule,
     ],
-    controllers: [IncidenciasCreacionController, IncidenciasConsultaController,IncidenciasEdicionController,IncidenciasEliminacionController],
+    controllers: [IncidenciasCreacionController, IncidenciasConsultaController, IncidenciasEdicionController, IncidenciasEliminacionController, IncidenciasMapaCreacionController,IncidenciasMapaConsultaController,IncidenciasMapaEdicionController,IncidenciasMapaEliminacionController],
     providers: [
         ProyectoAccesoRepository,
         IncidenciasPlanoRepository,
@@ -68,7 +104,12 @@ import {
         IncidenciasConsultaRepository,
         IncidenciasConsultaService,
         IncidenciasEdicionService,
-        IncidenciasEliminacionService
+        IncidenciasEliminacionService,
+        IncidenciasMapaCreacionService,
+        IncidenciasMapaConsultaRepository,
+        IncidenciasMapaConsultaService,
+        IncidenciasMapaEdicionService,
+        IncidenciasMapaEliminacionService
     ],
 })
 export class IncidenciasModule { }

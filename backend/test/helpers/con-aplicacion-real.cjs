@@ -57,6 +57,9 @@ async function conAplicacionReal(
     'AUTH_RECUPERACION_SECRET',
     'AUTH_GOOGLE_CLIENT_ID',
     'RECUPERACION_TRABAJADOR_HABILITADO',
+    'CAPAS_TRABAJADOR_HABILITADO',
+    'CAPAS_API_PUBLICA_URL',
+    'CAPAS_TEMP_ROOT',
   ];
 
   const valoresAnteriores = new Map(
@@ -72,9 +75,16 @@ async function conAplicacionReal(
    */
   const origen = 'http://127.0.0.1:4300';
 
+  let raizTemporalesCapas;
+
   let app;
 
   try {
+    raizTemporalesCapas = await mkdtemp(
+      path.join(tmpdir(), 'ingevit-http-capas-'),
+    );
+
+    process.env.CAPAS_TEMP_ROOT = raizTemporalesCapas;
     process.env.STORAGE_LOCAL_ROOT = raizTemporal;
     process.env.AUTH_JWT_SECRET = randomBytes(32).toString('hex');
     process.env.AUTH_ALLOWED_ORIGINS = origen;
@@ -89,11 +99,12 @@ async function conAplicacionReal(
 
     // Las pruebas habituales no deben enviar correos por esta cola.
     process.env.RECUPERACION_TRABAJADOR_HABILITADO = 'false';
+
     /*
- * Configuración determinista para construir el módulo de correo.
- * Las pruebas HTTP habituales no activan el trabajador ni necesitan
- * que Mailpit esté encendido.
- */
+     * Configuración determinista para construir el módulo de correo.
+     * Las pruebas HTTP habituales no activan el trabajador ni necesitan
+     * que Mailpit esté encendido.
+     */
     process.env.CORREO_PROVEEDOR = 'mailpit';
     process.env.CORREO_SMTP_HOST = '127.0.0.1';
     process.env.CORREO_SMTP_PORT = '1025';
@@ -113,12 +124,16 @@ async function conAplicacionReal(
 
     process.env.CORREO_TRABAJADOR_MAX_POR_CICLO =
       habilitarTrabajadorCorreo ? '1' : '10';
+
     /*
      * El procesamiento automático solo se activa cuando una prueba
      * lo solicita expresamente.
      */
     process.env.ARCHIVOS_PENDIENTES_HABILITADO =
       habilitarTrabajador ? 'true' : 'false';
+
+    // Las pruebas controlan explícitamente cuándo procesar sus capas.
+    process.env.CAPAS_TRABAJADOR_HABILITADO = 'false';
 
     if (habilitarTrabajador) {
       // Intervalo mínimo admitido para comprobar el temporizador real.
@@ -147,6 +162,9 @@ async function conAplicacionReal(
     const direccion = app.getHttpServer().address();
     const baseUrl = `http://127.0.0.1:${direccion.port}`;
 
+    // La integración utiliza el puerto aleatorio de su propia aplicación.
+    process.env.CAPAS_API_PUBLICA_URL = `${baseUrl}/api`;
+
     return await ejecutar({
       app,
       baseUrl,
@@ -169,10 +187,19 @@ async function conAplicacionReal(
       }
 
       // Solo elimina la carpeta exclusiva creada por este ayudante.
-      await rm(raizTemporal, {
-        recursive: true,
-        force: true,
-      });
+      try {
+        await rm(raizTemporal, {
+          recursive: true,
+          force: true,
+        });
+      } finally {
+        if (raizTemporalesCapas) {
+          await rm(raizTemporalesCapas, {
+            recursive: true,
+            force: true,
+          });
+        }
+      }
     }
   }
 }

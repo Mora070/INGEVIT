@@ -13,6 +13,8 @@ const clavesValidas = [
   ['fotografía', `fotografias/${UUID}.jpg`],
   ['plano', `planos/${UUID}.pdf`],
   ['panorámica', `panoramicas/${UUID}.webp`],
+  ['capa TIFF', `capas/${UUID}.tif`],
+  ['capa TIFF con extensión larga', `capas/${UUID}.tiff`],
 ];
 
 for (const [descripcion, clave] of clavesValidas) {

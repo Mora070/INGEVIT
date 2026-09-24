@@ -10,7 +10,21 @@ const {
   validarClaveAlmacenamiento,
 } = require('../dist/modules/almacenamiento/utils/validar-clave-almacenamiento');
 
-const CATEGORIAS = ['fotografias', 'planos', 'panoramicas', 'avatares'];
+const {
+  auditarTeselas,
+} = require('./lib/auditar-teselas.cjs');
+
+const {
+  auditarTemporalesCapas,
+} = require('./lib/auditar-temporales-capas.cjs');
+
+const {
+  getRaizTemporalCapas,
+} = require('../dist/modules/capas/utils/crear-temporal-capa');
+
+
+
+const CATEGORIAS = ['fotografias', 'planos', 'panoramicas', 'avatares', 'capas'];
 
 /**
  * Auditoría de solo lectura.
@@ -57,16 +71,58 @@ async function main() {
         SELECT s3_key AS clave FROM obra.panoramicas
         UNION
         SELECT foto_perfil_key AS clave FROM obra.usuarios
+        UNION
+        SELECT original_key AS clave
+        FROM obra.capas
+        WHERE almacenamiento_proveedor = 'LOCAL'
       ) AS archivos
       WHERE clave IS NOT NULL
     `);
 
     const pendientes = await client.query(`
-      SELECT s3_key AS clave
-      FROM obra.archivos_pendientes_eliminacion
-    `);
+    SELECT s3_key AS clave
+    FROM obra.archivos_pendientes_eliminacion
+
+    UNION
+
+    SELECT original_key AS clave
+    FROM obra.capas_pendientes_eliminacion
+`);
+
+    /*
+     * Incluye todas las capas, también las de proyectos inactivos.
+     * La inactividad no autoriza a eliminar sus archivos.
+     */
+    const capas = await client.query(`
+    SELECT
+        id_capa,
+        estado_procesamiento,
+        procesamiento_vence,
+        procesamiento_vence <= clock_timestamp() AS vigencia_vencida,
+        teselas_version,
+        teselas_proveedor,
+        teselas_zoom_min,
+        teselas_zoom_max,
+        teselas_total
+    FROM obra.capas
+`);
+
+    const limpiezaCapas = await client.query(`
+    SELECT id_capa, original_key, teselas_version
+    FROM obra.capas_pendientes_eliminacion
+`);
 
     await client.query('COMMIT');
+
+    const auditoriaTeselas = await auditarTeselas(
+      raiz,
+      capas.rows,
+      limpiezaCapas.rows,
+    );
+
+    const auditoriaTemporales = await auditarTemporalesCapas(
+      getRaizTemporalCapas(),
+    );
 
     const referenciadas = new Set(
       referencias.rows.map((fila) => fila.clave),
@@ -145,6 +201,8 @@ async function main() {
 
     console.log(JSON.stringify({
       modo: 'SOLO_LECTURA',
+      teselas: auditoriaTeselas,
+      temporalesCapas: auditoriaTemporales,
       resumen: {
         archivosReconocidos: existentes.size,
         clavesReferenciadas: referenciadas.size,

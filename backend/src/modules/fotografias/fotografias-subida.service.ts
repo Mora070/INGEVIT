@@ -58,7 +58,7 @@ export class FotografiasSubidaService {
     private readonly persistencia: FotografiasPersistenciaService,
     private readonly fotografias: FotografiasRepository,
     private readonly actividades: ActividadesRepository,
-  ) {}
+  ) { }
 
   /**
    * Permite subir fotografías al propietario y a los colaboradores
@@ -102,6 +102,10 @@ export class FotografiasSubidaService {
         /*
          * El acceso pudo cambiar durante el procesamiento o la escritura.
          * Lo comprobamos nuevamente dentro de la transacción de registro.
+         * 
+         *  * El título y las coordenadas deben haber sido validados por el DTO.
+            * La ubicación procede del punto seleccionado por el usuario,
+            * nunca de los metadatos EXIF de la fotografía.
          */
         const sigueDisponible = await this.acceso.bloquearDisponible(
           client,
@@ -115,6 +119,8 @@ export class FotografiasSubidaService {
           );
         }
 
+
+
         const fotografia = await this.fotografias.crear(
           client,
           {
@@ -127,6 +133,8 @@ export class FotografiasSubidaService {
             ),
             s3Key: claves.s3_key,
             originalS3Key: claves.original_s3_key,
+            latitud: datos.latitud,
+            longitud: datos.longitud,
           },
         );
 

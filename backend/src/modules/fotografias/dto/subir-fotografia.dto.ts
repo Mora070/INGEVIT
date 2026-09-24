@@ -3,6 +3,11 @@ import {
   IsString,
 } from 'class-validator';
 
+import {
+  UbicacionGeograficaDto,
+} from '../../../common/dto/ubicacion-geografica.dto';
+
+
 /**
  * Metadatos recibidos al subir una fotografía.
  *
@@ -15,7 +20,7 @@ import {
  *
  * Esos valores los determina el backend.
  */
-export class SubirFotografiaDto {
+export class SubirFotografiaDto extends UbicacionGeograficaDto {
   @IsString({
     message: 'El título debe ser un texto.',
   })

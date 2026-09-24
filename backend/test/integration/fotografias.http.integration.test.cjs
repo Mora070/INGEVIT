@@ -132,6 +132,10 @@ test(
           const formulario = new FormData();
           formulario.append('titulo', 'Fotografía HTTP');
 
+          // Ubicación seleccionada manualmente, enviada como campos multipart.
+          formulario.append('latitud', '4.711');
+          formulario.append('longitud', '-74.0721');
+
           formulario.append(
             'archivo',
             new Blob([original], { type: 'image/jpeg' }),

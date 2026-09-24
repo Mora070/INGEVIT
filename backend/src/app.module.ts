@@ -32,7 +32,7 @@ import {
   UsuariosPerfilModule,
 } from './modules/usuarios/usuarios-perfil.module';
 
-
+import { CapasModule } from './modules/capas/capas.module';
 
 /**
  * Módulo principal del backend.
@@ -41,7 +41,7 @@ import {
  * de negocio que componen la aplicación.
  */
 @Module({
-  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule,UsuariosPerfilModule],
+  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule,UsuariosPerfilModule,CapasModule],
   controllers: [AppController],
   providers: [
   AppService,

@@ -19,6 +19,9 @@ export interface CrearPanoramicaInput {
   url: string;
   s3_key: string;
   mime_type: MimePanoramica;
+    /** Ubicación WGS84 seleccionada manualmente y validada por el DTO. */
+  latitud: number;
+  longitud: number;
 }
 
 /**
@@ -39,9 +42,11 @@ export class PanoramicasRepository {
           titulo,
           url,
           s3_key,
-          mime_type
+          mime_type,
+          latitud,
+          longitud
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric)
         RETURNING
           id_panoramica,
           id_proyecto,
@@ -50,6 +55,8 @@ export class PanoramicasRepository {
           url,
           s3_key,
           mime_type,
+          latitud,
+          longitud,
           fecha_subida
       `,
       [
@@ -59,6 +66,8 @@ export class PanoramicasRepository {
         datos.url,
         datos.s3_key,
         datos.mime_type,
+        datos.latitud,
+        datos.longitud
       ],
     );
 
@@ -96,7 +105,7 @@ export class PanoramicasRepository {
           AND id_panoramica = $2
         RETURNING
           id_panoramica, id_proyecto, id_usuario_subida,
-          titulo, url, s3_key, mime_type, fecha_subida
+          titulo, url, s3_key, mime_type, latitud, longitud, fecha_subida
       `,
       [idProyecto, idPanoramica, titulo],
     );
@@ -138,7 +147,7 @@ export class PanoramicasRepository {
           AND id_panoramica = $2
         RETURNING
           id_panoramica, id_proyecto, id_usuario_subida,
-          titulo, url, s3_key, mime_type, fecha_subida
+          titulo, url, s3_key, mime_type, latitud, longitud, fecha_subida
       `,
       [idProyecto, idPanoramica],
     );

@@ -1,7 +1,15 @@
-import { SubirPanoramicaDto } from './subir-panoramica.dto';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 /**
- * Permite editar únicamente el título.
- * Hereda su validación y rechaza campos adicionales mediante el pipe global.
+ * Permite modificar únicamente el título de una panorámica.
+ *
+ * Es independiente del DTO de subida: cambiar el título no requiere
+ * reenviar el archivo ni la ubicación geográfica.
+ *
+ * El pipe global rechaza propiedades adicionales.
  */
-export class ActualizarPanoramicaDto extends SubirPanoramicaDto {}
+export class ActualizarPanoramicaDto {
+  @IsString({ message: 'El título debe ser un texto.' })
+  @IsNotEmpty({ message: 'El título es obligatorio.' })
+  titulo!: string;
+}

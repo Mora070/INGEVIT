@@ -61,6 +61,9 @@ export class PanoramicasSubidaService {
         /*
          * El acceso pudo cambiar durante la decodificación o escritura.
          * El bloqueo protege esta comprobación hasta confirmar.
+         * 
+         *  * La ubicación procede del punto seleccionado por el usuario.
+         * El DTO valida las coordenadas; no se extraen del GPS/EXIF.
          */
         const sigueDisponible = await this.acceso.bloquearDisponible(
           client,
@@ -82,6 +85,8 @@ export class PanoramicasSubidaService {
             `/api/proyectos/${idProyecto}/panoramicas/archivos/${nombreArchivo}`,
           s3_key: clave,
           mime_type: inspeccion.mimeType,
+          latitud: datos.latitud,
+          longitud: datos.longitud,
         });
 
         await this.actividades.crear(client, {

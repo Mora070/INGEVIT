@@ -122,6 +122,9 @@ test('panorámicas HTTP: conserva el original y aplica el acceso del colaborador
                 const form = new FormData();
                 form.append('titulo', 'Sector norte');
 
+                form.append('latitud', '4.711');
+                form.append('longitud', '-74.0721');
+
                 /*
                  * Declaramos JPEG aunque los bytes son PNG.
                  * El backend debe utilizar el formato detectado.
@@ -160,6 +163,9 @@ test('panorámicas HTTP: conserva el original y aplica el acceso del colaborador
 
             const panoramica = subida.cuerpo;
 
+            assert.equal(panoramica.latitud, 4.711);
+            assert.equal(panoramica.longitud, -74.0721);
+
             assert.equal(panoramica.id_proyecto, proyecto);
             assert.equal(panoramica.id_usuario_subida, colaborador);
             assert.equal(panoramica.titulo, 'Sector norte');
@@ -178,6 +184,11 @@ test('panorámicas HTTP: conserva el original y aplica el acceso del colaborador
             assert.equal(registro.id_usuario_subida, colaborador);
             assert.equal(registro.mime_type, 'image/png');
             assert.match(registro.s3_key, /^panoramicas\/[0-9a-f-]{36}\.png$/);
+            // Comprobamos los valores persistidos, no solo los enviados por HTTP.
+            assert.notEqual(registro.latitud, null);
+            assert.notEqual(registro.longitud, null);
+            assert.equal(Number(registro.latitud), 4.711);
+            assert.equal(Number(registro.longitud), -74.0721);
 
             const nombreArchivo = registro.s3_key.slice('panoramicas/'.length);
             const carpeta = path.join(raizTemporal, 'panoramicas');

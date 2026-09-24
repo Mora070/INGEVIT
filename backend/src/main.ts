@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { createValidationPipe } from './common/pipes/create-validation-pipe';
 import cookieParser from 'cookie-parser';
+import type { Server } from 'node:http';
 
 async function bootstrap(): Promise<void> {
   const host = process.env.HOST ?? '127.0.0.1';
@@ -31,6 +32,13 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   app.setGlobalPrefix('api');
+
+  /*
+ * Permite recibir originales grandes durante la prueba local.
+ * Este tiempo corresponde a la recepción HTTP, no al procesamiento GIS.
+ */
+  const servidor = app.getHttpServer() as Server;
+  servidor.requestTimeout = 60 * 60 * 1000;
 
   await app.listen(port, host);
 

@@ -21,3 +21,7 @@ coverage/
 # Archivos y herramientas locales
 storage/
 herramientas/
+
+
+.venv-gis/
+__pycache__/

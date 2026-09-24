@@ -108,6 +108,8 @@ function crearEscenario({
         url: datos.url,
         s3_key: datos.s3Key,
         original_s3_key: datos.originalS3Key,
+        latitud: String(datos.latitud),
+        longitud: String(datos.longitud),
         fecha_subida: new Date('2026-09-11T15:30:00.000Z'),
       };
     },
@@ -150,7 +152,7 @@ test(
     const resultado = await escenario.servicio.subir(
       ID_PROYECTO,
       ID_USUARIO,
-      { titulo: 'Avance de obra' },
+      { titulo: 'Avance de obra', latitud: 4.711, longitud: -74.0721 },
       original,
     );
 
@@ -174,6 +176,8 @@ test(
       url: urlEsperada,
       s3Key: CLAVES.s3_key,
       originalS3Key: CLAVES.original_s3_key,
+      latitud: 4.711,
+      longitud: -74.0721,
     });
 
     assert.deepEqual(escenario.obtenerActividad(), {
@@ -189,6 +193,8 @@ test(
       id_usuario_subida: ID_USUARIO,
       titulo: 'Avance de obra',
       url: urlEsperada,
+      latitud: 4.711,
+      longitud: -74.0721,
       fecha_subida: '2026-09-11T15:30:00.000Z',
     });
 
@@ -216,7 +222,7 @@ test(
       servicio.subir(
         ID_PROYECTO,
         ID_USUARIO,
-        { titulo: 'Prueba' },
+        { titulo: 'Prueba', latitud: 4.711, longitud: -74.0721 },
         Buffer.from('No es una imagen.'),
       ),
       (error) => {
@@ -239,7 +245,7 @@ test(
       servicio.subir(
         ID_PROYECTO,
         ID_USUARIO,
-        { titulo: 'Prueba' },
+        { titulo: 'Prueba', latitud: 4.711, longitud: -74.0721 },
         Buffer.alloc(0),
       ),
       (error) => {
@@ -263,7 +269,7 @@ test(
       servicio.subir(
         ID_PROYECTO,
         ID_USUARIO,
-        { titulo: 'Prueba' },
+        { titulo: 'Prueba', latitud: 4.711, longitud: -74.0721 },
         await crearOriginal(),
       ),
       (error) => {
@@ -293,7 +299,7 @@ test(
       servicio.subir(
         ID_PROYECTO,
         ID_USUARIO,
-        { titulo: 'Prueba' },
+        { titulo: 'Prueba', latitud: 4.711, longitud: -74.0721 },
         await crearOriginal(),
       ),
       (error) => error === errorEsperado,
@@ -321,7 +327,7 @@ test(
       servicio.subir(
         ID_PROYECTO,
         ID_USUARIO,
-        { titulo: 'Prueba' },
+        { titulo: 'Prueba', latitud: 4.711, longitud: -74.0721 },
         await crearOriginal(),
       ),
       (error) => error === errorEsperado,

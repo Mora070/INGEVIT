@@ -15,6 +15,8 @@ function crearDatos() {
     url: '/api/proyectos/proyecto/panoramicas/archivos/imagen.webp',
     s3_key: 'panoramicas/30000000-0000-4000-8000-000000000001.webp',
     mime_type: 'image/webp',
+    latitud: 4.711,
+    longitud: -74.0721,
   };
 }
 
@@ -47,6 +49,8 @@ test('PanoramicasRepository: parametriza la inserción y devuelve el registro', 
           datos.url,
           datos.s3_key,
           datos.mime_type,
+          datos.latitud,
+          datos.longitud,
         ]);
 
         return { rowCount: 1, rows: [fila] };

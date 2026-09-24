@@ -14,6 +14,7 @@ const CATEGORIAS = [
   'planos',
   'panoramicas',
   'avatares',
+  'capas',
 ] as const;
 
 /**

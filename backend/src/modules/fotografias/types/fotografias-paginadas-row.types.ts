@@ -36,6 +36,8 @@ interface FotografiaPaginaVaciaRow {
   s3_key: null;
   original_s3_key: null;
   fecha_subida: null;
+  latitud: null;
+  longitud: null;
 }
 
 /**

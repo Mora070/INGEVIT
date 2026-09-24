@@ -17,6 +17,9 @@ export interface PanoramicaRow {
   s3_key: string;
   mime_type: MimePanoramica;
   fecha_subida: Date;
+  /** PostgreSQL devuelve numeric como texto. */
+  latitud: string | null;
+  longitud: string | null;
 }
 
 /** Representación pública del registro de una imagen panorámica. */
@@ -28,4 +31,7 @@ export interface PanoramicaResponse {
   url: string;
   mime_type: MimePanoramica;
   fecha_subida: string;
+  /** Coordenadas WGS84; ambas null para registros antiguos sin ubicación. */
+  latitud: number | null;
+  longitud: number | null;
 }

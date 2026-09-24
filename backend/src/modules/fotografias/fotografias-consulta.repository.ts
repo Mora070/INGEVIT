@@ -19,7 +19,7 @@ import type {
 export class FotografiasConsultaRepository {
   constructor(
     private readonly database: DatabaseService,
-  ) {}
+  ) { }
 
   /**
    * Obtiene fotografías de un proyecto disponible para el solicitante.
@@ -78,7 +78,9 @@ export class FotografiasConsultaRepository {
               fotografia.url,
               fotografia.s3_key,
               fotografia.original_s3_key,
-              fotografia.fecha_subida
+              fotografia.fecha_subida,
+              fotografia.latitud,
+              fotografia.longitud
             FROM obra.fotografias AS fotografia
             INNER JOIN proyecto_disponible AS proyecto
               ON proyecto.id_proyecto = fotografia.id_proyecto
@@ -97,6 +99,8 @@ export class FotografiasConsultaRepository {
             pagina.s3_key,
             pagina.original_s3_key,
             pagina.fecha_subida,
+            pagina.latitud,
+            pagina.longitud,
             conteo.total
           FROM conteo
           LEFT JOIN pagina_seleccionada AS pagina ON true
@@ -150,6 +154,8 @@ export class FotografiasConsultaRepository {
         s3_key: fila.s3_key,
         original_s3_key: fila.original_s3_key,
         fecha_subida: fila.fecha_subida,
+        latitud: fila.latitud,
+        longitud: fila.longitud,
       });
     }
 

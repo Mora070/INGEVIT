@@ -41,7 +41,7 @@ async function conDirectorioTemporal(operacion) {
 }
 
 test(
-  'prepararDirectoriosAlmacenamiento: crea las tres categorías y devuelve la raíz real',
+  'prepararDirectoriosAlmacenamiento: crea las cinco categorías y devuelve la raíz real',
   async () => {
     await conDirectorioTemporal(async (directorio) => {
       const raiz = path.join(directorio, 'storage');
@@ -54,13 +54,15 @@ test(
 
       assert.deepEqual(
         (await readdir(raiz)).sort(),
-        ['avatares', 'fotografias', 'panoramicas', 'planos']
+        ['avatares', 'capas', 'fotografias', 'panoramicas', 'planos']
       );
 
       for (const categoria of [
         'fotografias',
         'planos',
         'panoramicas',
+        'avatares',
+        'capas',
       ]) {
         const informacion = await lstat(
           path.join(raiz, categoria),

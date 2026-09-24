@@ -38,7 +38,9 @@ export class FotografiasRepository {
           titulo,
           url,
           s3_key,
-          original_s3_key
+          original_s3_key,
+          latitud,
+          longitud
         )
         VALUES (
           $1::uuid,
@@ -46,7 +48,9 @@ export class FotografiasRepository {
           $3,
           $4,
           $5,
-          $6
+          $6,
+          $7::numeric,
+          $8::numeric
         )
         RETURNING
           id_fotografia,
@@ -56,6 +60,8 @@ export class FotografiasRepository {
           url,
           s3_key,
           original_s3_key,
+          latitud,
+          longitud,
           fecha_subida
       `,
       [
@@ -65,6 +71,8 @@ export class FotografiasRepository {
         datos.url,
         datos.s3Key,
         datos.originalS3Key,
+        datos.latitud,
+        datos.longitud,
       ],
     );
 
@@ -113,6 +121,8 @@ export class FotografiasRepository {
         url,
         s3_key,
         original_s3_key,
+        latitud,
+        longitud,
         fecha_subida
     `,
       [idProyecto, idFotografia, titulo],
@@ -166,6 +176,8 @@ export class FotografiasRepository {
         url,
         s3_key,
         original_s3_key,
+        latitud,
+        longitud,
         fecha_subida
     `,
       [idProyecto, idFotografia],

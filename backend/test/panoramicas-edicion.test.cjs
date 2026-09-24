@@ -41,6 +41,8 @@ function preparar({
           s3_key: 'panoramicas/clave.png',
           mime_type: 'image/png',
           fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
+          latitud: '4.711',
+          longitud: '-74.0721',
         }],
       } : { rowCount: 0, rows: [] };
     },
@@ -98,6 +100,8 @@ test('PanoramicasEdicion: parametriza, conserva el autor y devuelve campos públ
     url: '/imagen.png',
     mime_type: 'image/png',
     fecha_subida: '2026-09-15T12:00:00.000Z',
+    latitud: 4.711,
+    longitud: -74.0721,
   });
 
   assert.deepEqual(eventos, [

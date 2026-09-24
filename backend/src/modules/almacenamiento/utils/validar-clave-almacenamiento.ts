@@ -13,7 +13,7 @@
  * el formato real del archivo ni los formatos permitidos por el negocio.
  */
 const PATRON_CLAVE =
-  /^(fotografias|planos|panoramicas|avatares)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,10}$/;
+  /^(fotografias|planos|panoramicas|avatares|capas)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,10}$/;
 
 /**
  * Valida una clave antes de resolver su ubicación de almacenamiento.

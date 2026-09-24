@@ -94,6 +94,8 @@ test(
                     url,
                     s3_key,
                     original_s3_key,
+                    latitud,
+                    longitud,
                     fecha_subida
                   FROM obra.fotografias
                   WHERE id_fotografia = $1

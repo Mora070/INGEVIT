@@ -69,6 +69,8 @@ function preparar({
             `/api/proyectos/${PROYECTO}/panoramicas/archivos/${PANORAMICA}.png`,
           s3_key: CLAVE,
           mime_type: 'image/png',
+          latitud: 4.711,
+          longitud: -74.0721,
         });
 
         eventos.push('registro');
@@ -76,6 +78,8 @@ function preparar({
         return {
           id_panoramica: PANORAMICA,
           ...datos,
+          latitud: String(datos.latitud),
+          longitud: String(datos.longitud),
           fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
         };
       },
@@ -102,7 +106,11 @@ function preparar({
     contenidoGuardado: () => contenidoGuardado,
     ejecutar: (contenido) =>
       service.subir(
-        PROYECTO, USUARIO, { titulo: 'Sector norte' }, contenido,
+        PROYECTO, USUARIO, {
+        titulo: 'Sector norte',
+        latitud: 4.711,
+        longitud: -74.0721,
+      }, contenido,
       ),
   };
 }
@@ -116,6 +124,8 @@ test('PanoramicasSubida: utiliza el formato detectado y conserva el original', a
   assert.strictEqual(escenario.contenidoGuardado(), contenido);
   assert.equal(resultado.id_usuario_subida, USUARIO);
   assert.equal(resultado.mime_type, 'image/png');
+  assert.equal(resultado.latitud, 4.711);
+  assert.equal(resultado.longitud, -74.0721);
   assert.equal(Object.hasOwn(resultado, 's3_key'), false);
   assert.equal(resultado.fecha_subida, '2026-09-15T12:00:00.000Z');
 

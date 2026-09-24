@@ -183,7 +183,11 @@ test(
       const respuesta = await servicio.subir(
         idProyecto,
         idColaborador,
-        { titulo },
+        {
+          titulo,
+          latitud: 4.711,
+          longitud: -74.0721,
+        },
         original,
       );
 
@@ -193,24 +197,33 @@ test(
        */
       const resultado = await database.query(
         `
-          SELECT
-            id_fotografia,
-            id_proyecto,
-            id_usuario_subida,
-            titulo,
-            url,
-            s3_key,
-            original_s3_key,
-            fecha_subida
-          FROM obra.fotografias
-          WHERE id_proyecto = $1
-        `,
+    SELECT
+      id_fotografia,
+      id_proyecto,
+      id_usuario_subida,
+      titulo,
+      latitud,
+      longitud,
+      url,
+      s3_key,
+      original_s3_key,
+      fecha_subida
+    FROM obra.fotografias
+    WHERE id_proyecto = $1
+  `,
         [idProyecto],
       );
 
       assert.equal(resultado.rowCount, 1);
 
       const fotografia = resultado.rows[0];
+
+      // pg devuelve las columnas numeric como texto.
+      // Comprobamos la ubicación guardada después del COMMIT.
+      assert.notEqual(fotografia.latitud, null);
+      assert.notEqual(fotografia.longitud, null);
+      assert.equal(Number(fotografia.latitud), 4.711);
+      assert.equal(Number(fotografia.longitud), -74.0721);
 
       assert.equal(fotografia.id_proyecto, idProyecto);
       assert.equal(fotografia.id_usuario_subida, idColaborador);

@@ -32,6 +32,8 @@ function formulario({
 } = {}) {
   const form = new FormData();
   form.append('titulo', titulo);
+  form.append('latitud', '4.711');
+  form.append('longitud', '-74.0721');
 
   if (extra) form.append('id_usuario_subida', 'otro');
 
@@ -114,7 +116,11 @@ test('POST panorámicas: utiliza la sesión y entrega los bytes recibidos', asyn
 
     assert.equal(proyecto, PROYECTO);
     assert.equal(usuario, USUARIO);
-    assert.deepEqual({ ...datos }, { titulo: 'Sector norte' });
+        assert.deepEqual({ ...datos }, {
+      titulo: 'Sector norte',
+      latitud: 4.711,
+      longitud: -74.0721,
+    });
     assert.deepEqual(contenido, CONTENIDO);
   });
 });
@@ -144,4 +150,67 @@ test('POST panorámicas: exige sesión antes de validar el archivo', async () =>
     assert.equal(respuesta.status, 401);
     assert.equal(llamadas.length, 0);
   }, true);
+});
+
+for (const campo of ['latitud', 'longitud']) {
+  test(`POST panorámicas: rechaza ${campo} ausente`, async () => {
+    await conAplicacion(async ({ enviar, llamadas }) => {
+      const form = formulario();
+      form.delete(campo);
+
+      const respuesta = await enviar(form);
+      await respuesta.json();
+
+      assert.equal(respuesta.status, 400);
+      assert.equal(llamadas.length, 0);
+    });
+  });
+}
+
+test('POST panorámicas: rechaza una coordenada vacía', async () => {
+  await conAplicacion(async ({ enviar, llamadas }) => {
+    const form = formulario();
+    form.set('latitud', '');
+
+    const respuesta = await enviar(form);
+    await respuesta.json();
+
+    assert.equal(respuesta.status, 400);
+    assert.equal(llamadas.length, 0);
+  });
+});
+
+test('POST panorámicas: rechaza coordenadas fuera de rango', async () => {
+  await conAplicacion(async ({ enviar, llamadas }) => {
+    for (const [campo, valor] of [
+      ['latitud', '90.0001'],
+      ['longitud', '-180.0001'],
+    ]) {
+      const form = formulario();
+      form.set(campo, valor);
+
+      const respuesta = await enviar(form);
+      await respuesta.json();
+
+      assert.equal(respuesta.status, 400);
+    }
+
+    assert.equal(llamadas.length, 0);
+  });
+});
+
+test('POST panorámicas: conserva las coordenadas cero', async () => {
+  await conAplicacion(async ({ enviar, llamadas }) => {
+    const form = formulario();
+    form.set('latitud', '0');
+    form.set('longitud', '0');
+
+    const respuesta = await enviar(form);
+    await respuesta.json();
+
+    assert.equal(respuesta.status, 201);
+    assert.equal(llamadas.length, 1);
+    assert.equal(llamadas[0][2].latitud, 0);
+    assert.equal(llamadas[0][2].longitud, 0);
+  });
 });

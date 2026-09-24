@@ -17,6 +17,8 @@ function crearEntrada() {
       'fotografias/50000000-0000-4000-8000-000000000005.webp',
     originalS3Key:
       'fotografias/60000000-0000-4000-8000-000000000006.jpeg',
+    latitud: 4.711,
+    longitud: -74.0721,
   };
 }
 
@@ -88,6 +90,8 @@ test(
       datos.url,
       datos.s3Key,
       datos.originalS3Key,
+      datos.latitud,
+      datos.longitud,
     ]);
 
     const sql = consultas[0].sql.replace(/\s+/g, ' ').trim();

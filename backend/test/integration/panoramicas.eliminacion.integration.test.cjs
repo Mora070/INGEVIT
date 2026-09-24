@@ -116,7 +116,11 @@ test('panorámicas eliminación: registra la tarea y elimina después el archivo
       const panoramica = await subida.subir(
         proyecto,
         propietario,
-        { titulo: 'Panorámica temporal' },
+        {
+          titulo: 'Panorámica temporal',
+          latitud: 4.711,
+          longitud: -74.0721,
+        },
         original,
       );
 

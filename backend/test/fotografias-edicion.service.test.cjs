@@ -33,6 +33,8 @@ function preparar(opciones = {}) {
     original_s3_key:
       'fotografias/60000000-0000-4000-8000-000000000006.jpeg',
     fecha_subida: new Date('2026-09-14T12:00:00.000Z'),
+    latitud: null,
+    longitud: null,
   };
 
   const database = {

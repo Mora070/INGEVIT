@@ -78,6 +78,8 @@ export class PanoramicasConsultaRepository {
           seleccion.s3_key,
           seleccion.mime_type,
           seleccion.fecha_subida,
+          seleccion.latitud,
+          seleccion.longitud,
           conteo.total
         FROM conteo
         LEFT JOIN seleccion ON TRUE
@@ -119,6 +121,9 @@ export class PanoramicasConsultaRepository {
         s3_key: fila.s3_key,
         mime_type: fila.mime_type,
         fecha_subida: fila.fecha_subida,
+        latitud: fila.latitud,
+        longitud: fila.longitud,
+        
       });
     }
 
