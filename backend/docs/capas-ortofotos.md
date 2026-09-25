@@ -22,7 +22,7 @@ El almacenamiento implementado en este bloque es local.
 No exponer la carpeta física de teselas como un directorio público
 que omita las comprobaciones de acceso del backend.
 
-## Rutas
+## RutasSS
 
 Prefijo: /api/proyectos/{idProyecto}/capas
 
