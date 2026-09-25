@@ -1,11 +1,17 @@
-import type { ProyectoRow } from './proyecto.types';
+import type {
+  ProyectoListadoRow,
+} from './proyecto-listado.types';
 
 /**
- * Resultado interno del repositorio.
- * El servicio convertirá los proyectos mediante el mapper.
+ * Resultado interno del repositorio para el listado paginado.
+ *
+ * Cada proyecto incluye la información adicional necesaria
+ * para el resumen de Inicio:
+ * - equipo
+ * - última actualización
  */
 export interface ProyectosPaginadosRow {
-  proyectos: ProyectoRow[];
+  proyectos: ProyectoListadoRow[];
   total: number;
 }
 
@@ -13,16 +19,20 @@ export interface ProyectosPaginadosRow {
  * Cuando la página está vacía, el LEFT JOIN devuelve los campos
  * del proyecto como null, pero conserva el total.
  */
-type ProyectoVacioRow = {
-  [Campo in keyof ProyectoRow]: null;
+type ProyectoListadoVacioRow = {
+  [Campo in keyof ProyectoListadoRow]: null;
 };
 
 /**
  * COUNT devuelve BIGINT, que recibiremos explícitamente como texto.
+ *
+ * La consulta paginada puede devolver:
+ * - un proyecto enriquecido;
+ * - o una fila vacía cuando no existen proyectos en esa página.
  */
 export type ProyectoPaginaConsultaRow = (
-  | ProyectoRow
-  | ProyectoVacioRow
+  | ProyectoListadoRow
+  | ProyectoListadoVacioRow
 ) & {
   total: string;
 };

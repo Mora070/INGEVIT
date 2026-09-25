@@ -1,4 +1,6 @@
-import type { ProyectoResponse } from './proyecto.types';
+import type {
+  ProyectoListadoResponse,
+} from './proyecto-listado.types';
 
 /**
  * Resultado del listado de proyectos.
@@ -7,7 +9,7 @@ import type { ProyectoResponse } from './proyecto.types';
  * el usuario autenticado, nunca los proyectos de todo el sistema.
  */
 export interface ProyectosPaginadosResponse {
-  proyectos: ProyectoResponse[];
+  proyectos: ProyectoListadoResponse[];
   pagina: number;
   limite: number;
   total: number;

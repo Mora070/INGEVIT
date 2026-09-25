@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -11,13 +12,13 @@ import {
 } from '../api/proyectos.api';
 
 import type {
-  Proyecto,
+  ProyectoListado,
   ProyectosPaginados,
 } from '../types/proyecto';
 
 interface EstadoProyectos {
   cargando: boolean;
-  proyectos: Proyecto[];
+  proyectos: ProyectoListado[];
 
   pagina: number;
   limite: number;
@@ -44,6 +45,7 @@ const ESTADO_INICIAL: EstadoProyectos = {
 export function useProyectos(
   pagina = 1,
   limite = 20,
+  busqueda = '',
 ) {
   const [
     estado,
@@ -54,8 +56,17 @@ export function useProyectos(
     limite,
   });
 
+  const idPeticionRef =
+    useRef(0);
+
   const cargar =
     useCallback(async () => {
+      const idPeticion =
+        idPeticionRef.current + 1;
+
+      idPeticionRef.current =
+        idPeticion;
+
       setEstado((actual) => ({
         ...actual,
         cargando: true,
@@ -67,7 +78,20 @@ export function useProyectos(
           await listarProyectos({
             pagina,
             limite,
+            busqueda,
           });
+
+        /*
+         * Si mientras esta petición estaba pendiente
+         * se inició otra más reciente, ignoramos
+         * completamente esta respuesta.
+         */
+        if (
+          idPeticion !==
+          idPeticionRef.current
+        ) {
+          return;
+        }
 
         setEstado({
           cargando: false,
@@ -90,6 +114,17 @@ export function useProyectos(
           error: null,
         });
       } catch (error) {
+        /*
+         * También ignoramos errores pertenecientes
+         * a una petición antigua.
+         */
+        if (
+          idPeticion !==
+          idPeticionRef.current
+        ) {
+          return;
+        }
+
         let mensaje =
           'No fue posible cargar los proyectos.';
 
@@ -104,14 +139,31 @@ export function useProyectos(
           cargando: false,
           proyectos: [],
 
+          total: 0,
+          totalPaginas: 0,
+
           error: mensaje,
         }));
       }
-    }, [pagina, limite]);
+    }, [
+      pagina,
+      limite,
+      busqueda,
+    ]);
 
   useEffect(() => {
     void cargar();
-  }, [cargar]);
+
+    return () => {
+      /*
+       * Invalida la petición actual cuando cambian
+       * los parámetros o se desmonta el componente.
+       */
+      idPeticionRef.current += 1;
+    };
+  }, [
+    cargar,
+  ]);
 
   return {
     ...estado,

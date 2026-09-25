@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException, } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { ProyectosRepository } from './proyectos.repository';
 import { toProyectoResponse } from './mappers/proyecto.mapper';
@@ -9,6 +13,7 @@ import { DatabaseService } from '../../database/database.service';
 import { ActividadesRepository } from '../actividades/actividades.repository';
 import type { CrearProyectoDto } from './dto/crear-proyecto.dto';
 import type { ActualizarProyectoDto } from './dto/actualizar-proyecto.dto';
+
 import type {
   ParticipanteProyectoResponse,
 } from './types/participante-proyecto.types';
@@ -16,6 +21,10 @@ import type {
 import {
   mapearParticipanteProyecto,
 } from './mappers/participante-proyecto.mapper';
+
+import {
+  toProyectoListadoResponse,
+} from './mappers/proyecto-listado.mapper';
 
 /**
  * Coordina los casos de uso de proyectos.
@@ -29,7 +38,7 @@ export class ProyectosService {
     private readonly proyectosRepository: ProyectosRepository,
     private readonly database: DatabaseService,
     private readonly actividadesRepository: ActividadesRepository,
-  ) { }
+  ) {}
 
   /**
    * Obtiene una página de proyectos accesibles para el solicitante.
@@ -47,24 +56,39 @@ export class ProyectosService {
     idUsuarioAutenticado: string,
     consulta: ListarProyectosQueryDto,
   ): Promise<ProyectosPaginadosResponse> {
-    const { pagina, limite } = consulta;
-
-    const resultado =
-      await this.proyectosRepository.findDisponiblesPaginadosByUsuario(
-        idUsuarioAutenticado,
-        pagina,
-        limite,
-      );
-
-    return {
-      proyectos: resultado.proyectos.map(toProyectoResponse),
+    const {
       pagina,
       limite,
-      total: resultado.total,
-      total_paginas: Math.ceil(resultado.total / limite),
+      busqueda,
+    } = consulta;
+
+    const resultado =
+      await this.proyectosRepository
+        .findDisponiblesPaginadosByUsuario(
+          idUsuarioAutenticado,
+          pagina,
+          limite,
+          busqueda,
+        );
+
+    return {
+      proyectos:
+        resultado.proyectos.map(
+          toProyectoListadoResponse,
+        ),
+
+      pagina,
+      limite,
+
+      total:
+        resultado.total,
+
+      total_paginas:
+        Math.ceil(
+          resultado.total / limite,
+        ),
     };
   }
-
 
   /**
    * Obtiene el detalle de un proyecto accesible para el solicitante.
@@ -94,6 +118,7 @@ export class ProyectosService {
 
     return toProyectoResponse(proyecto);
   }
+
   /**
    * Crea el proyecto y registra su actividad de forma atómica.
    *
@@ -125,28 +150,61 @@ export class ProyectosService {
        * Enumeramos los campos admitidos.
        * La propiedad del proyecto no procede del cuerpo HTTP.
        */
-      const proyecto = await this.proyectosRepository.crear(
+      const proyecto =
+        await this.proyectosRepository.crear(
+          client,
+          {
+            idPropietario:
+              idUsuarioAutenticado,
+
+            nombre:
+              datos.nombre,
+
+            descripcion:
+              datos.descripcion,
+
+            direccion:
+              datos.direccion,
+
+            contratante:
+              datos.contratante,
+
+            fechaInicio:
+              datos.fecha_inicio,
+
+            fechaFinalizacion:
+              datos.fecha_finalizacion ??
+              null,
+
+            estadoProyecto:
+              datos.estado_proyecto,
+
+            latitud:
+              datos.latitud ??
+              null,
+
+            longitud:
+              datos.longitud ??
+              null,
+          },
+        );
+
+      await this.actividadesRepository.crear(
         client,
         {
-          idPropietario: idUsuarioAutenticado,
-          nombre: datos.nombre,
-          descripcion: datos.descripcion,
-          direccion: datos.direccion,
-          contratante: datos.contratante,
-          fechaInicio: datos.fecha_inicio,
-          fechaFinalizacion: datos.fecha_finalizacion ?? null,
-          estadoProyecto: datos.estado_proyecto,
-          latitud: datos.latitud ?? null,
-          longitud: datos.longitud ?? null,
+          idProyecto:
+            proyecto.id_proyecto,
+
+          idActor:
+            idUsuarioAutenticado,
+
+          tipoAccion:
+            'PROYECTO_CREADO',
+
+          mensaje:
+            'Proyecto creado.',
         },
       );
-
-      await this.actividadesRepository.crear(client, {
-        idProyecto: proyecto.id_proyecto,
-        idActor: idUsuarioAutenticado,
-        tipoAccion: 'PROYECTO_CREADO',
-        mensaje: 'Proyecto creado.',
-      });
 
       /**
        * Construimos la respuesta antes de confirmar.
@@ -155,10 +213,11 @@ export class ProyectosService {
        * withTransaction devuelve este resultado solo después
        * de completar COMMIT.
        */
-      return toProyectoResponse(proyecto);
+      return toProyectoResponse(
+        proyecto,
+      );
     });
   }
-
 
   /**
    * Reemplaza los datos editables de un proyecto y registra la acción.
@@ -201,7 +260,10 @@ export class ProyectosService {
           idUsuarioAutenticado,
         );
 
-      if (proyectoEditable === null) {
+      if (
+        proyectoEditable ===
+        null
+      ) {
         throw new NotFoundException(
           'El proyecto no está disponible para edición.',
         );
@@ -220,26 +282,58 @@ export class ProyectosService {
           idProyecto,
           idUsuarioAutenticado,
           {
-            nombre: datos.nombre,
-            descripcion: datos.descripcion,
-            direccion: datos.direccion,
-            contratante: datos.contratante,
-            fechaInicio: datos.fecha_inicio,
-            fechaFinalizacion: datos.fecha_finalizacion ?? null,
-            estadoProyecto: datos.estado_proyecto,
-            latitud: datos.latitud ?? null,
-            longitud: datos.longitud ?? null,
+            nombre:
+              datos.nombre,
+
+            descripcion:
+              datos.descripcion,
+
+            direccion:
+              datos.direccion,
+
+            contratante:
+              datos.contratante,
+
+            fechaInicio:
+              datos.fecha_inicio,
+
+            fechaFinalizacion:
+              datos.fecha_finalizacion ??
+              null,
+
+            estadoProyecto:
+              datos.estado_proyecto,
+
+            latitud:
+              datos.latitud ??
+              null,
+
+            longitud:
+              datos.longitud ??
+              null,
           },
         );
 
-      await this.actividadesRepository.crear(client, {
-        idProyecto: proyectoActualizado.id_proyecto,
-        idActor: idUsuarioAutenticado,
-        tipoAccion: 'PROYECTO_MODIFICADO',
-        mensaje: 'Datos del proyecto actualizados.',
-      });
+      await this.actividadesRepository.crear(
+        client,
+        {
+          idProyecto:
+            proyectoActualizado.id_proyecto,
 
-      return toProyectoResponse(proyectoActualizado);
+          idActor:
+            idUsuarioAutenticado,
+
+          tipoAccion:
+            'PROYECTO_MODIFICADO',
+
+          mensaje:
+            'Datos del proyecto actualizados.',
+        },
+      );
+
+      return toProyectoResponse(
+        proyectoActualizado,
+      );
     });
   }
 
@@ -291,15 +385,23 @@ export class ProyectosService {
        * El proyecto sigue existiendo, por lo que la actividad
        * conserva una referencia válida mediante su clave foránea.
        */
-      await this.actividadesRepository.crear(client, {
-        idProyecto,
-        idActor: idUsuarioAutenticado,
-        tipoAccion: 'PROYECTO_ELIMINADO_LOGICAMENTE',
-        mensaje: 'Proyecto eliminado lógicamente.',
-      });
+      await this.actividadesRepository.crear(
+        client,
+        {
+          idProyecto,
+
+          idActor:
+            idUsuarioAutenticado,
+
+          tipoAccion:
+            'PROYECTO_ELIMINADO_LOGICAMENTE',
+
+          mensaje:
+            'Proyecto eliminado lógicamente.',
+        },
+      );
     });
   }
-
 
   /**
    * Agrega un usuario existente como colaborador del proyecto.
@@ -372,27 +474,36 @@ export class ProyectosService {
         return;
       }
 
-      await this.actividadesRepository.crear(client, {
-        idProyecto,
-        idActor: idUsuarioAutenticado,
-        tipoAccion: 'COLABORADOR_AGREGADO',
-        mensaje: `Usuario ${idColaborador} agregado como colaborador.`,
-      });
+      await this.actividadesRepository.crear(
+        client,
+        {
+          idProyecto,
+
+          idActor:
+            idUsuarioAutenticado,
+
+          tipoAccion:
+            'COLABORADOR_AGREGADO',
+
+          mensaje:
+            `Usuario ${idColaborador} agregado como colaborador.`,
+        },
+      );
     });
   }
 
   /**
- * Retira a un colaborador y registra la acción de forma atómica.
- *
- * Solo el propietario activo puede administrar los colaboradores de un
- * proyecto disponible. La identidad del actor debe proceder de la sesión.
- *
- * Elimina únicamente la relación de colaboración: conserva al usuario,
- * sus incidencias, sus actividades y la propiedad del proyecto.
- *
- * Si la relación no existe, termina sin generar una actividad.
- * Si falla el historial, la transacción revierte la eliminación.
- */
+   * Retira a un colaborador y registra la acción de forma atómica.
+   *
+   * Solo el propietario activo puede administrar los colaboradores de un
+   * proyecto disponible. La identidad del actor debe proceder de la sesión.
+   *
+   * Elimina únicamente la relación de colaboración: conserva al usuario,
+   * sus incidencias, sus actividades y la propiedad del proyecto.
+   *
+   * Si la relación no existe, termina sin generar una actividad.
+   * Si falla el historial, la transacción revierte la eliminación.
+   */
   async retirarColaborador(
     idProyecto: string,
     idActor: string,
@@ -439,13 +550,20 @@ export class ProyectosService {
         return;
       }
 
-      await this.actividadesRepository.crear(client, {
-        idProyecto,
-        idActor,
-        tipoAccion: 'COLABORADOR_RETIRADO',
-        mensaje:
-          `Usuario ${idColaborador} retirado como colaborador.`,
-      });
+      await this.actividadesRepository.crear(
+        client,
+        {
+          idProyecto,
+
+          idActor,
+
+          tipoAccion:
+            'COLABORADOR_RETIRADO',
+
+          mensaje:
+            `Usuario ${idColaborador} retirado como colaborador.`,
+        },
+      );
     });
   }
 
@@ -471,13 +589,17 @@ export class ProyectosService {
         idUsuario,
       );
 
-    if (participantes.length === 0) {
+    if (
+      participantes.length ===
+      0
+    ) {
       throw new NotFoundException(
         'El proyecto no está disponible.',
       );
     }
 
-    return participantes.map(mapearParticipanteProyecto);
+    return participantes.map(
+      mapearParticipanteProyecto,
+    );
   }
-
 }

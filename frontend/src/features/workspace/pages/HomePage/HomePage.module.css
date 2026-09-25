@@ -635,16 +635,47 @@
   flex-direction: column;
 
   min-height: 520px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgb(57 59 62 / 24%)
+    transparent;
+}
+
+.projectListPlaceholder::-webkit-scrollbar {
+  height: 8px;
+}
+
+.projectListPlaceholder::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.projectListPlaceholder::-webkit-scrollbar-thumb {
+  background:
+    rgb(57 59 62 / 20%);
+
+  border-radius: 999px;
+}
+
+.projectListPlaceholder::-webkit-scrollbar-thumb:hover {
+  background:
+    rgb(57 59 62 / 30%);
 }
 
 .tableHeader {
+  min-width: 720px;
+
   display: grid;
 
   grid-template-columns:
-    minmax(170px, 1.35fr)
-    minmax(120px, 1fr)
-    minmax(90px, 0.75fr)
-    minmax(140px, 1fr);
+    minmax(165px, 1.3fr)
+    minmax(115px, 0.9fr)
+    minmax(85px, 0.65fr)
+    minmax(110px, 0.75fr)
+    minmax(155px, 1fr);
 
   gap: 0.75rem;
 
@@ -667,18 +698,21 @@
 
 .projectRows {
   width: 100%;
+  min-width: 720px;
 }
 
 .projectRow {
   width: 100%;
+  min-width: 720px;
 
   display: grid;
 
   grid-template-columns:
-    minmax(170px, 1.35fr)
-    minmax(120px, 1fr)
-    minmax(90px, 0.75fr)
-    minmax(140px, 1fr);
+    minmax(165px, 1.3fr)
+    minmax(115px, 0.9fr)
+    minmax(85px, 0.65fr)
+    minmax(110px, 0.75fr)
+    minmax(155px, 1fr);
 
   align-items: center;
 
@@ -696,6 +730,7 @@
   background: #ffffff;
 
   border: 0;
+
   border-bottom:
     1px solid
     rgb(57 59 62 / 7%);
@@ -891,11 +926,356 @@
     #eceeed;
 }
 
-.projectDate {
+/* =========================
+   EQUIPO DEL PROYECTO
+   ========================= */
+
+.projectTeam {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+}
+
+.teamAvatars {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+}
+
+.teamAvatar {
+  position: relative;
+
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  margin-left: -8px;
+
+  color:
+    var(--color-brand-charcoal);
+
+  background:
+    var(--color-brand-olive-soft);
+
+  border:
+    2px solid
+    #ffffff;
+
+  border-radius: 50%;
+
+  font-size: 0.61rem;
+  font-weight: 800;
+
+  line-height: 1;
+
+  box-shadow:
+    0 1px 4px
+    rgb(40 42 44 / 10%);
+}
+
+.teamAvatar:first-child {
+  margin-left: 0;
+}
+
+.teamAvatar img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+
+  border-radius: 50%;
+}
+
+.teamAvatar span {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  text-align: center;
+  text-overflow: clip;
+
+  white-space: nowrap;
+}
+
+.teamAvatarMore {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  font-size: 0.61rem;
+  font-weight: 800;
+}
+
+.noTeam {
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.69rem;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+/* =========================
+   ÚLTIMA ACTUALIZACIÓN
+   ========================= */
+
+.lastUpdate {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.16rem;
+}
+
+.lastUpdate strong {
+  overflow: hidden;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lastUpdate span {
+  overflow: hidden;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.65rem;
+  font-weight: 500;
+
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================
+   VISTA DE TARJETAS
+   ========================= */
+
+.projectCards {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.85rem;
+
+  padding: 1rem;
+
+  overflow-x: hidden;
+}
+
+.projectCard {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.85rem;
+
+  padding: 1rem;
+
+  color:
+    var(--color-text);
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 9%);
+
+  border-radius: 12px;
+
+  font: inherit;
+
+  text-align: left;
+
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.projectCard:hover {
+  background:
+    #fcfcfb;
+
+  border-color:
+    rgb(234 117 26 / 20%);
+
+  box-shadow:
+    0 8px 20px
+    rgb(40 42 44 / 7%);
+
+  transform:
+    translateY(-1px);
+}
+
+.projectCard:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.projectCardSelected {
+  background:
+    var(--color-brand-orange-soft);
+
+  border-color:
+    rgb(234 117 26 / 38%);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgb(234 117 26 / 10%);
+}
+
+.projectCardSelected:hover {
+  background:
+    var(--color-brand-orange-soft);
+
+  border-color:
+    rgb(234 117 26 / 45%);
+}
+
+.projectCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.75rem;
+}
+
+.projectCardTitle {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.22rem;
+}
+
+.projectCardTitle strong {
+  overflow: hidden;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectCardTitle span {
+  overflow: hidden;
+
   color:
     var(--color-text-secondary);
 
-  font-size: 0.72rem;
+  font-size: 0.69rem;
+  font-weight: 500;
+
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectCardLocation {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.4rem;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.7rem;
+}
+
+.projectCardLocation svg {
+  width: 16px;
+  height: 16px;
+
+  flex: 0 0 auto;
+
+  fill: none;
+
+  stroke:
+    var(--color-brand-olive);
+
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.projectCardLocation span {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectCardFooter {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.8rem;
+
+  margin-top: auto;
+
+  padding-top: 0.75rem;
+
+  border-top:
+    1px solid
+    rgb(57 59 62 / 7%);
+}
+
+.projectCardFooter .lastUpdate {
+  flex: 0 0 auto;
+
+  text-align: right;
 }
 
 /* =========================
@@ -903,6 +1283,8 @@
    ========================= */
 
 .pagination {
+  min-width: 720px;
+
   margin-top: auto;
 
   display: flex;
@@ -1216,6 +1598,194 @@
 }
 
 /* =========================
+   MAPA AMPLIADO
+   ========================= */
+
+.expandedMapBackdrop {
+  position: fixed;
+  z-index: 1000;
+
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  padding: 1.5rem;
+
+  background:
+    rgb(22 23 24 / 62%);
+
+  backdrop-filter: blur(3px);
+}
+
+.expandedMap {
+  width: min(1180px, 100%);
+
+  height:
+    min(
+      760px,
+      calc(100vh - 3rem)
+    );
+
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(255 255 255 / 16%);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 24px 70px
+    rgb(0 0 0 / 24%);
+}
+
+.expandedMapHeader {
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  flex: 0 0 auto;
+
+  padding:
+    0.85rem
+    1rem;
+
+  background: #ffffff;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 8%);
+}
+
+.expandedMapTitle {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.65rem;
+}
+
+.expandedMapTitle > svg {
+  width: 24px;
+  height: 24px;
+
+  flex: 0 0 auto;
+
+  fill: none;
+
+  stroke:
+    var(--color-brand-olive);
+
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.expandedMapTitle h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.expandedMapTitle span {
+  display: block;
+
+  margin-top: 0.12rem;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.expandedMapClose {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color:
+    var(--color-brand-charcoal);
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    var(--color-border);
+
+  border-radius: 9px;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.expandedMapClose svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.expandedMapClose:hover {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  border-color:
+    rgb(234 117 26 / 25%);
+}
+
+.expandedMapClose:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.expandedMapContent {
+  min-height: 0;
+
+  flex: 1;
+
+  overflow: hidden;
+
+  background: #e7e9e6;
+}
+
+/* =========================
    RESPONSIVE
    ========================= */
 
@@ -1296,11 +1866,23 @@
     width: 100%;
   }
 
+  .projectListPlaceholder {
+    min-height: 360px;
+
+    overflow-x: hidden;
+  }
+
   .tableHeader {
     display: none;
   }
 
+  .projectRows {
+    min-width: 0;
+  }
+
   .projectRow {
+    min-width: 0;
+
     grid-template-columns: 1fr;
 
     gap: 0.6rem;
@@ -1315,12 +1897,28 @@
   }
 
   .statusBadge,
-  .projectDate {
+  .projectTeam,
+  .lastUpdate {
     margin-left: 2.9rem;
   }
 
-  .projectListPlaceholder {
-    min-height: 360px;
+  .projectCards {
+    grid-template-columns: 1fr;
+
+    padding: 0.9rem;
+  }
+
+  .projectCard {
+    padding: 0.9rem;
+  }
+
+  .projectCardFooter {
+    gap: 0.65rem;
+  }
+
+  .projectCardFooter .projectTeam,
+  .projectCardFooter .lastUpdate {
+    margin-left: 0;
   }
 
   .mapContainer {
@@ -1328,6 +1926,8 @@
   }
 
   .pagination {
+    min-width: 0;
+
     flex-direction: column;
 
     align-items: stretch;
@@ -1339,6 +1939,17 @@
 
   .paginationControls {
     justify-content: center;
+  }
+
+  .expandedMapBackdrop {
+    padding: 0.75rem;
+  }
+
+  .expandedMap {
+    height:
+      calc(100vh - 1.5rem);
+
+    border-radius: 12px;
   }
 }
 
@@ -1386,8 +1997,44 @@
   }
 
   .statusBadge,
-  .projectDate {
+  .projectTeam,
+  .lastUpdate {
     margin-left: 0;
+  }
+
+  .teamAvatar {
+    width: 30px;
+    height: 30px;
+
+    flex-basis: 30px;
+  }
+
+  .lastUpdate strong {
+    font-size: 0.69rem;
+  }
+
+  .lastUpdate span {
+    font-size: 0.64rem;
+  }
+
+  .projectCards {
+    padding: 0.75rem;
+  }
+
+  .projectCard {
+    gap: 0.75rem;
+  }
+
+  .projectCardFooter {
+    align-items: flex-end;
+  }
+
+  .projectCardTitle strong {
+    font-size: 0.78rem;
+  }
+
+  .projectCardLocation {
+    font-size: 0.68rem;
   }
 
   .pagination {
@@ -1436,8 +2083,14 @@
   .clearFiltersButton,
   .iconButton,
   .projectRow,
-  .paginationButton {
+  .projectCard,
+  .paginationButton,
+  .expandedMapClose {
     transition: none;
+  }
+
+  .projectCard:hover {
+    transform: none;
   }
 
   .loadingSpinner {

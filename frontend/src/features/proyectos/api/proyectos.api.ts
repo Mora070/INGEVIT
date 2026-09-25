@@ -12,6 +12,7 @@ import type {
 interface OpcionesListadoProyectos {
   pagina?: number;
   limite?: number;
+  busqueda?: string;
 }
 
 export interface DatosCrearProyecto {
@@ -43,6 +44,16 @@ export function listarProyectos(
       pagina: String(pagina),
       limite: String(limite),
     });
+
+  const busqueda =
+    opciones.busqueda?.trim();
+
+  if (busqueda) {
+    parametros.set(
+      'busqueda',
+      busqueda,
+    );
+  }
 
   return http<ProyectosPaginados>(
     `/api/proyectos?${parametros.toString()}`,

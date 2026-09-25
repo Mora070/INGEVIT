@@ -6,6 +6,7 @@ import type { ProyectoRow } from './types/proyecto.types';
 import type { PoolClient } from 'pg';
 import type { CrearProyectoInput } from './types/crear-proyecto.types';
 import type { ActualizarProyectoInput } from './types/actualizar-proyecto.types';
+
 import type {
   ParticipanteProyectoRow,
 } from './types/participante-proyecto.types';
@@ -14,6 +15,10 @@ import type {
   ProyectoPaginaConsultaRow,
   ProyectosPaginadosRow,
 } from './types/proyectos-paginados-row.types';
+
+import type {
+  ProyectoListadoRow,
+} from './types/proyecto-listado.types';
 
 /**
  * Acceso a PostgreSQL para proyectos.
@@ -45,8 +50,9 @@ export class ProyectosRepository {
   async findDisponiblesByUsuario(
     idUsuario: string,
   ): Promise<ProyectoRow[]> {
-    const result = await this.database.query<ProyectoRow>(
-      `
+    const result =
+      await this.database.query<ProyectoRow>(
+        `
         SELECT
           p.id_proyecto,
           p.id_propietario,
@@ -54,7 +60,10 @@ export class ProyectosRepository {
           p.descripcion,
           p.direccion,
           p.contratante,
-          to_char(p.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
+          to_char(
+            p.fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
           to_char(
             p.fecha_finalizacion,
             'YYYY-MM-DD'
@@ -63,29 +72,51 @@ export class ProyectosRepository {
           p.activo,
           p.latitud,
           p.longitud
+
         FROM obra.proyectos AS p
+
         INNER JOIN obra.usuarios AS propietario
-          ON propietario.id_usuario = p.id_propietario
+          ON propietario.id_usuario =
+            p.id_propietario
+
         INNER JOIN obra.usuarios AS solicitante
-          ON solicitante.id_usuario = $1::uuid
+          ON solicitante.id_usuario =
+            $1::uuid
+
         WHERE p.activo = true
-          AND propietario.estado = 'ACTIVO'
-          AND solicitante.estado = 'ACTIVO'
+
+          AND propietario.estado =
+            'ACTIVO'
+
+          AND solicitante.estado =
+            'ACTIVO'
+
           AND (
-            p.id_propietario = solicitante.id_usuario
+            p.id_propietario =
+              solicitante.id_usuario
+
             OR EXISTS (
               SELECT 1
-              FROM obra.usuario_proyecto AS colaboracion
-              WHERE colaboracion.id_proyecto = p.id_proyecto
-                AND colaboracion.id_usuario = solicitante.id_usuario
+
+              FROM obra.usuario_proyecto
+                AS colaboracion
+
+              WHERE colaboracion.id_proyecto =
+                p.id_proyecto
+
+                AND colaboracion.id_usuario =
+                  solicitante.id_usuario
             )
           )
+
         ORDER BY
           p.fecha_inicio DESC,
           p.id_proyecto ASC
-      `,
-      [idUsuario],
-    );
+        `,
+        [
+          idUsuario,
+        ],
+      );
 
     return result.rows;
   }
@@ -99,6 +130,10 @@ export class ProyectosRepository {
    * Precondiciones:
    * - idUsuario procede de la autenticación.
    * - pagina y limite fueron validados.
+   * - busqueda fue validada por ListarProyectosQueryDto.
+   *
+   * Cuando busqueda está presente se compara contra el nombre completo
+   * del proyecto ignorando mayúsculas y minúsculas.
    *
    * Una página sin registros conserva el total y devuelve proyectos: [].
    */
@@ -106,43 +141,84 @@ export class ProyectosRepository {
     idUsuario: string,
     pagina: number,
     limite: number,
+    busqueda?: string,
   ): Promise<ProyectosPaginadosRow> {
-    const desplazamiento = (pagina - 1) * limite;
+    const desplazamiento =
+      (pagina - 1) * limite;
+
+    const busquedaNormalizada =
+      busqueda ?? null;
 
     const result =
       await this.database.query<ProyectoPaginaConsultaRow>(
         `
         WITH accesibles AS (
           SELECT p.*
+
           FROM obra.proyectos AS p
+
           INNER JOIN obra.usuarios AS propietario
-            ON propietario.id_usuario = p.id_propietario
+            ON propietario.id_usuario =
+              p.id_propietario
+
           INNER JOIN obra.usuarios AS solicitante
-            ON solicitante.id_usuario = $1::uuid
+            ON solicitante.id_usuario =
+              $1::uuid
+
           WHERE p.activo = true
-            AND propietario.estado = 'ACTIVO'
-            AND solicitante.estado = 'ACTIVO'
+
+            AND propietario.estado =
+              'ACTIVO'
+
+            AND solicitante.estado =
+              'ACTIVO'
+
             AND (
-              p.id_propietario = solicitante.id_usuario
+              p.id_propietario =
+                solicitante.id_usuario
+
               OR EXISTS (
                 SELECT 1
-                FROM obra.usuario_proyecto AS colaboracion
-                WHERE colaboracion.id_proyecto = p.id_proyecto
-                  AND colaboracion.id_usuario = solicitante.id_usuario
+
+                FROM obra.usuario_proyecto
+                  AS colaboracion
+
+                WHERE colaboracion.id_proyecto =
+                  p.id_proyecto
+
+                  AND colaboracion.id_usuario =
+                    solicitante.id_usuario
               )
             )
+
+            AND (
+              $4::text IS NULL
+
+              OR p.nombre ILIKE
+                $4::text || '%'
+            )
         ),
+
         pagina_seleccionada AS (
           SELECT *
+
           FROM accesibles
-          ORDER BY fecha_inicio DESC, id_proyecto ASC
+
+          ORDER BY
+            fecha_inicio DESC,
+            id_proyecto ASC
+
           LIMIT $2::integer
           OFFSET $3::bigint
         ),
+
         conteo AS (
-          SELECT count(*)::text AS total
+          SELECT
+            count(*)::text AS total
+
           FROM accesibles
         )
+
         SELECT
           p.id_proyecto,
           p.id_propietario,
@@ -150,118 +226,285 @@ export class ProyectosRepository {
           p.descripcion,
           p.direccion,
           p.contratante,
-          to_char(p.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
+
+          to_char(
+            p.fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
+
           to_char(
             p.fecha_finalizacion,
             'YYYY-MM-DD'
           ) AS fecha_finalizacion,
+
           p.estado_proyecto,
           p.activo,
           p.latitud,
           p.longitud,
+
+          equipo.equipo,
+
+          ultima_actividad.ultima_actualizacion,
+
           conteo.total
+
         FROM conteo
-        LEFT JOIN pagina_seleccionada AS p ON true
-        ORDER BY p.fecha_inicio DESC, p.id_proyecto ASC
-      `,
-        [idUsuario, limite, desplazamiento],
+
+        LEFT JOIN pagina_seleccionada AS p
+          ON true
+
+        LEFT JOIN LATERAL (
+          SELECT
+            jsonb_agg(
+              jsonb_build_object(
+                'id_usuario',
+                participante.id_usuario,
+
+                'nombre',
+                usuario.nombre,
+
+                'apellidos',
+                usuario.apellidos,
+
+                'foto_perfil_url',
+                usuario.foto_perfil_url,
+
+                'participacion',
+                participante.participacion
+              )
+
+              ORDER BY
+                participante.orden,
+                usuario.apellidos ASC NULLS LAST,
+                usuario.nombre ASC NULLS LAST,
+                usuario.id_usuario ASC
+            ) AS equipo
+
+          FROM (
+            SELECT
+              p.id_propietario AS id_usuario,
+
+              'PROPIETARIO'::text
+                AS participacion,
+
+              0 AS orden
+
+            WHERE p.id_proyecto IS NOT NULL
+
+            UNION ALL
+
+            SELECT
+              relacion.id_usuario,
+
+              'COLABORADOR'::text
+                AS participacion,
+
+              1 AS orden
+
+            FROM obra.usuario_proyecto
+              AS relacion
+
+            WHERE relacion.id_proyecto =
+              p.id_proyecto
+
+              AND relacion.id_usuario <>
+                p.id_propietario
+
+          ) AS participante
+
+          INNER JOIN obra.usuarios AS usuario
+            ON usuario.id_usuario =
+              participante.id_usuario
+
+        ) AS equipo
+          ON p.id_proyecto IS NOT NULL
+
+        LEFT JOIN LATERAL (
+          SELECT
+            max(
+              actividad.fecha_creacion
+            ) AS ultima_actualizacion
+
+          FROM obra.actividades AS actividad
+
+          WHERE actividad.id_proyecto =
+            p.id_proyecto
+
+        ) AS ultima_actividad
+          ON p.id_proyecto IS NOT NULL
+
+        ORDER BY
+          p.fecha_inicio DESC,
+          p.id_proyecto ASC
+        `,
+        [
+          idUsuario,
+          limite,
+          desplazamiento,
+          busquedaNormalizada,
+        ],
       );
 
     /**
-     * El agregado COUNT siempre produce una fila, incluso sin proyectos.
-     * Una ausencia de filas indicaría un resultado inesperado.
+     * El agregado COUNT siempre produce una fila,
+     * incluso cuando no existen proyectos.
      */
-    const primeraFila = result.rows[0];
+    const primeraFila =
+      result.rows[0];
 
-    if (primeraFila === undefined) {
+    if (
+      primeraFila === undefined
+    ) {
       throw new Error(
         'La consulta paginada no devolvió el conteo esperado.',
       );
     }
 
-    const total = Number(primeraFila.total);
+    const total =
+      Number(
+        primeraFila.total,
+      );
 
-    if (!Number.isSafeInteger(total) || total < 0) {
+    if (
+      !Number.isSafeInteger(
+        total,
+      ) ||
+      total < 0
+    ) {
       throw new Error(
         'El total de proyectos no puede representarse correctamente.',
       );
     }
 
-    const proyectos: ProyectoRow[] = [];
+    const proyectos:
+      ProyectoListadoRow[] = [];
 
-    for (const fila of result.rows) {
-      // Descarta la fila vacía generada por el LEFT JOIN.
-      if (fila.id_proyecto === null) {
+    for (
+      const fila of result.rows
+    ) {
+      /**
+       * Descarta la fila vacía producida por
+       * LEFT JOIN cuando no hay proyectos
+       * en la página seleccionada.
+       */
+      if (
+        fila.id_proyecto ===
+        null
+      ) {
         continue;
       }
 
-      const { total: totalDeFila, ...proyecto } = fila;
-      proyectos.push(proyecto);
+      const {
+        total: totalDeFila,
+        ...proyecto
+      } = fila;
+
+      void totalDeFila;
+
+      proyectos.push(
+        proyecto as ProyectoListadoRow,
+      );
     }
 
-    return { proyectos, total };
+    return {
+      proyectos,
+      total,
+    };
   }
 
-
   /**
- * Consulta un proyecto disponible para el usuario indicado.
- *
- * Comprueba en la misma sentencia:
- * - Proyecto no eliminado lógicamente.
- * - Propietario activo.
- * - Solicitante activo.
- * - Solicitante propietario o colaborador.
- *
- * Devuelve null si el proyecto no existe o no está disponible
- * para ese usuario. No distingue públicamente ambas situaciones.
- *
- * idUsuario debe proceder de la identidad autenticada.
- */
+   * Consulta un proyecto disponible para el usuario indicado.
+   *
+   * Comprueba en la misma sentencia:
+   * - Proyecto no eliminado lógicamente.
+   * - Propietario activo.
+   * - Solicitante activo.
+   * - Solicitante propietario o colaborador.
+   *
+   * Devuelve null si el proyecto no existe o no está disponible
+   * para ese usuario. No distingue públicamente ambas situaciones.
+   *
+   * idUsuario debe proceder de la identidad autenticada.
+   */
   async findDisponibleById(
     idProyecto: string,
     idUsuario: string,
   ): Promise<ProyectoRow | null> {
-    const result = await this.database.query<ProyectoRow>(
-      `
-      SELECT
-        p.id_proyecto,
-        p.id_propietario,
-        p.nombre,
-        p.descripcion,
-        p.direccion,
-        p.contratante,
-        to_char(p.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
-        to_char(
-          p.fecha_finalizacion,
-          'YYYY-MM-DD'
-        ) AS fecha_finalizacion,
-        p.estado_proyecto,
-        p.activo,
-        p.latitud,
-        p.longitud
-      FROM obra.proyectos AS p
-      INNER JOIN obra.usuarios AS propietario
-        ON propietario.id_usuario = p.id_propietario
-      INNER JOIN obra.usuarios AS solicitante
-        ON solicitante.id_usuario = $2::uuid
-      WHERE p.id_proyecto = $1::uuid
-        AND p.activo = true
-        AND propietario.estado = 'ACTIVO'
-        AND solicitante.estado = 'ACTIVO'
-        AND (
-          p.id_propietario = solicitante.id_usuario
-          OR EXISTS (
-            SELECT 1
-            FROM obra.usuario_proyecto AS colaboracion
-            WHERE colaboracion.id_proyecto = p.id_proyecto
-              AND colaboracion.id_usuario = solicitante.id_usuario
-          )
-        )
-    `,
-      [idProyecto, idUsuario],
-    );
+    const result =
+      await this.database.query<ProyectoRow>(
+        `
+        SELECT
+          p.id_proyecto,
+          p.id_propietario,
+          p.nombre,
+          p.descripcion,
+          p.direccion,
+          p.contratante,
 
-    return result.rows[0] ?? null;
+          to_char(
+            p.fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
+
+          to_char(
+            p.fecha_finalizacion,
+            'YYYY-MM-DD'
+          ) AS fecha_finalizacion,
+
+          p.estado_proyecto,
+          p.activo,
+          p.latitud,
+          p.longitud
+
+        FROM obra.proyectos AS p
+
+        INNER JOIN obra.usuarios AS propietario
+          ON propietario.id_usuario =
+            p.id_propietario
+
+        INNER JOIN obra.usuarios AS solicitante
+          ON solicitante.id_usuario =
+            $2::uuid
+
+        WHERE p.id_proyecto =
+          $1::uuid
+
+          AND p.activo = true
+
+          AND propietario.estado =
+            'ACTIVO'
+
+          AND solicitante.estado =
+            'ACTIVO'
+
+          AND (
+            p.id_propietario =
+              solicitante.id_usuario
+
+            OR EXISTS (
+              SELECT 1
+
+              FROM obra.usuario_proyecto
+                AS colaboracion
+
+              WHERE colaboracion.id_proyecto =
+                p.id_proyecto
+
+                AND colaboracion.id_usuario =
+                  solicitante.id_usuario
+            )
+          )
+        `,
+        [
+          idProyecto,
+          idUsuario,
+        ],
+      );
+
+    return (
+      result.rows[0] ??
+      null
+    );
   }
 
   /**
@@ -280,66 +523,78 @@ export class ProyectosRepository {
     client: PoolClient,
     datos: CrearProyectoInput,
   ): Promise<ProyectoRow> {
-    const result = await client.query<ProyectoRow>(
-      `
-      INSERT INTO obra.proyectos (
-        id_propietario,
-        nombre,
-        descripcion,
-        direccion,
-        contratante,
-        fecha_inicio,
-        fecha_finalizacion,
-        estado_proyecto,
-        latitud,
-        longitud
-      )
-      VALUES (
-        $1::uuid,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6::date,
-        $7::date,
-        $8::obra.estado_proyecto,
-        $9::numeric,
-        $10::numeric
-      )
-      RETURNING
-        id_proyecto,
-        id_propietario,
-        nombre,
-        descripcion,
-        direccion,
-        contratante,
-        to_char(fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
-        to_char(
+    const result =
+      await client.query<ProyectoRow>(
+        `
+        INSERT INTO obra.proyectos (
+          id_propietario,
+          nombre,
+          descripcion,
+          direccion,
+          contratante,
+          fecha_inicio,
           fecha_finalizacion,
-          'YYYY-MM-DD'
-        ) AS fecha_finalizacion,
-        estado_proyecto,
-        activo,
-        latitud,
-        longitud
-    `,
-      [
-        datos.idPropietario,
-        datos.nombre,
-        datos.descripcion,
-        datos.direccion,
-        datos.contratante,
-        datos.fechaInicio,
-        datos.fechaFinalizacion,
-        datos.estadoProyecto,
-        datos.latitud,
-        datos.longitud,
-      ],
-    );
+          estado_proyecto,
+          latitud,
+          longitud
+        )
 
-    const proyecto = result.rows[0];
+        VALUES (
+          $1::uuid,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6::date,
+          $7::date,
+          $8::obra.estado_proyecto,
+          $9::numeric,
+          $10::numeric
+        )
 
-    if (proyecto === undefined) {
+        RETURNING
+          id_proyecto,
+          id_propietario,
+          nombre,
+          descripcion,
+          direccion,
+          contratante,
+
+          to_char(
+            fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
+
+          to_char(
+            fecha_finalizacion,
+            'YYYY-MM-DD'
+          ) AS fecha_finalizacion,
+
+          estado_proyecto,
+          activo,
+          latitud,
+          longitud
+        `,
+        [
+          datos.idPropietario,
+          datos.nombre,
+          datos.descripcion,
+          datos.direccion,
+          datos.contratante,
+          datos.fechaInicio,
+          datos.fechaFinalizacion,
+          datos.estadoProyecto,
+          datos.latitud,
+          datos.longitud,
+        ],
+      );
+
+    const proyecto =
+      result.rows[0];
+
+    if (
+      proyecto === undefined
+    ) {
       throw new Error(
         'La inserción del proyecto no devolvió el registro creado.',
       );
@@ -348,91 +603,123 @@ export class ProyectosRepository {
     return proyecto;
   }
 
-
   /**
- * Comprueba que el propietario existe y está activo,
- * manteniendo un bloqueo de lectura hasta finalizar la transacción.
- *
- * FOR SHARE permite otras lecturas y creaciones concurrentes,
- * pero bloquea una actualización del estado de esta cuenta
- * mientras se completa la operación.
- *
- * Debe ejecutarse con el mismo cliente de la creación.
- */
+   * Comprueba que el propietario existe y está activo,
+   * manteniendo un bloqueo de lectura hasta finalizar la transacción.
+   *
+   * FOR SHARE permite otras lecturas y creaciones concurrentes,
+   * pero bloquea una actualización del estado de esta cuenta
+   * mientras se completa la operación.
+   *
+   * Debe ejecutarse con el mismo cliente de la creación.
+   */
   async bloquearPropietarioActivo(
     client: PoolClient,
     idPropietario: string,
   ): Promise<boolean> {
-    const result = await client.query(
-      `
-      SELECT id_usuario
-      FROM obra.usuarios
-      WHERE id_usuario = $1::uuid
-        AND estado = 'ACTIVO'
-      FOR SHARE
-    `,
-      [idPropietario],
-    );
+    const result =
+      await client.query(
+        `
+        SELECT
+          id_usuario
 
-    return result.rows.length === 1;
+        FROM obra.usuarios
+
+        WHERE id_usuario =
+          $1::uuid
+
+          AND estado =
+            'ACTIVO'
+
+        FOR SHARE
+        `,
+        [
+          idPropietario,
+        ],
+      );
+
+    return (
+      result.rows.length ===
+      1
+    );
   }
 
   /**
- * Obtiene y bloquea un proyecto editable por su propietario.
- *
- * Precondición:
- * El servicio debe haber ejecutado bloquearPropietarioActivo()
- * con este mismo cliente y comprobado su resultado.
- *
- * Orden de bloqueo:
- * 1. Cuenta del propietario.
- * 2. Proyecto.
- *
- * Mantendremos este orden en las operaciones de modificación
- * para reducir el riesgo de bloqueos cruzados.
- *
- * Devuelve null si el proyecto:
- * - No existe.
- * - Está eliminado lógicamente.
- * - Pertenece a otro usuario.
- *
- * El bloqueo se libera al confirmar o revertir la transacción.
- */
+   * Obtiene y bloquea un proyecto editable por su propietario.
+   *
+   * Precondición:
+   * El servicio debe haber ejecutado bloquearPropietarioActivo()
+   * con este mismo cliente y comprobado su resultado.
+   *
+   * Orden de bloqueo:
+   * 1. Cuenta del propietario.
+   * 2. Proyecto.
+   *
+   * Mantendremos este orden en las operaciones de modificación
+   * para reducir el riesgo de bloqueos cruzados.
+   *
+   * Devuelve null si el proyecto:
+   * - No existe.
+   * - Está eliminado lógicamente.
+   * - Pertenece a otro usuario.
+   *
+   * El bloqueo se libera al confirmar o revertir la transacción.
+   */
   async bloquearEditablePorPropietario(
     client: PoolClient,
     idProyecto: string,
     idPropietario: string,
   ): Promise<ProyectoRow | null> {
-    const result = await client.query<ProyectoRow>(
-      `
-      SELECT
-        p.id_proyecto,
-        p.id_propietario,
-        p.nombre,
-        p.descripcion,
-        p.direccion,
-        p.contratante,
-        to_char(p.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
-        to_char(
-          p.fecha_finalizacion,
-          'YYYY-MM-DD'
-        ) AS fecha_finalizacion,
-        p.estado_proyecto,
-        p.activo,
-        p.latitud,
-        p.longitud
-      FROM obra.proyectos AS p
-      WHERE p.id_proyecto = $1::uuid
-        AND p.id_propietario = $2::uuid
-        AND p.activo = true
-      FOR UPDATE OF p
-    `,
-      [idProyecto, idPropietario],
+    const result =
+      await client.query<ProyectoRow>(
+        `
+        SELECT
+          p.id_proyecto,
+          p.id_propietario,
+          p.nombre,
+          p.descripcion,
+          p.direccion,
+          p.contratante,
+
+          to_char(
+            p.fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
+
+          to_char(
+            p.fecha_finalizacion,
+            'YYYY-MM-DD'
+          ) AS fecha_finalizacion,
+
+          p.estado_proyecto,
+          p.activo,
+          p.latitud,
+          p.longitud
+
+        FROM obra.proyectos AS p
+
+        WHERE p.id_proyecto =
+          $1::uuid
+
+          AND p.id_propietario =
+            $2::uuid
+
+          AND p.activo =
+            true
+
+        FOR UPDATE OF p
+        `,
+        [
+          idProyecto,
+          idPropietario,
+        ],
+      );
+
+    return (
+      result.rows[0] ??
+      null
     );
-
-    return result.rows[0] ?? null;
   }
-
 
   /**
    * Reemplaza los datos editables de un proyecto.
@@ -454,55 +741,72 @@ export class ProyectosRepository {
     idPropietario: string,
     datos: ActualizarProyectoInput,
   ): Promise<ProyectoRow> {
-    const result = await client.query<ProyectoRow>(
-      `
-      UPDATE obra.proyectos
-      SET
-        nombre = $3,
-        descripcion = $4,
-        direccion = $5,
-        contratante = $6,
-        fecha_inicio = $7::date,
-        fecha_finalizacion = $8::date,
-        estado_proyecto = $9::obra.estado_proyecto,
-        latitud = $10::numeric,
-        longitud = $11::numeric
-      WHERE id_proyecto = $1::uuid
-        AND id_propietario = $2::uuid
-        AND activo = true
-      RETURNING
-        id_proyecto,
-        id_propietario,
-        nombre,
-        descripcion,
-        direccion,
-        contratante,
-        to_char(fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
-        to_char(
-          fecha_finalizacion,
-          'YYYY-MM-DD'
-        ) AS fecha_finalizacion,
-        estado_proyecto,
-        activo,
-        latitud,
-        longitud
-    `,
-      [
-        idProyecto,
-        idPropietario,
-        datos.nombre,
-        datos.descripcion,
-        datos.direccion,
-        datos.contratante,
-        datos.fechaInicio,
-        datos.fechaFinalizacion,
-        datos.estadoProyecto,
-        datos.latitud,
-        datos.longitud,
-      ],
-    );
+    const result =
+      await client.query<ProyectoRow>(
+        `
+        UPDATE obra.proyectos
 
-    const proyecto = result.rows[0];
+        SET
+          nombre = $3,
+          descripcion = $4,
+          direccion = $5,
+          contratante = $6,
+          fecha_inicio = $7::date,
+          fecha_finalizacion = $8::date,
+          estado_proyecto =
+            $9::obra.estado_proyecto,
+          latitud = $10::numeric,
+          longitud = $11::numeric
+
+        WHERE id_proyecto =
+          $1::uuid
+
+          AND id_propietario =
+            $2::uuid
+
+          AND activo =
+            true
+
+        RETURNING
+          id_proyecto,
+          id_propietario,
+          nombre,
+          descripcion,
+          direccion,
+          contratante,
+
+          to_char(
+            fecha_inicio,
+            'YYYY-MM-DD'
+          ) AS fecha_inicio,
+
+          to_char(
+            fecha_finalizacion,
+            'YYYY-MM-DD'
+          ) AS fecha_finalizacion,
+
+          estado_proyecto,
+          activo,
+          latitud,
+          longitud
+        `,
+        [
+          idProyecto,
+          idPropietario,
+          datos.nombre,
+          datos.descripcion,
+          datos.direccion,
+          datos.contratante,
+          datos.fechaInicio,
+          datos.fechaFinalizacion,
+          datos.estadoProyecto,
+          datos.latitud,
+          datos.longitud,
+        ],
+      );
+
+    const proyecto =
+      result.rows[0];
 
     /**
      * Después de bloquear correctamente el proyecto, esperamos
@@ -511,7 +815,9 @@ export class ProyectosRepository {
      * La ausencia del registro indica una inconsistencia técnica.
      * Propagamos el error para impedir confirmar la transacción.
      */
-    if (proyecto === undefined) {
+    if (
+      proyecto === undefined
+    ) {
       throw new Error(
         'La actualización del proyecto no devolvió el registro esperado.',
       );
@@ -520,41 +826,55 @@ export class ProyectosRepository {
     return proyecto;
   }
 
-
   /**
- * Marca un proyecto como eliminado lógicamente.
- *
- * Precondiciones:
- * - La cuenta del propietario fue comprobada y bloqueada como ACTIVO.
- * - El proyecto fue bloqueado mediante bloquearEditablePorPropietario().
- * - Se utiliza el mismo cliente transaccional.
- *
- * Modifica exclusivamente activo.
- * No ejecuta DELETE ni modifica el estado de trabajo.
- *
- * El servicio registrará la actividad antes de confirmar.
- */
+   * Marca un proyecto como eliminado lógicamente.
+   *
+   * Precondiciones:
+   * - La cuenta del propietario fue comprobada y bloqueada como ACTIVO.
+   * - El proyecto fue bloqueado mediante bloquearEditablePorPropietario().
+   * - Se utiliza el mismo cliente transaccional.
+   *
+   * Modifica exclusivamente activo.
+   * No ejecuta DELETE ni modifica el estado de trabajo.
+   *
+   * El servicio registrará la actividad antes de confirmar.
+   */
   async eliminarLogicamente(
     client: PoolClient,
     idProyecto: string,
     idPropietario: string,
   ): Promise<void> {
-    const result = await client.query(
-      `
-      UPDATE obra.proyectos
-      SET activo = false
-      WHERE id_proyecto = $1::uuid
-        AND id_propietario = $2::uuid
-        AND activo = true
-    `,
-      [idProyecto, idPropietario],
-    );
+    const result =
+      await client.query(
+        `
+        UPDATE obra.proyectos
+
+        SET activo =
+          false
+
+        WHERE id_proyecto =
+          $1::uuid
+
+          AND id_propietario =
+            $2::uuid
+
+          AND activo =
+            true
+        `,
+        [
+          idProyecto,
+          idPropietario,
+        ],
+      );
 
     /**
      * Después del bloqueo esperamos modificar exactamente una fila.
      * Un resultado diferente impide confirmar la operación.
      */
-    if (result.rowCount !== 1) {
+    if (
+      result.rowCount !==
+      1
+    ) {
       throw new Error(
         'No se pudo completar la eliminación lógica del proyecto.',
       );
@@ -575,17 +895,28 @@ export class ProyectosRepository {
     client: PoolClient,
     idUsuario: string,
   ): Promise<boolean> {
-    const result = await client.query(
-      `
-      SELECT id_usuario
-      FROM obra.usuarios
-      WHERE id_usuario = $1::uuid
-      FOR KEY SHARE
-    `,
-      [idUsuario],
-    );
+    const result =
+      await client.query(
+        `
+        SELECT
+          id_usuario
 
-    return result.rows.length === 1;
+        FROM obra.usuarios
+
+        WHERE id_usuario =
+          $1::uuid
+
+        FOR KEY SHARE
+        `,
+        [
+          idUsuario,
+        ],
+      );
+
+    return (
+      result.rows.length ===
+      1
+    );
   }
 
   /**
@@ -608,23 +939,42 @@ export class ProyectosRepository {
     idProyecto: string,
     idUsuario: string,
   ): Promise<boolean> {
-    const result = await client.query(
-      `
-      INSERT INTO obra.usuario_proyecto (
-        id_usuario,
-        id_proyecto
-      )
-      VALUES ($1::uuid, $2::uuid)
-      ON CONFLICT (id_usuario, id_proyecto) DO NOTHING
-    `,
-      [idUsuario, idProyecto],
-    );
+    const result =
+      await client.query(
+        `
+        INSERT INTO obra.usuario_proyecto (
+          id_usuario,
+          id_proyecto
+        )
 
-    if (result.rowCount === 1) {
+        VALUES (
+          $1::uuid,
+          $2::uuid
+        )
+
+        ON CONFLICT (
+          id_usuario,
+          id_proyecto
+        )
+        DO NOTHING
+        `,
+        [
+          idUsuario,
+          idProyecto,
+        ],
+      );
+
+    if (
+      result.rowCount ===
+      1
+    ) {
       return true;
     }
 
-    if (result.rowCount === 0) {
+    if (
+      result.rowCount ===
+      0
+    ) {
       return false;
     }
 
@@ -634,38 +984,52 @@ export class ProyectosRepository {
   }
 
   /**
- * Elimina la relación de colaboración entre un usuario y un proyecto.
- *
- * Debe ejecutarse dentro de la transacción del servicio, después de comprobar
- * que el actor es el propietario activo y de bloquear el proyecto.
- *
- * No elimina al usuario ni modifica la propiedad del proyecto.
- * Tampoco elimina incidencias o actividades creadas por ese usuario.
- *
- * @param client Cliente de la transacción que administra el servicio.
- * @param idProyecto Identificador del proyecto.
- * @param idUsuario Identificador del colaborador que se desea retirar.
- * @returns true si eliminó la relación; false si la relación no existía.
- */
+   * Elimina la relación de colaboración entre un usuario y un proyecto.
+   *
+   * Debe ejecutarse dentro de la transacción del servicio, después de comprobar
+   * que el actor es el propietario activo y de bloquear el proyecto.
+   *
+   * No elimina al usuario ni modifica la propiedad del proyecto.
+   * Tampoco elimina incidencias o actividades creadas por ese usuario.
+   *
+   * @param client Cliente de la transacción que administra el servicio.
+   * @param idProyecto Identificador del proyecto.
+   * @param idUsuario Identificador del colaborador que se desea retirar.
+   * @returns true si eliminó la relación; false si la relación no existía.
+   */
   async retirarColaborador(
     client: PoolClient,
     idProyecto: string,
     idUsuario: string,
   ): Promise<boolean> {
-    const resultado = await client.query(
-      `
-      DELETE FROM obra.usuario_proyecto
-      WHERE id_usuario = $1::uuid
-        AND id_proyecto = $2::uuid
-    `,
-      [idUsuario, idProyecto],
-    );
+    const resultado =
+      await client.query(
+        `
+        DELETE FROM obra.usuario_proyecto
 
-    if (resultado.rowCount === 1) {
+        WHERE id_usuario =
+          $1::uuid
+
+          AND id_proyecto =
+            $2::uuid
+        `,
+        [
+          idUsuario,
+          idProyecto,
+        ],
+      );
+
+    if (
+      resultado.rowCount ===
+      1
+    ) {
       return true;
     }
 
-    if (resultado.rowCount === 0) {
+    if (
+      resultado.rowCount ===
+      0
+    ) {
       return false;
     }
 
@@ -690,7 +1054,9 @@ export class ProyectosRepository {
   async findParticipantesDisponibles(
     idProyecto: string,
     idUsuario: string,
-  ): Promise<ParticipanteProyectoRow[]> {
+  ): Promise<
+    ParticipanteProyectoRow[]
+  > {
     const resultado =
       await this.database.query<ParticipanteProyectoRow>(
         `
@@ -698,35 +1064,66 @@ export class ProyectosRepository {
           SELECT
             p.id_proyecto,
             p.id_propietario
+
           FROM obra.proyectos AS p
+
           INNER JOIN obra.usuarios AS propietario
-            ON propietario.id_usuario = p.id_propietario
+            ON propietario.id_usuario =
+              p.id_propietario
+
           INNER JOIN obra.usuarios AS solicitante
-            ON solicitante.id_usuario = $2::uuid
-          WHERE p.id_proyecto = $1::uuid
-            AND p.activo = true
-            AND propietario.estado = 'ACTIVO'
-            AND solicitante.estado = 'ACTIVO'
+            ON solicitante.id_usuario =
+              $2::uuid
+
+          WHERE p.id_proyecto =
+            $1::uuid
+
+            AND p.activo =
+              true
+
+            AND propietario.estado =
+              'ACTIVO'
+
+            AND solicitante.estado =
+              'ACTIVO'
+
             AND (
-              p.id_propietario = solicitante.id_usuario
+              p.id_propietario =
+                solicitante.id_usuario
+
               OR EXISTS (
                 SELECT 1
-                FROM obra.usuario_proyecto AS acceso
-                WHERE acceso.id_proyecto = p.id_proyecto
-                  AND acceso.id_usuario = solicitante.id_usuario
+
+                FROM obra.usuario_proyecto
+                  AS acceso
+
+                WHERE acceso.id_proyecto =
+                  p.id_proyecto
+
+                  AND acceso.id_usuario =
+                    solicitante.id_usuario
               )
             )
         ),
+
         participantes AS (
           SELECT
             usuario.id_usuario,
             usuario.nombre,
             usuario.apellidos,
             usuario.foto_perfil_url,
-            'PROPIETARIO'::text AS participacion
-          FROM proyecto_disponible AS proyecto
-          INNER JOIN obra.usuarios AS usuario
-            ON usuario.id_usuario = proyecto.id_propietario
+
+            'PROPIETARIO'::text
+              AS participacion
+
+          FROM proyecto_disponible
+            AS proyecto
+
+          INNER JOIN obra.usuarios
+            AS usuario
+
+            ON usuario.id_usuario =
+              proyecto.id_propietario
 
           UNION ALL
 
@@ -735,34 +1132,57 @@ export class ProyectosRepository {
             usuario.nombre,
             usuario.apellidos,
             usuario.foto_perfil_url,
-            'COLABORADOR'::text AS participacion
-          FROM proyecto_disponible AS proyecto
-          INNER JOIN obra.usuario_proyecto AS relacion
-            ON relacion.id_proyecto = proyecto.id_proyecto
-          INNER JOIN obra.usuarios AS usuario
-            ON usuario.id_usuario = relacion.id_usuario
-          WHERE relacion.id_usuario <> proyecto.id_propietario
+
+            'COLABORADOR'::text
+              AS participacion
+
+          FROM proyecto_disponible
+            AS proyecto
+
+          INNER JOIN obra.usuario_proyecto
+            AS relacion
+
+            ON relacion.id_proyecto =
+              proyecto.id_proyecto
+
+          INNER JOIN obra.usuarios
+            AS usuario
+
+            ON usuario.id_usuario =
+              relacion.id_usuario
+
+          WHERE relacion.id_usuario <>
+            proyecto.id_propietario
         )
+
         SELECT
           id_usuario,
           nombre,
           apellidos,
           foto_perfil_url,
           participacion
+
         FROM participantes
+
         ORDER BY
           CASE
-            WHEN participacion = 'PROPIETARIO' THEN 0
+            WHEN participacion =
+              'PROPIETARIO'
+            THEN 0
+
             ELSE 1
           END,
+
           apellidos ASC NULLS LAST,
           nombre ASC NULLS LAST,
           id_usuario ASC
-      `,
-        [idProyecto, idUsuario],
+        `,
+        [
+          idProyecto,
+          idUsuario,
+        ],
       );
 
     return resultado.rows;
   }
-
 }

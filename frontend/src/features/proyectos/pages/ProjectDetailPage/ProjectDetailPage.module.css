@@ -1,0 +1,615 @@
+.page {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 1.4rem;
+}
+
+.backButton {
+  width: fit-content;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.45rem;
+
+  padding:
+    0.5rem
+    0.7rem;
+
+  color:
+    var(--color-brand-charcoal);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 8px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.backButton:hover {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    rgb(234 117 26 / 7%);
+}
+
+.backButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: 2px;
+}
+
+.backButton svg {
+  width: 19px;
+  height: 19px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================
+   ENCABEZADO
+   ========================= */
+
+.pageHeader {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1.25rem;
+
+  padding:
+    1.4rem
+    1.5rem;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 8%);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 24px
+    rgb(40 42 44 / 4%);
+}
+
+.heading {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.35rem;
+}
+
+.eyebrow {
+  color:
+    var(--color-brand-orange);
+
+  font-size: 0.68rem;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+.heading h1 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size:
+    clamp(
+      1.35rem,
+      2vw,
+      1.8rem
+    );
+
+  font-weight: 800;
+
+  line-height: 1.15;
+}
+
+.heading p {
+  max-width: 760px;
+
+  margin: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.82rem;
+
+  line-height: 1.55;
+}
+
+/* =========================
+   ESTADO
+   ========================= */
+
+.statusBadge {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 30px;
+
+  padding:
+    0.35rem
+    0.7rem;
+
+  border-radius: 999px;
+
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.statusActive {
+  color: #365821;
+
+  background:
+    rgb(116 139 75 / 16%);
+}
+
+.statusPaused {
+  color: #9a5a16;
+
+  background:
+    rgb(234 117 26 / 13%);
+}
+
+.statusFinished {
+  color: #55585b;
+
+  background:
+    rgb(57 59 62 / 9%);
+}
+
+/* =========================
+   CUADRÍCULA PRINCIPAL
+   ========================= */
+
+.contentGrid {
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 1rem;
+}
+
+.panel {
+  min-width: 0;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 8%);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 24px
+    rgb(40 42 44 / 4%);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding:
+    1rem
+    1.1rem;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 7%);
+}
+
+.panelIcon {
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  border-radius: 10px;
+}
+
+.panelIcon svg {
+  width: 21px;
+  height: 21px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panelHeader > div:last-child {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.15rem;
+}
+
+.panelHeader h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.panelHeader p {
+  margin: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.68rem;
+
+  line-height: 1.4;
+}
+
+/* =========================
+   INFORMACIÓN DEL PROYECTO
+   ========================= */
+
+.projectData {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    0
+    1rem;
+
+  margin: 0;
+
+  padding:
+    0.4rem
+    1.1rem
+    1rem;
+}
+
+.projectData > div {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 0.25rem;
+
+  padding:
+    0.85rem
+    0;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 7%);
+}
+
+.projectData > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.projectData dt {
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.045em;
+}
+
+.projectData dd {
+  min-width: 0;
+
+  margin: 0;
+
+  overflow-wrap: anywhere;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.77rem;
+  font-weight: 600;
+
+  line-height: 1.45;
+}
+
+/* =========================
+   BLOQUES PENDIENTES
+   ========================= */
+
+.comingSoon {
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.4rem;
+
+  padding:
+    1.5rem;
+
+  text-align: center;
+}
+
+.comingSoon strong {
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.comingSoon span {
+  max-width: 300px;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.7rem;
+
+  line-height: 1.5;
+}
+
+/* =========================
+   CARGA / ERROR
+   ========================= */
+
+.state {
+  min-height: 320px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.65rem;
+
+  padding:
+    2rem;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 8%);
+
+  border-radius: 14px;
+
+  text-align: center;
+}
+
+.state h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.state p {
+  max-width: 360px;
+
+  margin: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.75rem;
+
+  line-height: 1.5;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+
+  border:
+    3px solid
+    rgb(57 59 62 / 10%);
+
+  border-top-color:
+    var(--color-brand-orange);
+
+  border-radius: 50%;
+
+  animation:
+    project-detail-spin
+    700ms linear infinite;
+}
+
+.errorIcon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  color: #a6372e;
+
+  background:
+    rgb(166 55 46 / 8%);
+
+  border-radius: 50%;
+}
+
+.errorIcon svg {
+  width: 24px;
+  height: 24px;
+
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes project-detail-spin {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 1000px) {
+  .contentGrid {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+/* =========================
+   MÓVIL
+   ========================= */
+
+@media (max-width: 760px) {
+  .page {
+    gap: 1rem;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+
+    padding:
+      1.1rem;
+  }
+
+  .statusBadge {
+    align-self: flex-start;
+  }
+
+  .projectData {
+    grid-template-columns:
+      1fr;
+  }
+
+  .projectData > div:nth-last-child(-n + 2) {
+    border-bottom:
+      1px solid
+      rgb(57 59 62 / 7%);
+  }
+
+  .projectData > div:last-child {
+    border-bottom: 0;
+  }
+
+  .comingSoon {
+    min-height: 150px;
+  }
+}
+
+/* =========================
+   MÓVIL PEQUEÑO
+   ========================= */
+
+@media (max-width: 420px) {
+  .backButton {
+    padding:
+      0.45rem
+      0.25rem;
+
+    font-size: 0.72rem;
+  }
+
+  .pageHeader {
+    padding:
+      1rem;
+  }
+
+  .panelHeader {
+    padding:
+      0.9rem;
+  }
+
+  .projectData {
+    padding:
+      0.3rem
+      0.9rem
+      0.9rem;
+  }
+}
+
+/* =========================
+   REDUCIR MOVIMIENTO
+   ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .backButton {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

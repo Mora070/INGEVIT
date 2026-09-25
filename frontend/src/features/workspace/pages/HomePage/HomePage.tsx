@@ -15,6 +15,10 @@ type FiltroEstado =
   | 'PAUSA'
   | 'FINALIZADA';
 
+type VistaProyectos =
+  | 'tarjetas'
+  | 'lista';
+
 function formatearEstado(
   estado: 'ACTIVA' | 'PAUSA' | 'FINALIZADA',
 ): string {
@@ -29,21 +33,104 @@ function formatearEstado(
   return 'Finalizada';
 }
 
-function formatearFecha(
-  fecha: string | null,
+function obtenerIniciales(
+  nombre: string | null,
+  apellidos: string | null,
 ): string {
+  const partes = [
+    nombre,
+    apellidos,
+  ]
+    .filter(
+      (valor): valor is string =>
+        Boolean(valor?.trim()),
+    )
+    .map((valor) =>
+      valor.trim(),
+    );
+
+  if (partes.length === 0) {
+    return 'U';
+  }
+
+  if (partes.length === 1) {
+    return partes[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return (
+    partes[0][0] +
+    partes[1][0]
+  ).toUpperCase();
+}
+
+function obtenerNombreParticipante(
+  nombre: string | null,
+  apellidos: string | null,
+): string {
+  const nombreCompleto = [
+    nombre,
+    apellidos,
+  ]
+    .filter(
+      (valor): valor is string =>
+        Boolean(valor?.trim()),
+    )
+    .join(' ')
+    .trim();
+
+  return nombreCompleto || 'Usuario';
+}
+
+function formatearUltimaActualizacion(
+  fecha: string | null,
+): {
+  fecha: string;
+  hora: string | null;
+} {
   if (!fecha) {
-    return 'Sin fecha';
+    return {
+      fecha: 'Sin actividad',
+      hora: null,
+    };
   }
 
-  const [anio, mes, dia] =
-    fecha.split('-');
+  const valor =
+    new Date(fecha);
 
-  if (!anio || !mes || !dia) {
-    return fecha;
+  if (
+    Number.isNaN(
+      valor.getTime(),
+    )
+  ) {
+    return {
+      fecha: 'Sin actividad',
+      hora: null,
+    };
   }
 
-  return `${dia}/${mes}/${anio}`;
+  return {
+    fecha:
+      new Intl.DateTimeFormat(
+        'es-CO',
+        {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        },
+      ).format(valor),
+
+    hora:
+      new Intl.DateTimeFormat(
+        'es-CO',
+        {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        },
+      ).format(valor),
+  };
 }
 
 export function HomePage() {
@@ -53,9 +140,16 @@ export function HomePage() {
   ] = useState('');
 
   const [
+    busquedaAplicada,
+    setBusquedaAplicada,
+  ] = useState('');
+
+  const [
     filtroEstado,
     setFiltroEstado,
-  ] = useState<FiltroEstado>('TODOS');
+  ] = useState<FiltroEstado>(
+    'TODOS',
+  );
 
   const [
     mostrandoFiltros,
@@ -70,7 +164,21 @@ export function HomePage() {
   const [
     proyectoSeleccionadoId,
     setProyectoSeleccionadoId,
-  ] = useState<string | null>(null);
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
+    mapaAmpliado,
+    setMapaAmpliado,
+  ] = useState(false);
+
+  const [
+    vistaProyectos,
+    setVistaProyectos,
+  ] = useState<VistaProyectos>(
+    'lista',
+  );
 
   const limite = 20;
 
@@ -84,14 +192,43 @@ export function HomePage() {
   } = useProyectos(
     pagina,
     limite,
+    busquedaAplicada,
   );
+
+  useEffect(() => {
+    const temporizador =
+      window.setTimeout(() => {
+        const nuevaBusqueda =
+          busqueda.trim();
+
+        setPagina(1);
+
+        setProyectoSeleccionadoId(
+          null,
+        );
+
+        setBusquedaAplicada(
+          nuevaBusqueda,
+        );
+      }, 250);
+
+    return () => {
+      window.clearTimeout(
+        temporizador,
+      );
+    };
+  }, [
+    busqueda,
+  ]);
 
   useEffect(() => {
     if (
       totalPaginas > 0 &&
       pagina > totalPaginas
     ) {
-      setPagina(totalPaginas);
+      setPagina(
+        totalPaginas,
+      );
     }
   }, [
     pagina,
@@ -99,49 +236,70 @@ export function HomePage() {
   ]);
 
   useEffect(() => {
-    setProyectoSeleccionadoId(null);
+    setProyectoSeleccionadoId(
+      null,
+    );
   }, [
     pagina,
   ]);
 
+  useEffect(() => {
+    if (!mapaAmpliado) {
+      return;
+    }
+
+    function cerrarConEscape(
+      event: KeyboardEvent,
+    ) {
+      if (
+        event.key === 'Escape'
+      ) {
+        setMapaAmpliado(false);
+      }
+    }
+
+    document.addEventListener(
+      'keydown',
+      cerrarConEscape,
+    );
+
+    const overflowAnterior =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      'hidden';
+
+    return () => {
+      document.removeEventListener(
+        'keydown',
+        cerrarConEscape,
+      );
+
+      document.body.style.overflow =
+        overflowAnterior;
+    };
+  }, [
+    mapaAmpliado,
+  ]);
+
   const proyectosFiltrados =
     useMemo(() => {
-      const termino =
-        busqueda
-          .trim()
-          .toLowerCase();
-
       return proyectos.filter(
         (proyecto) => {
-          const coincideEstado =
-            filtroEstado === 'TODOS' ||
-            proyecto.estado_proyecto ===
-              filtroEstado;
-
-          if (!coincideEstado) {
-            return false;
-          }
-
-          if (!termino) {
+          if (
+            filtroEstado ===
+            'TODOS'
+          ) {
             return true;
           }
 
-          const texto = [
-            proyecto.nombre,
-            proyecto.direccion,
-            proyecto.contratante,
-            proyecto.descripcion,
-          ]
-            .join(' ')
-            .toLowerCase();
-
-          return texto.includes(
-            termino,
+          return (
+            proyecto.estado_proyecto ===
+            filtroEstado
           );
         },
       );
     }, [
-      busqueda,
       filtroEstado,
       proyectos,
     ]);
@@ -151,19 +309,26 @@ export function HomePage() {
       () =>
         proyectosFiltrados.filter(
           (proyecto) =>
-            proyecto.latitud !== null &&
-            proyecto.longitud !== null,
+            proyecto.latitud !==
+              null &&
+            proyecto.longitud !==
+              null,
         ),
-      [proyectosFiltrados],
+      [
+        proyectosFiltrados,
+      ],
     );
 
   const hayFiltrosActivos =
-    filtroEstado !== 'TODOS';
+    filtroEstado !==
+    'TODOS';
 
   const desde =
     total === 0
       ? 0
-      : (pagina - 1) * limite + 1;
+      : (pagina - 1) *
+          limite +
+        1;
 
   const hasta =
     Math.min(
@@ -172,60 +337,101 @@ export function HomePage() {
     );
 
   function paginaAnterior() {
-    setPagina((paginaActual) =>
-      Math.max(
-        1,
-        paginaActual - 1,
-      ),
+    setPagina(
+      (paginaActual) =>
+        Math.max(
+          1,
+          paginaActual - 1,
+        ),
     );
   }
 
   function paginaSiguiente() {
-    setPagina((paginaActual) =>
-      Math.min(
-        totalPaginas,
-        paginaActual + 1,
-      ),
+    setPagina(
+      (paginaActual) =>
+        Math.min(
+          totalPaginas,
+          paginaActual + 1,
+        ),
     );
   }
 
   function limpiarFiltros() {
-    setFiltroEstado('TODOS');
+    setFiltroEstado(
+      'TODOS',
+    );
   }
 
   return (
-    <section className={styles.page}>
-      <header className={styles.pageHeader}>
+    <section
+      className={styles.page}
+    >
+      <header
+        className={
+          styles.pageHeader
+        }
+      >
         <div>
-          <h1 className={styles.title}>
+          <h1
+            className={
+              styles.title
+            }
+          >
             Inicio
           </h1>
 
-          <p className={styles.subtitle}>
-            Resumen general de tus proyectos.
+          <p
+            className={
+              styles.subtitle
+            }
+          >
+            Resumen general de tus
+            proyectos.
           </p>
         </div>
 
-        <div className={styles.actions}>
-          <label className={styles.searchBox}>
-            <span className={styles.srOnly}>
+        <div
+          className={
+            styles.actions
+          }
+        >
+          <label
+            className={
+              styles.searchBox
+            }
+          >
+            <span
+              className={
+                styles.srOnly
+              }
+            >
               Buscar proyecto
             </span>
 
             <input
               type="search"
               placeholder="Buscar proyecto..."
-              className={styles.searchInput}
+              className={
+                styles.searchInput
+              }
               value={busqueda}
-              onChange={(event) => {
+              onChange={(
+                event,
+              ) => {
                 setBusqueda(
                   event.target.value,
+                );
+
+                setProyectoSeleccionadoId(
+                  null,
                 );
               }}
             />
 
             <svg
-              className={styles.searchIcon}
+              className={
+                styles.searchIcon
+              }
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -249,7 +455,9 @@ export function HomePage() {
             type="button"
             onClick={() => {
               setMostrandoFiltros(
-                (valorActual) =>
+                (
+                  valorActual,
+                ) =>
                   !valorActual,
               );
             }}
@@ -284,7 +492,9 @@ export function HomePage() {
 
       {mostrandoFiltros && (
         <section
-          className={styles.filtersPanel}
+          className={
+            styles.filtersPanel
+          }
           aria-label="Filtros de proyectos"
         >
           <div
@@ -348,7 +558,9 @@ export function HomePage() {
                       );
                     }}
                   >
-                    {etiqueta}
+                    {
+                      etiqueta
+                    }
                   </button>
                 ),
               )}
@@ -363,6 +575,7 @@ export function HomePage() {
               type="button"
               onClick={() => {
                 limpiarFiltros();
+
                 setProyectoSeleccionadoId(
                   null,
                 );
@@ -374,10 +587,26 @@ export function HomePage() {
         </section>
       )}
 
-      <div className={styles.dashboardGrid}>
-        <article className={styles.panel}>
-          <header className={styles.panelHeader}>
-            <div className={styles.panelTitle}>
+      <div
+        className={
+          styles.dashboardGrid
+        }
+      >
+        <article
+          className={
+            styles.panel
+          }
+        >
+          <header
+            className={
+              styles.panelHeader
+            }
+          >
+            <div
+              className={
+                styles.panelTitle
+              }
+            >
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -410,9 +639,16 @@ export function HomePage() {
             </div>
 
             <button
-              className={styles.iconButton}
+              className={
+                styles.iconButton
+              }
               type="button"
               aria-label="Ampliar mapa"
+              onClick={() => {
+                setMapaAmpliado(
+                  true,
+                );
+              }}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -426,7 +662,11 @@ export function HomePage() {
             </button>
           </header>
 
-          <div className={styles.mapContainer}>
+          <div
+            className={
+              styles.mapContainer
+            }
+          >
             <ProjectsMap
               proyectos={
                 proyectosConUbicacion
@@ -438,9 +678,21 @@ export function HomePage() {
           </div>
         </article>
 
-        <article className={styles.panel}>
-          <header className={styles.panelHeader}>
-            <div className={styles.panelTitle}>
+        <article
+          className={
+            styles.panel
+          }
+        >
+          <header
+            className={
+              styles.panelHeader
+            }
+          >
+            <div
+              className={
+                styles.panelTitle
+              }
+            >
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -477,11 +729,23 @@ export function HomePage() {
               }
             >
               <button
-                className={
-                  styles.iconButton
-                }
+                className={`${styles.iconButton} ${
+                  vistaProyectos ===
+                  'tarjetas'
+                    ? styles.iconButtonActive
+                    : ''
+                }`}
                 type="button"
                 aria-label="Vista de tarjetas"
+                aria-pressed={
+                  vistaProyectos ===
+                  'tarjetas'
+                }
+                onClick={() => {
+                  setVistaProyectos(
+                    'tarjetas',
+                  );
+                }}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -518,9 +782,23 @@ export function HomePage() {
               </button>
 
               <button
-                className={`${styles.iconButton} ${styles.iconButtonActive}`}
+                className={`${styles.iconButton} ${
+                  vistaProyectos ===
+                  'lista'
+                    ? styles.iconButtonActive
+                    : ''
+                }`}
                 type="button"
                 aria-label="Vista de lista"
+                aria-pressed={
+                  vistaProyectos ===
+                  'lista'
+                }
+                onClick={() => {
+                  setVistaProyectos(
+                    'lista',
+                  );
+                }}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -542,16 +820,40 @@ export function HomePage() {
               styles.projectListPlaceholder
             }
           >
-            <div className={styles.tableHeader}>
-              <span>Proyecto</span>
-              <span>Ubicación</span>
-              <span>Estado</span>
-              <span>Inicio</span>
-            </div>
+            {vistaProyectos ===
+              'lista' && (
+              <div
+                className={
+                  styles.tableHeader
+                }
+              >
+                <span>
+                  Proyecto
+                </span>
+
+                <span>
+                  Ubicación
+                </span>
+
+                <span>
+                  Estado
+                </span>
+
+                <span>
+                  Equipo
+                </span>
+
+                <span>
+                  Última actualización
+                </span>
+              </div>
+            )}
 
             {cargando && (
               <div
-                className={styles.emptyState}
+                className={
+                  styles.emptyState
+                }
                 role="status"
               >
                 <div
@@ -566,54 +868,56 @@ export function HomePage() {
                 </h3>
 
                 <p>
-                  Estamos consultando la
-                  información del servidor.
+                  Estamos consultando
+                  la información del
+                  servidor.
                 </p>
               </div>
             )}
 
-            {!cargando && error && (
-              <div
-                className={
-                  styles.errorState
-                }
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                  />
-
-                  <path d="M12 7v6" />
-                  <path d="M12 17h.01" />
-                </svg>
-
-                <h3>
-                  No pudimos cargar los
-                  proyectos
-                </h3>
-
-                <p>
-                  {error}
-                </p>
-
-                <button
+            {!cargando &&
+              error && (
+                <div
                   className={
-                    styles.retryButton
+                    styles.errorState
                   }
-                  type="button"
-                  onClick={() => {
-                    void recargar();
-                  }}
                 >
-                  Reintentar
-                </button>
-              </div>
-            )}
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                    />
+
+                    <path d="M12 7v6" />
+                    <path d="M12 17h.01" />
+                  </svg>
+
+                  <h3>
+                    No pudimos cargar
+                    los proyectos
+                  </h3>
+
+                  <p>
+                    {error}
+                  </p>
+
+                  <button
+                    className={
+                      styles.retryButton
+                    }
+                    type="button"
+                    onClick={() => {
+                      void recargar();
+                    }}
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              )}
 
             {!cargando &&
               !error &&
@@ -651,7 +955,9 @@ export function HomePage() {
             {!cargando &&
               !error &&
               proyectosFiltrados.length >
-                0 && (
+                0 &&
+              vistaProyectos ===
+                'lista' && (
                 <div
                   className={
                     styles.projectRows
@@ -668,6 +974,24 @@ export function HomePage() {
                           null &&
                         proyecto.longitud !==
                           null;
+
+                      const ultimaActualizacion =
+                        formatearUltimaActualizacion(
+                          proyecto.ultima_actualizacion,
+                        );
+
+                      const participantesVisibles =
+                        proyecto.equipo.slice(
+                          0,
+                          3,
+                        );
+
+                      const participantesRestantes =
+                        Math.max(
+                          proyecto.equipo.length -
+                            participantesVisibles.length,
+                          0,
+                        );
 
                       return (
                         <button
@@ -785,15 +1109,104 @@ export function HomePage() {
                             </span>
                           </div>
 
-                          <span
+                          <div
                             className={
-                              styles.projectDate
+                              styles.projectTeam
+                            }
+                            aria-label={`${proyecto.equipo.length} participantes`}
+                          >
+                            {participantesVisibles.length ===
+                            0 ? (
+                              <span
+                                className={
+                                  styles.noTeam
+                                }
+                              >
+                                Sin equipo
+                              </span>
+                            ) : (
+                              <div
+                                className={
+                                  styles.teamAvatars
+                                }
+                              >
+                                {participantesVisibles.map(
+                                  (
+                                    participante,
+                                  ) => {
+                                    const nombreParticipante =
+                                      obtenerNombreParticipante(
+                                        participante.nombre,
+                                        participante.apellidos,
+                                      );
+
+                                    return (
+                                      <div
+                                        key={
+                                          participante.id_usuario
+                                        }
+                                        className={
+                                          styles.teamAvatar
+                                        }
+                                        title={
+                                          nombreParticipante
+                                        }
+                                      >
+                                        {participante.foto_perfil_url ? (
+                                          <img
+                                            src={
+                                              participante.foto_perfil_url
+                                            }
+                                            alt=""
+                                          />
+                                        ) : (
+                                          <span>
+                                            {obtenerIniciales(
+                                              participante.nombre,
+                                              participante.apellidos,
+                                            )}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  },
+                                )}
+
+                                {participantesRestantes >
+                                  0 && (
+                                  <div
+                                    className={`${styles.teamAvatar} ${styles.teamAvatarMore}`}
+                                    title={`${participantesRestantes} participantes más`}
+                                  >
+                                    +
+                                    {
+                                      participantesRestantes
+                                    }
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            className={
+                              styles.lastUpdate
                             }
                           >
-                            {formatearFecha(
-                              proyecto.fecha_inicio,
+                            <strong>
+                              {
+                                ultimaActualizacion.fecha
+                              }
+                            </strong>
+
+                            {ultimaActualizacion.hora && (
+                              <span>
+                                {
+                                  ultimaActualizacion.hora
+                                }
+                              </span>
                             )}
-                          </span>
+                          </div>
                         </button>
                       );
                     },
@@ -803,7 +1216,267 @@ export function HomePage() {
 
             {!cargando &&
               !error &&
-              totalPaginas > 1 && (
+              proyectosFiltrados.length >
+                0 &&
+              vistaProyectos ===
+                'tarjetas' && (
+                <div
+                  className={
+                    styles.projectCards
+                  }
+                >
+                  {proyectosFiltrados.map(
+                    (proyecto) => {
+                      const seleccionado =
+                        proyecto.id_proyecto ===
+                        proyectoSeleccionadoId;
+
+                      const tieneUbicacion =
+                        proyecto.latitud !==
+                          null &&
+                        proyecto.longitud !==
+                          null;
+
+                      const ultimaActualizacion =
+                        formatearUltimaActualizacion(
+                          proyecto.ultima_actualizacion,
+                        );
+
+                      const participantesVisibles =
+                        proyecto.equipo.slice(
+                          0,
+                          3,
+                        );
+
+                      const participantesRestantes =
+                        Math.max(
+                          proyecto.equipo.length -
+                            participantesVisibles.length,
+                          0,
+                        );
+
+                      return (
+                        <button
+                          key={
+                            proyecto.id_proyecto
+                          }
+                          className={`${styles.projectCard} ${
+                            seleccionado
+                              ? styles.projectCardSelected
+                              : ''
+                          }`}
+                          type="button"
+                          aria-pressed={
+                            seleccionado
+                          }
+                          title={
+                            tieneUbicacion
+                              ? 'Ver proyecto en el mapa'
+                              : 'Este proyecto no tiene ubicación registrada'
+                          }
+                          onClick={() => {
+                            if (
+                              !tieneUbicacion
+                            ) {
+                              setProyectoSeleccionadoId(
+                                null,
+                              );
+
+                              return;
+                            }
+
+                            setProyectoSeleccionadoId(
+                              proyecto.id_proyecto,
+                            );
+                          }}
+                        >
+                          <div
+                            className={
+                              styles.projectCardHeader
+                            }
+                          >
+                            <div
+                              className={
+                                styles.projectIcon
+                              }
+                              aria-hidden="true"
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M3 7.5h6l2-2h10v14H3z" />
+                                <path d="M3 10h18" />
+                              </svg>
+                            </div>
+
+                            <span
+                              className={`${styles.statusBadge} ${
+                                proyecto.estado_proyecto ===
+                                'ACTIVA'
+                                  ? styles.statusActive
+                                  : proyecto.estado_proyecto ===
+                                      'PAUSA'
+                                    ? styles.statusPaused
+                                    : styles.statusFinished
+                              }`}
+                            >
+                              {formatearEstado(
+                                proyecto.estado_proyecto,
+                              )}
+                            </span>
+                          </div>
+
+                          <div
+                            className={
+                              styles.projectCardTitle
+                            }
+                          >
+                            <strong>
+                              {
+                                proyecto.nombre
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                proyecto.contratante
+                              }
+                            </span>
+                          </div>
+
+                          <div
+                            className={
+                              styles.projectCardLocation
+                            }
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
+
+                              <circle
+                                cx="12"
+                                cy="10"
+                                r="2"
+                              />
+                            </svg>
+
+                            <span>
+                              {
+                                proyecto.direccion
+                              }
+                            </span>
+                          </div>
+
+                          <div
+                            className={
+                              styles.projectCardFooter
+                            }
+                          >
+                            <div
+                              className={
+                                styles.projectTeam
+                              }
+                              aria-label={`${proyecto.equipo.length} participantes`}
+                            >
+                              {participantesVisibles.length ===
+                              0 ? (
+                                <span
+                                  className={
+                                    styles.noTeam
+                                  }
+                                >
+                                  Sin equipo
+                                </span>
+                              ) : (
+                                <div
+                                  className={
+                                    styles.teamAvatars
+                                  }
+                                >
+                                  {participantesVisibles.map(
+                                    (
+                                      participante,
+                                    ) => (
+                                      <div
+                                        key={
+                                          participante.id_usuario
+                                        }
+                                        className={
+                                          styles.teamAvatar
+                                        }
+                                        title={obtenerNombreParticipante(
+                                          participante.nombre,
+                                          participante.apellidos,
+                                        )}
+                                      >
+                                        {participante.foto_perfil_url ? (
+                                          <img
+                                            src={
+                                              participante.foto_perfil_url
+                                            }
+                                            alt=""
+                                          />
+                                        ) : (
+                                          <span>
+                                            {obtenerIniciales(
+                                              participante.nombre,
+                                              participante.apellidos,
+                                            )}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ),
+                                  )}
+
+                                  {participantesRestantes >
+                                    0 && (
+                                    <div
+                                      className={`${styles.teamAvatar} ${styles.teamAvatarMore}`}
+                                      title={`${participantesRestantes} participantes más`}
+                                    >
+                                      +
+                                      {
+                                        participantesRestantes
+                                      }
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div
+                              className={
+                                styles.lastUpdate
+                              }
+                            >
+                              <strong>
+                                {
+                                  ultimaActualizacion.fecha
+                                }
+                              </strong>
+
+                              {ultimaActualizacion.hora && (
+                                <span>
+                                  {
+                                    ultimaActualizacion.hora
+                                  }
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              )}
+
+            {!cargando &&
+              !error &&
+              totalPaginas >
+                1 && (
                 <footer
                   className={
                     styles.pagination
@@ -814,7 +1487,8 @@ export function HomePage() {
                       styles.paginationInfo
                     }
                   >
-                    Mostrando {desde}–{hasta}{' '}
+                    Mostrando{' '}
+                    {desde}–{hasta}{' '}
                     de {total}
                   </span>
 
@@ -834,7 +1508,6 @@ export function HomePage() {
                       disabled={
                         pagina <= 1
                       }
-                      aria-label="Página anterior"
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -853,7 +1526,8 @@ export function HomePage() {
                         styles.currentPage
                       }
                     >
-                      Página {pagina} de{' '}
+                      Página{' '}
+                      {pagina} de{' '}
                       {totalPaginas}
                     </span>
 
@@ -869,7 +1543,6 @@ export function HomePage() {
                         pagina >=
                         totalPaginas
                       }
-                      aria-label="Página siguiente"
                     >
                       <span>
                         Siguiente
@@ -888,6 +1561,110 @@ export function HomePage() {
           </div>
         </article>
       </div>
+
+      {mapaAmpliado && (
+        <div
+          className={
+            styles.expandedMapBackdrop
+          }
+          role="presentation"
+          onMouseDown={(
+            event,
+          ) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setMapaAmpliado(
+                false,
+              );
+            }
+          }}
+        >
+          <section
+            className={
+              styles.expandedMap
+            }
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expanded-map-title"
+          >
+            <header
+              className={
+                styles.expandedMapHeader
+              }
+            >
+              <div
+                className={
+                  styles.expandedMapTitle
+                }
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
+
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2"
+                  />
+                </svg>
+
+                <div>
+                  <h2 id="expanded-map-title">
+                    Mapa de proyectos
+                  </h2>
+
+                  <span>
+                    {
+                      proyectosConUbicacion.length
+                    }{' '}
+                    con ubicación
+                  </span>
+                </div>
+              </div>
+
+              <button
+                className={
+                  styles.expandedMapClose
+                }
+                type="button"
+                aria-label="Cerrar mapa ampliado"
+                onClick={() => {
+                  setMapaAmpliado(
+                    false,
+                  );
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M6 6l12 12" />
+                  <path d="M18 6 6 18" />
+                </svg>
+              </button>
+            </header>
+
+            <div
+              className={
+                styles.expandedMapContent
+              }
+            >
+              <ProjectsMap
+                proyectos={
+                  proyectosConUbicacion
+                }
+                proyectoSeleccionadoId={
+                  proyectoSeleccionadoId
+                }
+              />
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,21 +1,52 @@
-import { useRef, useState } from 'react';
+import {
+  useRef,
+  useState,
+} from 'react';
 
-import { cerrarSesion } from './features/auth/api/auth.api';
-import { useSesion } from './features/auth/hooks/useSesion';
-import { ProfilePage } from './features/profile/pages/ProfilePage/ProfilePage';
-import { LoginPage } from './features/auth/pages/LoginPage/LoginPage';
-import { RecoveryPage } from './features/auth/pages/RecoveryPage/RecoveryPage';
-import { RegisterPage } from './features/auth/pages/RegisterPage/RegisterPage';
-import { ProjectsPage } from './features/proyectos/pages/ProjectsPage/ProjectsPage';
+import {
+  cerrarSesion,
+} from './features/auth/api/auth.api';
+
+import {
+  useSesion,
+} from './features/auth/hooks/useSesion';
+
+import {
+  ProfilePage,
+} from './features/profile/pages/ProfilePage/ProfilePage';
+
+import {
+  LoginPage,
+} from './features/auth/pages/LoginPage/LoginPage';
+
+import {
+  RecoveryPage,
+} from './features/auth/pages/RecoveryPage/RecoveryPage';
+
+import {
+  RegisterPage,
+} from './features/auth/pages/RegisterPage/RegisterPage';
+
+import {
+  ProjectsPage,
+} from './features/proyectos/pages/ProjectsPage/ProjectsPage';
+
+import {
+  ProjectDetailPage,
+} from './features/proyectos/pages/ProjectDetailPage/ProjectDetailPage';
 
 import {
   AppShell,
   type SeccionWorkspace,
 } from './features/workspace/components/AppShell/AppShell';
 
-import { HomePage } from './features/workspace/pages/HomePage/HomePage';
+import {
+  HomePage,
+} from './features/workspace/pages/HomePage/HomePage';
 
-import { ApiError } from './shared/api/http';
+import {
+  ApiError,
+} from './shared/api/http';
 
 type VistaAnonima =
   | 'login'
@@ -32,12 +63,23 @@ export default function App() {
   const [
     vistaAnonima,
     setVistaAnonima,
-  ] = useState<VistaAnonima>('login');
+  ] = useState<VistaAnonima>(
+    'login',
+  );
 
   const [
     seccionWorkspace,
     setSeccionWorkspace,
-  ] = useState<SeccionWorkspace>('inicio');
+  ] = useState<SeccionWorkspace>(
+    'inicio',
+  );
+
+  const [
+    proyectoSeleccionadoId,
+    setProyectoSeleccionadoId,
+  ] = useState<string | null>(
+    null,
+  );
 
   const [
     cerrando,
@@ -47,17 +89,22 @@ export default function App() {
   const [
     errorSalida,
     setErrorSalida,
-  ] = useState<string | null>(null);
+  ] = useState<string | null>(
+    null,
+  );
 
   const salidaActiva =
     useRef(false);
 
   async function salir() {
-    if (salidaActiva.current) {
+    if (
+      salidaActiva.current
+    ) {
       return;
     }
 
-    salidaActiva.current = true;
+    salidaActiva.current =
+      true;
 
     setCerrando(true);
     setErrorSalida(null);
@@ -65,56 +112,132 @@ export default function App() {
     try {
       await cerrarSesion();
 
-      actualizarUsuario(null);
+      actualizarUsuario(
+        null,
+      );
 
-      setVistaAnonima('login');
-      setSeccionWorkspace('inicio');
+      setVistaAnonima(
+        'login',
+      );
+
+      setSeccionWorkspace(
+        'inicio',
+      );
+
+      setProyectoSeleccionadoId(
+        null,
+      );
     } catch (error) {
       if (
-        error instanceof ApiError &&
-        error.status === 401
+        error instanceof
+          ApiError &&
+        error.status ===
+          401
       ) {
-        actualizarUsuario(null);
+        actualizarUsuario(
+          null,
+        );
 
-        setVistaAnonima('login');
-        setSeccionWorkspace('inicio');
+        setVistaAnonima(
+          'login',
+        );
+
+        setSeccionWorkspace(
+          'inicio',
+        );
+
+        setProyectoSeleccionadoId(
+          null,
+        );
       } else {
         setErrorSalida(
           'No pudimos cerrar la sesión. Inténtalo nuevamente.',
         );
       }
     } finally {
-      salidaActiva.current = false;
+      salidaActiva.current =
+        false;
 
-      setCerrando(false);
+      setCerrando(
+        false,
+      );
     }
   }
 
   function mostrarLogin() {
-    setVistaAnonima('login');
+    setVistaAnonima(
+      'login',
+    );
   }
 
   function mostrarRegistro() {
-    setVistaAnonima('registro');
+    setVistaAnonima(
+      'registro',
+    );
   }
 
   function mostrarRecuperacion() {
-    setVistaAnonima('recuperacion');
+    setVistaAnonima(
+      'recuperacion',
+    );
   }
 
   function mostrarInicio() {
-    setSeccionWorkspace('inicio');
+    setSeccionWorkspace(
+      'inicio',
+    );
+
+    setProyectoSeleccionadoId(
+      null,
+    );
   }
 
   function mostrarProyectos() {
-    setSeccionWorkspace('proyectos');
+    setSeccionWorkspace(
+      'proyectos',
+    );
+
+    setProyectoSeleccionadoId(
+      null,
+    );
   }
 
   function mostrarPerfil() {
-    setSeccionWorkspace('perfil');
+    setSeccionWorkspace(
+      'perfil',
+    );
+
+    setProyectoSeleccionadoId(
+      null,
+    );
   }
 
-  if (estado.tipo === 'cargando') {
+  function abrirProyecto(
+    idProyecto: string,
+  ) {
+    setSeccionWorkspace(
+      'proyectos',
+    );
+
+    setProyectoSeleccionadoId(
+      idProyecto,
+    );
+  }
+
+  function volverAProyectos() {
+    setProyectoSeleccionadoId(
+      null,
+    );
+
+    setSeccionWorkspace(
+      'proyectos',
+    );
+  }
+
+  if (
+    estado.tipo ===
+    'cargando'
+  ) {
     return (
       <main className="contenido">
         <section
@@ -133,22 +256,29 @@ export default function App() {
     );
   }
 
-  if (estado.tipo === 'error') {
+  if (
+    estado.tipo ===
+    'error'
+  ) {
     return (
       <main className="contenido">
         <section className="tarjeta estado">
           <h1>
-            No pudimos comprobar tu sesión
+            No pudimos comprobar tu
+            sesión
           </h1>
 
           <p className="texto-secundario">
-            Comprueba la conexión e inténtalo nuevamente.
+            Comprueba la conexión e
+            inténtalo nuevamente.
           </p>
 
           <button
             className="boton principal"
             type="button"
-            onClick={reintentar}
+            onClick={
+              reintentar
+            }
           >
             Reintentar
           </button>
@@ -157,41 +287,74 @@ export default function App() {
     );
   }
 
-  if (estado.tipo === 'anonima') {
-    if (vistaAnonima === 'registro') {
+  if (
+    estado.tipo ===
+    'anonima'
+  ) {
+    if (
+      vistaAnonima ===
+      'registro'
+    ) {
       return (
         <RegisterPage
-          onIrLogin={mostrarLogin}
+          onIrLogin={
+            mostrarLogin
+          }
         />
       );
     }
 
-    if (vistaAnonima === 'recuperacion') {
+    if (
+      vistaAnonima ===
+      'recuperacion'
+    ) {
       return (
         <RecoveryPage
-          onVolverLogin={mostrarLogin}
+          onVolverLogin={
+            mostrarLogin
+          }
         />
       );
     }
 
     return (
       <LoginPage
-        onAutenticado={actualizarUsuario}
-        onIrRegistro={mostrarRegistro}
-        onIrRecuperacion={mostrarRecuperacion}
+        onAutenticado={
+          actualizarUsuario
+        }
+        onIrRegistro={
+          mostrarRegistro
+        }
+        onIrRecuperacion={
+          mostrarRecuperacion
+        }
       />
     );
   }
 
   return (
     <AppShell
-      usuario={estado.usuario}
-      seccionActiva={seccionWorkspace}
-      onIrInicio={mostrarInicio}
-      onIrProyectos={mostrarProyectos}
-      onIrPerfil={mostrarPerfil}
-      onCerrarSesion={salir}
-      cerrandoSesion={cerrando}
+      usuario={
+        estado.usuario
+      }
+      seccionActiva={
+        seccionWorkspace
+      }
+      onIrInicio={
+        mostrarInicio
+      }
+      onIrProyectos={
+        mostrarProyectos
+      }
+      onIrPerfil={
+        mostrarPerfil
+      }
+      onCerrarSesion={
+        salir
+      }
+      cerrandoSesion={
+        cerrando
+      }
     >
       {errorSalida && (
         <p
@@ -202,18 +365,45 @@ export default function App() {
         </p>
       )}
 
-      {seccionWorkspace === 'inicio' && (
+      {seccionWorkspace ===
+        'inicio' && (
         <HomePage />
       )}
 
-      {seccionWorkspace === 'proyectos' && (
-        <ProjectsPage />
-      )}
+      {seccionWorkspace ===
+        'proyectos' &&
+        proyectoSeleccionadoId ===
+          null && (
+          <ProjectsPage
+            onAbrirProyecto={
+              abrirProyecto
+            }
+          />
+        )}
 
-      {seccionWorkspace === 'perfil' && (
+      {seccionWorkspace ===
+        'proyectos' &&
+        proyectoSeleccionadoId !==
+          null && (
+          <ProjectDetailPage
+            idProyecto={
+              proyectoSeleccionadoId
+            }
+            onVolver={
+              volverAProyectos
+            }
+          />
+        )}
+
+      {seccionWorkspace ===
+        'perfil' && (
         <ProfilePage
-          usuario={estado.usuario}
-          onUsuarioActualizado={actualizarUsuario}
+          usuario={
+            estado.usuario
+          }
+          onUsuarioActualizado={
+            actualizarUsuario
+          }
         />
       )}
     </AppShell>

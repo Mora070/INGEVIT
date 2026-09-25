@@ -3,8 +3,13 @@ import {
   useState,
 } from 'react';
 
-import { ProjectForm } from '../../components/ProjectForm/ProjectForm';
-import { useProyectos } from '../../hooks/useProyectos';
+import {
+  ProjectForm,
+} from '../../components/ProjectForm/ProjectForm';
+
+import {
+  useProyectos,
+} from '../../hooks/useProyectos';
 
 import type {
   Proyecto,
@@ -12,8 +17,17 @@ import type {
 
 import styles from './ProjectsPage.module.css';
 
+interface ProjectsPageProps {
+  onAbrirProyecto: (
+    idProyecto: string,
+  ) => void;
+}
+
 function formatearEstado(
-  estado: 'ACTIVA' | 'PAUSA' | 'FINALIZADA',
+  estado:
+    | 'ACTIVA'
+    | 'PAUSA'
+    | 'FINALIZADA',
 ): string {
   if (estado === 'ACTIVA') {
     return 'Activa';
@@ -33,17 +47,26 @@ function formatearFecha(
     return 'Sin fecha';
   }
 
-  const [anio, mes, dia] =
-    fecha.split('-');
+  const [
+    anio,
+    mes,
+    dia,
+  ] = fecha.split('-');
 
-  if (!anio || !mes || !dia) {
+  if (
+    !anio ||
+    !mes ||
+    !dia
+  ) {
     return fecha;
   }
 
   return `${dia}/${mes}/${anio}`;
 }
 
-export function ProjectsPage() {
+export function ProjectsPage({
+  onAbrirProyecto,
+}: ProjectsPageProps) {
   const [
     busqueda,
     setBusqueda,
@@ -53,10 +76,10 @@ export function ProjectsPage() {
     filtroEstado,
     setFiltroEstado,
   ] = useState<
-    'TODOS' |
-    'ACTIVA' |
-    'PAUSA' |
-    'FINALIZADA'
+    | 'TODOS'
+    | 'ACTIVA'
+    | 'PAUSA'
+    | 'FINALIZADA'
   >('TODOS');
 
   const [
@@ -70,7 +93,10 @@ export function ProjectsPage() {
     total,
     error,
     recargar,
-  } = useProyectos(1, 20);
+  } = useProyectos(
+    1,
+    20,
+  );
 
   const proyectosFiltrados =
     useMemo(() => {
@@ -82,11 +108,14 @@ export function ProjectsPage() {
       return proyectos.filter(
         (proyecto) => {
           const coincideEstado =
-            filtroEstado === 'TODOS' ||
+            filtroEstado ===
+              'TODOS' ||
             proyecto.estado_proyecto ===
               filtroEstado;
 
-          if (!coincideEstado) {
+          if (
+            !coincideEstado
+          ) {
             return false;
           }
 
@@ -115,40 +144,67 @@ export function ProjectsPage() {
     ]);
 
   function abrirFormulario() {
-    setMostrandoFormulario(true);
+    setMostrandoFormulario(
+      true,
+    );
   }
 
   function cerrarFormulario() {
-    setMostrandoFormulario(false);
+    setMostrandoFormulario(
+      false,
+    );
   }
 
   function proyectoCreado(
     _proyecto: Proyecto,
   ) {
-    setMostrandoFormulario(false);
+    setMostrandoFormulario(
+      false,
+    );
 
     void recargar();
   }
 
   return (
     <>
-      <section className={styles.page}>
-        <header className={styles.pageHeader}>
+      <section
+        className={
+          styles.page
+        }
+      >
+        <header
+          className={
+            styles.pageHeader
+          }
+        >
           <div>
-            <h1 className={styles.title}>
+            <h1
+              className={
+                styles.title
+              }
+            >
               Proyectos
             </h1>
 
-            <p className={styles.subtitle}>
+            <p
+              className={
+                styles.subtitle
+              }
+            >
               Administra tus proyectos,
-              ubicaciones y estado de avance.
+              ubicaciones y estado de
+              avance.
             </p>
           </div>
 
           <button
-            className={styles.createButton}
+            className={
+              styles.createButton
+            }
             type="button"
-            onClick={abrirFormulario}
+            onClick={
+              abrirFormulario
+            }
           >
             <svg
               viewBox="0 0 24 24"
@@ -164,18 +220,36 @@ export function ProjectsPage() {
           </button>
         </header>
 
-        <section className={styles.toolbar}>
-          <label className={styles.searchBox}>
-            <span className={styles.srOnly}>
+        <section
+          className={
+            styles.toolbar
+          }
+        >
+          <label
+            className={
+              styles.searchBox
+            }
+          >
+            <span
+              className={
+                styles.srOnly
+              }
+            >
               Buscar proyecto
             </span>
 
             <input
-              className={styles.searchInput}
+              className={
+                styles.searchInput
+              }
               type="search"
               placeholder="Buscar proyecto..."
-              value={busqueda}
-              onChange={(event) =>
+              value={
+                busqueda
+              }
+              onChange={(
+                event,
+              ) =>
                 setBusqueda(
                   event.target.value,
                 )
@@ -183,7 +257,9 @@ export function ProjectsPage() {
             />
 
             <svg
-              className={styles.searchIcon}
+              className={
+                styles.searchIcon
+              }
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -197,16 +273,23 @@ export function ProjectsPage() {
             </svg>
           </label>
 
-          <div className={styles.filters}>
+          <div
+            className={
+              styles.filters
+            }
+          >
             <button
               className={`${styles.filterButton} ${
-                filtroEstado === 'TODOS'
+                filtroEstado ===
+                'TODOS'
                   ? styles.filterButtonActive
                   : ''
               }`}
               type="button"
               onClick={() =>
-                setFiltroEstado('TODOS')
+                setFiltroEstado(
+                  'TODOS',
+                )
               }
             >
               Todos
@@ -214,13 +297,16 @@ export function ProjectsPage() {
 
             <button
               className={`${styles.filterButton} ${
-                filtroEstado === 'ACTIVA'
+                filtroEstado ===
+                'ACTIVA'
                   ? styles.filterButtonActive
                   : ''
               }`}
               type="button"
               onClick={() =>
-                setFiltroEstado('ACTIVA')
+                setFiltroEstado(
+                  'ACTIVA',
+                )
               }
             >
               Activos
@@ -228,13 +314,16 @@ export function ProjectsPage() {
 
             <button
               className={`${styles.filterButton} ${
-                filtroEstado === 'PAUSA'
+                filtroEstado ===
+                'PAUSA'
                   ? styles.filterButtonActive
                   : ''
               }`}
               type="button"
               onClick={() =>
-                setFiltroEstado('PAUSA')
+                setFiltroEstado(
+                  'PAUSA',
+                )
               }
             >
               En pausa
@@ -242,7 +331,8 @@ export function ProjectsPage() {
 
             <button
               className={`${styles.filterButton} ${
-                filtroEstado === 'FINALIZADA'
+                filtroEstado ===
+                'FINALIZADA'
                   ? styles.filterButtonActive
                   : ''
               }`}
@@ -258,8 +348,16 @@ export function ProjectsPage() {
           </div>
         </section>
 
-        <section className={styles.projectsPanel}>
-          <header className={styles.panelHeader}>
+        <section
+          className={
+            styles.projectsPanel
+          }
+        >
+          <header
+            className={
+              styles.panelHeader
+            }
+          >
             <div>
               <h2>
                 Mis proyectos
@@ -276,11 +374,15 @@ export function ProjectsPage() {
 
           {cargando && (
             <div
-              className={styles.state}
+              className={
+                styles.state
+              }
               role="status"
             >
               <div
-                className={styles.spinner}
+                className={
+                  styles.spinner
+                }
                 aria-hidden="true"
               />
 
@@ -289,59 +391,73 @@ export function ProjectsPage() {
               </h3>
 
               <p>
-                Consultando la información
-                del servidor.
+                Consultando la
+                información del
+                servidor.
               </p>
             </div>
           )}
 
-          {!cargando && error && (
-            <div className={styles.state}>
-              <svg
+          {!cargando &&
+            error && (
+              <div
                 className={
-                  styles.stateIconError
+                  styles.state
                 }
-                viewBox="0 0 24 24"
-                aria-hidden="true"
               >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="9"
-                />
+                <svg
+                  className={
+                    styles.stateIconError
+                  }
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                  />
 
-                <path d="M12 7v6" />
-                <path d="M12 17h.01" />
-              </svg>
+                  <path d="M12 7v6" />
+                  <path d="M12 17h.01" />
+                </svg>
 
-              <h3>
-                No pudimos cargar los
-                proyectos
-              </h3>
+                <h3>
+                  No pudimos cargar
+                  los proyectos
+                </h3>
 
-              <p>
-                {error}
-              </p>
+                <p>
+                  {error}
+                </p>
 
-              <button
-                className={styles.retryButton}
-                type="button"
-                onClick={() => {
-                  void recargar();
-                }}
-              >
-                Reintentar
-              </button>
-            </div>
-          )}
+                <button
+                  className={
+                    styles.retryButton
+                  }
+                  type="button"
+                  onClick={() => {
+                    void recargar();
+                  }}
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
 
           {!cargando &&
             !error &&
             proyectosFiltrados.length ===
               0 && (
-              <div className={styles.state}>
+              <div
+                className={
+                  styles.state
+                }
+              >
                 <svg
-                  className={styles.stateIcon}
+                  className={
+                    styles.stateIcon
+                  }
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -351,14 +467,16 @@ export function ProjectsPage() {
 
                 <h3>
                   {busqueda.trim() ||
-                  filtroEstado !== 'TODOS'
+                  filtroEstado !==
+                    'TODOS'
                     ? 'No encontramos proyectos'
                     : 'Aún no tienes proyectos'}
                 </h3>
 
                 <p>
                   {busqueda.trim() ||
-                  filtroEstado !== 'TODOS'
+                  filtroEstado !==
+                    'TODOS'
                     ? 'Prueba modificando la búsqueda o los filtros.'
                     : 'Crea tu primer proyecto para comenzar a gestionarlo desde INGEVIT.'}
                 </p>
@@ -375,7 +493,8 @@ export function ProjectsPage() {
                         abrirFormulario
                       }
                     >
-                      Crear primer proyecto
+                      Crear primer
+                      proyecto
                     </button>
                   )}
               </div>
@@ -399,6 +518,12 @@ export function ProjectsPage() {
                       className={
                         styles.projectCard
                       }
+                      onDoubleClick={() => {
+                        onAbrirProyecto(
+                          proyecto.id_proyecto,
+                        );
+                      }}
+                      title="Doble clic para abrir el proyecto"
                     >
                       <header
                         className={
@@ -442,7 +567,9 @@ export function ProjectsPage() {
                         }
                       >
                         <h3>
-                          {proyecto.nombre}
+                          {
+                            proyecto.nombre
+                          }
                         </h3>
 
                         <p
@@ -548,6 +675,11 @@ export function ProjectsPage() {
                             styles.openButton
                           }
                           type="button"
+                          onClick={() => {
+                            onAbrirProyecto(
+                              proyecto.id_proyecto,
+                            );
+                          }}
                         >
                           Ver proyecto
 
@@ -569,9 +701,13 @@ export function ProjectsPage() {
 
       {mostrandoFormulario && (
         <div
-          className={styles.modalBackdrop}
+          className={
+            styles.modalBackdrop
+          }
           role="presentation"
-          onMouseDown={(event) => {
+          onMouseDown={(
+            event,
+          ) => {
             if (
               event.target ===
               event.currentTarget
@@ -581,7 +717,9 @@ export function ProjectsPage() {
           }}
         >
           <section
-            className={styles.modal}
+            className={
+              styles.modal
+            }
             role="dialog"
             aria-modal="true"
             aria-labelledby="new-project-title"
@@ -607,8 +745,9 @@ export function ProjectsPage() {
                 </h2>
 
                 <p>
-                  Completa la información
-                  para registrar un nuevo
+                  Completa la
+                  información para
+                  registrar un nuevo
                   proyecto.
                 </p>
               </div>
