@@ -61,51 +61,129 @@ export class FotografiasEdicionService {
     idUsuario: string,
     datos: ActualizarTituloFotografiaDto,
   ): Promise<FotografiaResponse> {
-    return this.database.withTransaction(async (client) => {
-      /*
-       * Reutilizamos la autorización con bloqueo para coordinar
-       * la operación con cambios de disponibilidad o colaboradores.
-       */
-      const disponible = await this.acceso.bloquearDisponible(
-        client,
-        idProyecto,
-        idUsuario,
-      );
+    return this.database.withTransaction(
+      async (client) => {
+        /*
+         * Reutilizamos la autorización con bloqueo para coordinar
+         * la operación con cambios de disponibilidad o colaboradores.
+         */
+        const disponible =
+          await this.acceso.bloquearDisponible(
+            client,
+            idProyecto,
+            idUsuario,
+          );
 
-      if (!disponible) {
-        throw new NotFoundException(
-          'El proyecto no está disponible.',
+        if (!disponible) {
+          throw new NotFoundException(
+            'El proyecto no está disponible.',
+          );
+        }
+
+        const fotografia =
+          await this.fotografias.actualizarTitulo(
+            client,
+            idProyecto,
+            idFotografia,
+            datos.titulo,
+          );
+
+        if (fotografia === null) {
+          throw new NotFoundException(
+            'La fotografía no está disponible.',
+          );
+        }
+
+        /*
+         * Si este registro falla, DatabaseService intenta revertir
+         * también la actualización del título.
+         *
+         * No incluimos el título enviado por el usuario en el mensaje.
+         */
+        await this.actividades.crear(
+          client,
+          {
+            idProyecto,
+            idActor: idUsuario,
+            tipoAccion:
+              'FOTOGRAFIA_TITULO_GUARDADO',
+            mensaje:
+              `Título de la fotografía ${fotografia.id_fotografia} guardado.`,
+          },
         );
-      }
 
-      const fotografia = await this.fotografias.actualizarTitulo(
-        client,
-        idProyecto,
-        idFotografia,
-        datos.titulo,
-      );
-
-      if (fotografia === null) {
-        throw new NotFoundException(
-          'La fotografía no está disponible.',
+        return mapearFotografia(
+          fotografia,
         );
-      }
+      },
+    );
+  }
 
-      /*
-       * Si este registro falla, DatabaseService intenta revertir
-       * también la actualización del título.
-       *
-       * No incluimos el título enviado por el usuario en el mensaje.
-       */
-      await this.actividades.crear(client, {
-        idProyecto,
-        idActor: idUsuario,
-        tipoAccion: 'FOTOGRAFIA_TITULO_GUARDADO',
-        mensaje: `Título de la fotografía ${fotografia.id_fotografia} guardado.`,
-      });
+  /**
+   * Selecciona una fotografía como portada del proyecto.
+   *
+   * Solo el propietario activo del proyecto puede realizar
+   * esta operación.
+   *
+   * La fotografía debe pertenecer al mismo proyecto.
+   * El cambio de portada y el registro de actividad se ejecutan
+   * dentro de la misma transacción.
+   */
+  async establecerPortada(
+    idProyecto: string,
+    idFotografia: string,
+    idUsuario: string,
+  ): Promise<FotografiaResponse> {
+    return this.database.withTransaction(
+      async (client) => {
+        /*
+         * Esta operación es exclusiva del propietario.
+         *
+         * bloquearPropietario() también bloquea la fila del proyecto
+         * durante la transacción.
+         */
+        const esPropietario =
+          await this.acceso.bloquearPropietario(
+            client,
+            idProyecto,
+            idUsuario,
+          );
 
-      // Devuelve únicamente los campos públicos de la fotografía.
-      return mapearFotografia(fotografia);
-    });
+        if (!esPropietario) {
+          throw new NotFoundException(
+            'El proyecto no está disponible.',
+          );
+        }
+
+        const fotografia =
+          await this.fotografias.establecerPortada(
+            client,
+            idProyecto,
+            idFotografia,
+          );
+
+        if (fotografia === null) {
+          throw new NotFoundException(
+            'La fotografía no está disponible.',
+          );
+        }
+
+        await this.actividades.crear(
+          client,
+          {
+            idProyecto,
+            idActor: idUsuario,
+            tipoAccion:
+              'FOTOGRAFIA_PORTADA_ESTABLECIDA',
+            mensaje:
+              `La fotografía ${fotografia.id_fotografia} fue establecida como portada del proyecto.`,
+          },
+        );
+
+        return mapearFotografia(
+          fotografia,
+        );
+      },
+    );
   }
 }

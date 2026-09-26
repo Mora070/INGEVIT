@@ -25,7 +25,10 @@ function convertirCoordenada(
 
   const numero = Number(valor);
 
-  if (!Number.isFinite(numero) || Math.abs(numero) > limite) {
+  if (
+    !Number.isFinite(numero)
+    || Math.abs(numero) > limite
+  ) {
     throw new Error(
       'La ubicación de la fotografía está fuera del rango permitido.',
     );
@@ -47,22 +50,47 @@ export function mapearFotografia(
   let latitud: number | null;
   let longitud: number | null;
 
-  if (fotografia.latitud === null && fotografia.longitud === null) {
+  if (
+    fotografia.latitud === null
+    && fotografia.longitud === null
+  ) {
     latitud = null;
     longitud = null;
   } else {
-    latitud = convertirCoordenada(fotografia.latitud, 90);
-    longitud = convertirCoordenada(fotografia.longitud, 180);
+    latitud = convertirCoordenada(
+      fotografia.latitud,
+      90,
+    );
+
+    longitud = convertirCoordenada(
+      fotografia.longitud,
+      180,
+    );
   }
 
   return {
-    id_fotografia: fotografia.id_fotografia,
-    id_proyecto: fotografia.id_proyecto,
-    id_usuario_subida: fotografia.id_usuario_subida,
-    titulo: fotografia.titulo,
-    url: fotografia.url,
+    id_fotografia:
+      fotografia.id_fotografia,
+
+    id_proyecto:
+      fotografia.id_proyecto,
+
+    id_usuario_subida:
+      fotografia.id_usuario_subida,
+
+    titulo:
+      fotografia.titulo,
+
+    url:
+      fotografia.url,
+
     latitud,
     longitud,
-    fecha_subida: fotografia.fecha_subida.toISOString(),
+
+    fecha_subida:
+      fotografia.fecha_subida.toISOString(),
+
+    es_portada:
+      fotografia.es_portada,
   };
 }

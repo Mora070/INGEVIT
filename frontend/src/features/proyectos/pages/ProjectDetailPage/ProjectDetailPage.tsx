@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -7,59 +8,96 @@ import {
   obtenerProyecto,
 } from '../../api/proyectos.api';
 
+import {
+  establecerPortadaProyecto,
+  listarFotografiasProyecto,
+} from '../../api/fotografias.api';
+
+import {
+  CollaboratorsModal,
+} from '../../components/CollaboratorsModal/CollaboratorsModal';
+
+import {
+  UploadPhotoModal,
+} from '../../components/UploadPhotoModal/UploadPhotoModal';
+
+import type {
+  FotografiaProyecto,
+} from '../../types/fotografia';
+
 import type {
   Proyecto,
 } from '../../types/proyecto';
 
-import { ApiError } from '../../../../shared/api/http';
+import {
+  ApiError,
+} from '../../../../shared/api/http';
 
 import styles from './ProjectDetailPage.module.css';
 
 interface ProjectDetailPageProps {
   idProyecto: string;
+  idUsuarioActual: string;
   onVolver: () => void;
 }
+
+type SeccionProyecto =
+  | 'resumen'
+  | 'fotografias'
+  | 'planos'
+  | '360'
+  | 'mapa'
+  | 'carpetas';
 
 function formatearEstado(
   estado: Proyecto['estado_proyecto'],
 ): string {
   if (estado === 'ACTIVA') {
-    return 'Activa';
+    return 'Activo';
   }
 
   if (estado === 'PAUSA') {
     return 'En pausa';
   }
 
-  return 'Finalizada';
+  return 'Finalizado';
 }
 
 function formatearFecha(
   fecha: string | null,
 ): string {
   if (!fecha) {
-    return 'Sin fecha';
+    return 'Sin definir';
   }
 
-  const [
-    anio,
-    mes,
-    dia,
-  ] = fecha.split('-');
+  const fechaNormalizada =
+    new Date(
+      `${fecha}T00:00:00`,
+    );
 
   if (
-    !anio ||
-    !mes ||
-    !dia
+    Number.isNaN(
+      fechaNormalizada.getTime(),
+    )
   ) {
     return fecha;
   }
 
-  return `${dia}/${mes}/${anio}`;
+  return new Intl.DateTimeFormat(
+    'es-CO',
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    },
+  ).format(
+    fechaNormalizada,
+  );
 }
 
 export function ProjectDetailPage({
   idProyecto,
+  idUsuarioActual,
   onVolver,
 }: ProjectDetailPageProps) {
   const [
@@ -70,23 +108,83 @@ export function ProjectDetailPage({
   );
 
   const [
+    fotografias,
+    setFotografias,
+  ] = useState<
+    FotografiaProyecto[]
+  >([]);
+
+  const [
     cargando,
     setCargando,
   ] = useState(true);
 
   const [
+    cargandoFotografias,
+    setCargandoFotografias,
+  ] = useState(true);
+
+  const [
+    cambiandoPortada,
+    setCambiandoPortada,
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
     error,
     setError,
-  ] = useState<string | null>(
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
+    errorFotografias,
+    setErrorFotografias,
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
+    mostrandoColaboradores,
+    setMostrandoColaboradores,
+  ] = useState(false);
+
+  const [
+    mostrandoMenuSubida,
+    setMostrandoMenuSubida,
+  ] = useState(false);
+
+  const [
+    archivoFotografia,
+    setArchivoFotografia,
+  ] = useState<File | null>(
     null,
   );
+
+  const [
+    seccionActiva,
+    setSeccionActiva,
+  ] = useState<SeccionProyecto>(
+    'resumen',
+  );
+
+  const inputFotografiaRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
 
   useEffect(() => {
     let activa = true;
 
     async function cargarProyecto() {
-      setCargando(true);
-      setError(null);
+      setCargando(
+        true,
+      );
+
+      setError(
+        null,
+      );
 
       try {
         const respuesta =
@@ -101,7 +199,9 @@ export function ProjectDetailPage({
         setProyecto(
           respuesta,
         );
-      } catch (errorObtenido) {
+      } catch (
+        errorObtenido
+      ) {
         if (!activa) {
           return;
         }
@@ -118,11 +218,11 @@ export function ProjectDetailPage({
             'No fue posible cargar el proyecto.',
           );
         }
-
-        setProyecto(null);
       } finally {
         if (activa) {
-          setCargando(false);
+          setCargando(
+            false,
+          );
         }
       }
     }
@@ -136,6 +236,158 @@ export function ProjectDetailPage({
     idProyecto,
   ]);
 
+  async function cargarFotografias() {
+    setCargandoFotografias(
+      true,
+    );
+
+    setErrorFotografias(
+      null,
+    );
+
+    try {
+      const respuesta =
+        await listarFotografiasProyecto(
+          idProyecto,
+          {
+            pagina: 1,
+            limite: 50,
+          },
+        );
+
+      setFotografias(
+        respuesta.fotografias,
+      );
+    } catch (
+      errorObtenido
+    ) {
+      if (
+        errorObtenido instanceof
+        ApiError
+      ) {
+        setErrorFotografias(
+          errorObtenido.message,
+        );
+      } else {
+        setErrorFotografias(
+          'No fue posible cargar las fotografías.',
+        );
+      }
+    } finally {
+      setCargandoFotografias(
+        false,
+      );
+    }
+  }
+
+  useEffect(() => {
+    void cargarFotografias();
+  }, [
+    idProyecto,
+  ]);
+
+  function seleccionarArchivoFotografia(
+    archivo: File,
+  ) {
+    setErrorFotografias(
+      null,
+    );
+
+    setArchivoFotografia(
+      archivo,
+    );
+  }
+
+  function fotografiaSubida(
+    nuevaFotografia:
+      FotografiaProyecto,
+  ) {
+    setFotografias(
+      (actuales) => [
+        nuevaFotografia,
+        ...actuales,
+      ],
+    );
+
+    setArchivoFotografia(
+      null,
+    );
+
+    setErrorFotografias(
+      null,
+    );
+
+    setSeccionActiva(
+      'fotografias',
+    );
+  }
+
+  function cerrarModalFotografia() {
+    setArchivoFotografia(
+      null,
+    );
+  }
+
+  async function establecerPortada(
+    fotografia:
+      FotografiaProyecto,
+  ) {
+    if (
+      cambiandoPortada !==
+      null
+    ) {
+      return;
+    }
+
+    setCambiandoPortada(
+      fotografia.id_fotografia,
+    );
+
+    setErrorFotografias(
+      null,
+    );
+
+    try {
+      const actualizada =
+        await establecerPortadaProyecto(
+          idProyecto,
+          fotografia.id_fotografia,
+        );
+
+      setFotografias(
+        (actuales) =>
+          actuales.map(
+            (actual) => ({
+              ...actual,
+
+              es_portada:
+                actual.id_fotografia ===
+                actualizada.id_fotografia,
+            }),
+          ),
+      );
+    } catch (
+      errorObtenido
+    ) {
+      if (
+        errorObtenido instanceof
+        ApiError
+      ) {
+        setErrorFotografias(
+          errorObtenido.message,
+        );
+      } else {
+        setErrorFotografias(
+          'No fue posible establecer la portada.',
+        );
+      }
+    } finally {
+      setCambiandoPortada(
+        null,
+      );
+    }
+  }
+
   if (cargando) {
     return (
       <section
@@ -147,23 +399,16 @@ export function ProjectDetailPage({
           className={
             styles.state
           }
-          role="status"
         >
           <div
             className={
               styles.spinner
             }
-            aria-hidden="true"
           />
 
-          <h2>
-            Cargando proyecto
-          </h2>
-
-          <p>
-            Estamos consultando la
-            información del proyecto.
-          </p>
+          <strong>
+            Cargando proyecto...
+          </strong>
         </div>
       </section>
     );
@@ -188,14 +433,7 @@ export function ProjectDetailPage({
             onVolver
           }
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-
-          Volver a proyectos
+          ← Volver a proyectos
         </button>
 
         <div
@@ -203,406 +441,927 @@ export function ProjectDetailPage({
             styles.state
           }
         >
-          <div
-            className={
-              styles.errorIcon
-            }
-            aria-hidden="true"
-          >
-            <svg
-              viewBox="0 0 24 24"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-              />
-
-              <path d="M12 7v6" />
-              <path d="M12 17h.01" />
-            </svg>
-          </div>
-
-          <h2>
+          <strong>
             No pudimos cargar el
             proyecto
-          </h2>
+          </strong>
 
-          <p>
+          <span>
             {error}
-          </p>
+          </span>
         </div>
       </section>
     );
   }
 
-  const tieneUbicacion =
-    proyecto.latitud !== null &&
-    proyecto.longitud !== null;
+  const esPropietario =
+    proyecto.id_propietario ===
+    idUsuarioActual;
+
+  const portada =
+    fotografias.find(
+      (fotografia) =>
+        fotografia.es_portada,
+    ) ?? null;
+
+  const fotografiasRecientes =
+    fotografias.slice(
+      0,
+      4,
+    );
 
   return (
-    <section
-      className={
-        styles.page
-      }
-    >
-      <button
+    <>
+      <section
         className={
-          styles.backButton
-        }
-        type="button"
-        onClick={
-          onVolver
+          styles.page
         }
       >
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-
-        Volver a proyectos
-      </button>
-
-      <header
-        className={
-          styles.pageHeader
-        }
-      >
-        <div
+        <nav
           className={
-            styles.heading
+            styles.breadcrumb
           }
+          aria-label="Ruta"
         >
-          <span
-            className={
-              styles.eyebrow
+          <button
+            type="button"
+            onClick={
+              onVolver
             }
           >
-            Proyecto
+            Proyectos
+          </button>
+
+          <span>
+            /
           </span>
 
-          <h1>
+          <strong>
             {proyecto.nombre}
-          </h1>
+          </strong>
+        </nav>
 
-          <p>
-            {proyecto.descripcion}
-          </p>
-        </div>
-
-        <span
-          className={`${styles.statusBadge} ${
-            proyecto.estado_proyecto ===
-            'ACTIVA'
-              ? styles.statusActive
-              : proyecto.estado_proyecto ===
-                  'PAUSA'
-                ? styles.statusPaused
-                : styles.statusFinished
-          }`}
-        >
-          {formatearEstado(
-            proyecto.estado_proyecto,
-          )}
-        </span>
-      </header>
-
-      <div
-        className={
-          styles.contentGrid
-        }
-      >
-        <article
+        <div
           className={
-            styles.panel
+            styles.hero
           }
         >
-          <header
+          <div
             className={
-              styles.panelHeader
+              styles.heroInfo
             }
           >
             <div
               className={
-                styles.panelIcon
+                styles.titleRow
+              }
+            >
+              <h1>
+                {
+                  proyecto.nombre
+                }
+              </h1>
+
+              <span
+                className={`${styles.statusBadge} ${
+                  proyecto.estado_proyecto ===
+                  'ACTIVA'
+                    ? styles.statusActive
+                    : proyecto.estado_proyecto ===
+                        'PAUSA'
+                      ? styles.statusPaused
+                      : styles.statusFinished
+                }`}
+              >
+                {formatearEstado(
+                  proyecto.estado_proyecto,
+                )}
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.location
               }
             >
               <svg
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path d="M3 7.5h6l2-2h10v14H3z" />
-                <path d="M3 10h18" />
+                <path
+                  d="M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12Z"
+                />
+
+                <circle
+                  cx="12"
+                  cy="9"
+                  r="2"
+                />
               </svg>
-            </div>
 
-            <div>
-              <h2>
-                Información general
-              </h2>
-
-              <p>
-                Datos principales del
-                proyecto.
-              </p>
-            </div>
-          </header>
-
-          <dl
-            className={
-              styles.projectData
-            }
-          >
-            <div>
-              <dt>
-                Contratante
-              </dt>
-
-              <dd>
-                {
-                  proyecto.contratante
-                }
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Dirección
-              </dt>
-
-              <dd>
+              <span>
                 {
                   proyecto.direccion
                 }
-              </dd>
+              </span>
             </div>
 
-            <div>
-              <dt>
-                Fecha de inicio
-              </dt>
-
-              <dd>
-                {formatearFecha(
-                  proyecto.fecha_inicio,
-                )}
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Finalización
-              </dt>
-
-              <dd>
-                {formatearFecha(
-                  proyecto.fecha_finalizacion,
-                )}
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Ubicación
-              </dt>
-
-              <dd>
-                {tieneUbicacion
-                  ? 'Configurada'
-                  : 'Sin coordenadas'}
-              </dd>
-            </div>
-          </dl>
-        </article>
-
-        <article
-          className={
-            styles.panel
-          }
-        >
-          <header
-            className={
-              styles.panelHeader
-            }
-          >
-            <div
+            <p
               className={
-                styles.panelIcon
+                styles.description
               }
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle
-                  cx="9"
-                  cy="8"
-                  r="3"
-                />
+              {
+                proyecto.descripcion
+              }
+            </p>
 
-                <circle
-                  cx="17"
-                  cy="10"
-                  r="2.5"
-                />
+            <div
+              className={
+                styles.projectMeta
+              }
+            >
+              <div>
+                <span>
+                  Inicio
+                </span>
 
-                <path d="M3 20a6 6 0 0 1 12 0" />
+                <strong>
+                  {formatearFecha(
+                    proyecto.fecha_inicio,
+                  )}
+                </strong>
+              </div>
 
-                <path d="M14 16a5 5 0 0 1 7 4" />
-              </svg>
+              <div>
+                <span>
+                  Finalización
+                </span>
+
+                <strong>
+                  {formatearFecha(
+                    proyecto.fecha_finalizacion,
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Contratante
+                </span>
+
+                <strong>
+                  {
+                    proyecto.contratante
+                  }
+                </strong>
+              </div>
             </div>
-
-            <div>
-              <h2>
-                Equipo
-              </h2>
-
-              <p>
-                Propietario y
-                colaboradores.
-              </p>
-            </div>
-          </header>
-
-          <div
-            className={
-              styles.comingSoon
-            }
-          >
-            <strong>
-              Gestión de colaboradores
-            </strong>
-
-            <span>
-              Aquí agregaremos los
-              miembros que participan
-              en este proyecto.
-            </span>
           </div>
-        </article>
 
-        <article
-          className={
-            styles.panel
-          }
-        >
-          <header
+          <div
             className={
-              styles.panelHeader
+              styles.heroImage
+            }
+          >
+            {portada ? (
+              <img
+                src={
+                  portada.url
+                }
+                alt={`Portada de ${proyecto.nombre}`}
+              />
+            ) : (
+              <div
+                className={
+                  styles.emptyCover
+                }
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="16"
+                    rx="2"
+                  />
+
+                  <circle
+                    cx="9"
+                    cy="10"
+                    r="2"
+                  />
+
+                  <path
+                    d="m21 15-5-4-7 7"
+                  />
+                </svg>
+
+                <strong>
+                  Sin portada
+                </strong>
+
+                <span>
+                  Sube una fotografía
+                  y selecciónala como
+                  portada.
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div
+            className={
+              styles.heroActions
             }
           >
             <div
               className={
-                styles.panelIcon
+                styles.uploadWrapper
               }
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
+              <button
+                className={
+                  styles.primaryButton
+                }
+                type="button"
+                onClick={() => {
+                  setMostrandoMenuSubida(
+                    (actual) =>
+                      !actual,
+                  );
+                }}
               >
-                <path d="M4 19V5" />
-                <path d="M4 19h16" />
-                <path d="m8 15 3-4 3 2 4-6" />
-              </svg>
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 16V4"
+                  />
+
+                  <path
+                    d="m7 9 5-5 5 5"
+                  />
+
+                  <path
+                    d="M5 20h14"
+                  />
+                </svg>
+
+                <span>
+                  Subir contenido
+                </span>
+
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="m7 10 5 5 5-5"
+                  />
+                </svg>
+              </button>
+
+              {mostrandoMenuSubida && (
+                <div
+                  className={
+                    styles.uploadMenu
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrandoMenuSubida(
+                        false,
+                      );
+
+                      inputFotografiaRef.current?.click();
+                    }}
+                  >
+                    <span>
+                      Fotografía
+                    </span>
+
+                    <small>
+                      JPG, PNG o formato
+                      compatible
+                    </small>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled
+                  >
+                    <span>
+                      Plano
+                    </span>
+
+                    <small>
+                      Próximamente
+                    </small>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled
+                  >
+                    <span>
+                      Recorrido 360°
+                    </span>
+
+                    <small>
+                      Próximamente
+                    </small>
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={
+                  inputFotografiaRef
+                }
+                className={
+                  styles.hiddenInput
+                }
+                type="file"
+                accept="image/*"
+                onChange={(
+                  event,
+                ) => {
+                  const archivo =
+                    event.target
+                      .files?.[0];
+
+                  if (archivo) {
+                    seleccionarArchivoFotografia(
+                      archivo,
+                    );
+                  }
+
+                  event.currentTarget.value =
+                    '';
+                }}
+              />
             </div>
 
-            <div>
-              <h2>
-                Actividad
-              </h2>
+            {esPropietario && (
+              <>
+                <button
+                  className={
+                    styles.secondaryButton
+                  }
+                  type="button"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="m4 20 4.5-1 10-10-3.5-3.5-10 10L4 20Z"
+                    />
 
-              <p>
-                Historial reciente del
-                proyecto.
-              </p>
-            </div>
-          </header>
+                    <path
+                      d="m13.5 6.5 3.5 3.5"
+                    />
+                  </svg>
 
+                  Editar proyecto
+                </button>
+
+                <button
+                  className={
+                    styles.secondaryButton
+                  }
+                  type="button"
+                  onClick={() => {
+                    setMostrandoColaboradores(
+                      true,
+                    );
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="9"
+                      cy="8"
+                      r="3"
+                    />
+
+                    <path
+                      d="M3 20a6 6 0 0 1 12 0"
+                    />
+
+                    <path
+                      d="M18 8v6"
+                    />
+
+                    <path
+                      d="M15 11h6"
+                    />
+                  </svg>
+
+                  Agregar colaborador
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <nav
+          className={
+            styles.tabs
+          }
+          aria-label="Secciones del proyecto"
+        >
+          {[
+            [
+              'resumen',
+              'Resumen',
+            ],
+            [
+              'fotografias',
+              'Fotografías',
+            ],
+            [
+              'planos',
+              'Planos',
+            ],
+            [
+              '360',
+              '360°',
+            ],
+            [
+              'mapa',
+              'Mapa',
+            ],
+            [
+              'carpetas',
+              'Carpetas',
+            ],
+          ].map(
+            ([
+              valor,
+              etiqueta,
+            ]) => (
+              <button
+                key={
+                  valor
+                }
+                type="button"
+                className={
+                  seccionActiva ===
+                  valor
+                    ? styles.tabActive
+                    : undefined
+                }
+                onClick={() => {
+                  setSeccionActiva(
+                    valor as SeccionProyecto,
+                  );
+                }}
+              >
+                {etiqueta}
+              </button>
+            ),
+          )}
+        </nav>
+
+        {errorFotografias && (
           <div
             className={
-              styles.comingSoon
+              styles.inlineError
+            }
+            role="alert"
+          >
+            {
+              errorFotografias
+            }
+          </div>
+        )}
+
+        {seccionActiva ===
+          'resumen' && (
+          <div
+            className={
+              styles.summaryGrid
             }
           >
-            <strong>
-              Actividades del proyecto
-            </strong>
+            <section
+              className={
+                styles.card
+              }
+            >
+              <div
+                className={
+                  styles.cardHeader
+                }
+              >
+                <div>
+                  <h2>
+                    Fotografías
+                    recientes
+                  </h2>
 
-            <span>
+                  <p>
+                    Últimos registros
+                    visuales del
+                    proyecto.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSeccionActiva(
+                      'fotografias',
+                    );
+                  }}
+                >
+                  Ver todas
+                </button>
+              </div>
+
+              {cargandoFotografias ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Cargando
+                  fotografías...
+                </div>
+              ) : fotografiasRecientes.length ===
+                0 ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Todavía no hay
+                  fotografías en este
+                  proyecto.
+                </div>
+              ) : (
+                <div
+                  className={
+                    styles.photoGrid
+                  }
+                >
+                  {fotografiasRecientes.map(
+                    (
+                      fotografia,
+                    ) => (
+                      <div
+                        key={
+                          fotografia.id_fotografia
+                        }
+                        className={
+                          styles.photoCard
+                        }
+                      >
+                        <img
+                          src={
+                            fotografia.url
+                          }
+                          alt={
+                            fotografia.titulo
+                          }
+                        />
+
+                        <div>
+                          <strong>
+                            {
+                              fotografia.titulo
+                            }
+                          </strong>
+
+                          {fotografia.es_portada && (
+                            <span>
+                              Portada
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            </section>
+
+            <section
+              className={
+                styles.card
+              }
+            >
+              <div
+                className={
+                  styles.cardHeader
+                }
+              >
+                <div>
+                  <h2>
+                    Información
+                  </h2>
+
+                  <p>
+                    Datos generales
+                    del proyecto.
+                  </p>
+                </div>
+              </div>
+
+              <dl
+                className={
+                  styles.infoList
+                }
+              >
+                <div>
+                  <dt>
+                    Estado
+                  </dt>
+
+                  <dd>
+                    {formatearEstado(
+                      proyecto.estado_proyecto,
+                    )}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Contratante
+                  </dt>
+
+                  <dd>
+                    {
+                      proyecto.contratante
+                    }
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Dirección
+                  </dt>
+
+                  <dd>
+                    {
+                      proyecto.direccion
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        )}
+
+        {seccionActiva ===
+          'fotografias' && (
+          <section
+            className={
+              styles.card
+            }
+          >
+            <div
+              className={
+                styles.cardHeader
+              }
+            >
+              <div>
+                <h2>
+                  Fotografías
+                </h2>
+
+                <p>
+                  Evidencia visual
+                  asociada al proyecto.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  inputFotografiaRef.current?.click();
+                }}
+              >
+                Subir fotografía
+              </button>
+            </div>
+
+            {cargandoFotografias ? (
+              <div
+                className={
+                  styles.emptySection
+                }
+              >
+                Cargando
+                fotografías...
+              </div>
+            ) : fotografias.length ===
+              0 ? (
+              <div
+                className={
+                  styles.emptySection
+                }
+              >
+                No hay fotografías
+                todavía.
+              </div>
+            ) : (
+              <div
+                className={
+                  styles.galleryGrid
+                }
+              >
+                {fotografias.map(
+                  (
+                    fotografia,
+                  ) => (
+                    <article
+                      key={
+                        fotografia.id_fotografia
+                      }
+                      className={
+                        styles.galleryCard
+                      }
+                    >
+                      <img
+                        src={
+                          fotografia.url
+                        }
+                        alt={
+                          fotografia.titulo
+                        }
+                      />
+
+                      <div
+                        className={
+                          styles.galleryInfo
+                        }
+                      >
+                        <div>
+                          <strong>
+                            {
+                              fotografia.titulo
+                            }
+                          </strong>
+
+                          {fotografia.es_portada && (
+                            <span
+                              className={
+                                styles.coverBadge
+                              }
+                            >
+                              Portada
+                            </span>
+                          )}
+                        </div>
+
+                        {esPropietario &&
+                          !fotografia.es_portada && (
+                            <button
+                              type="button"
+                              disabled={
+                                cambiandoPortada !==
+                                null
+                              }
+                              onClick={() => {
+                                void establecerPortada(
+                                  fotografia,
+                                );
+                              }}
+                            >
+                              {cambiandoPortada ===
+                              fotografia.id_fotografia
+                                ? 'Guardando...'
+                                : 'Usar como portada'}
+                            </button>
+                          )}
+                      </div>
+                    </article>
+                  ),
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        {seccionActiva ===
+          'planos' && (
+          <section
+            className={
+              styles.emptyContent
+            }
+          >
+            <h2>
+              Planos
+            </h2>
+
+            <p>
+              Aquí conectaremos los
+              planos del proyecto.
+            </p>
+          </section>
+        )}
+
+        {seccionActiva ===
+          '360' && (
+          <section
+            className={
+              styles.emptyContent
+            }
+          >
+            <h2>
+              Recorridos 360°
+            </h2>
+
+            <p>
+              Aquí mostraremos los
+              recorridos panorámicos.
+            </p>
+          </section>
+        )}
+
+        {seccionActiva ===
+          'mapa' && (
+          <section
+            className={
+              styles.emptyContent
+            }
+          >
+            <h2>
+              Mapa
+            </h2>
+
+            <p>
               Aquí conectaremos el
-              historial de acciones y
-              actualizaciones.
-            </span>
-          </div>
-        </article>
+              mapa específico del
+              proyecto.
+            </p>
+          </section>
+        )}
 
-        <article
-          className={
-            styles.panel
+        {seccionActiva ===
+          'carpetas' && (
+          <section
+            className={
+              styles.emptyContent
+            }
+          >
+            <h2>
+              Carpetas
+            </h2>
+
+            <p>
+              Aquí construiremos la
+              organización documental
+              del proyecto.
+            </p>
+          </section>
+        )}
+      </section>
+
+      {mostrandoColaboradores && (
+        <CollaboratorsModal
+          idProyecto={
+            proyecto.id_proyecto
           }
-        >
-          <header
-            className={
-              styles.panelHeader
-            }
-          >
-            <div
-              className={
-                styles.panelIcon
-              }
-            >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="16"
-                  rx="2"
-                />
+          onCerrar={() => {
+            setMostrandoColaboradores(
+              false,
+            );
+          }}
+        />
+      )}
 
-                <circle
-                  cx="9"
-                  cy="10"
-                  r="2"
-                />
-
-                <path d="m21 15-5-4-7 7" />
-              </svg>
-            </div>
-
-            <div>
-              <h2>
-                Fotografías
-              </h2>
-
-              <p>
-                Evidencia visual del
-                proyecto.
-              </p>
-            </div>
-          </header>
-
-          <div
-            className={
-              styles.comingSoon
-            }
-          >
-            <strong>
-              Galería del proyecto
-            </strong>
-
-            <span>
-              Las fotografías se
-              administrarán desde esta
-              sección.
-            </span>
-          </div>
-        </article>
-      </div>
-    </section>
+      {archivoFotografia && (
+        <UploadPhotoModal
+          idProyecto={
+            proyecto.id_proyecto
+          }
+          archivo={
+            archivoFotografia
+          }
+          latitudProyecto={
+            proyecto.latitud
+          }
+          longitudProyecto={
+            proyecto.longitud
+          }
+          onCerrar={
+            cerrarModalFotografia
+          }
+          onSubidaCompleta={
+            fotografiaSubida
+          }
+        />
+      )}
+    </>
   );
 }

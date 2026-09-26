@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 
-import type { FotografiaRow } from './types/fotografia.types';
+import type {
+  FotografiaRow,
+} from './types/fotografia.types';
 
 import type {
   FotografiaPaginaConsultaRow,
@@ -19,7 +21,7 @@ import type {
 export class FotografiasConsultaRepository {
   constructor(
     private readonly database: DatabaseService,
-  ) { }
+  ) {}
 
   /**
    * Obtiene fotografías de un proyecto disponible para el solicitante.
@@ -35,7 +37,8 @@ export class FotografiasConsultaRepository {
     pagina: number,
     limite: number,
   ): Promise<ResultadoConsultaFotografias> {
-    const desplazamiento = (pagina - 1) * limite;
+    const desplazamiento =
+      (pagina - 1) * limite;
 
     const resultado =
       await this.database.query<FotografiaPaginaConsultaRow>(
@@ -80,7 +83,8 @@ export class FotografiasConsultaRepository {
               fotografia.original_s3_key,
               fotografia.fecha_subida,
               fotografia.latitud,
-              fotografia.longitud
+              fotografia.longitud,
+              fotografia.es_portada
             FROM obra.fotografias AS fotografia
             INNER JOIN proyecto_disponible AS proyecto
               ON proyecto.id_proyecto = fotografia.id_proyecto
@@ -101,24 +105,33 @@ export class FotografiasConsultaRepository {
             pagina.fecha_subida,
             pagina.latitud,
             pagina.longitud,
+            pagina.es_portada,
             conteo.total
           FROM conteo
-          LEFT JOIN pagina_seleccionada AS pagina ON true
+          LEFT JOIN pagina_seleccionada AS pagina
+            ON true
           ORDER BY
             pagina.fecha_subida DESC,
             pagina.id_fotografia DESC
         `,
-        [idProyecto, idUsuario, limite, desplazamiento],
+        [
+          idProyecto,
+          idUsuario,
+          limite,
+          desplazamiento,
+        ],
       );
 
-    const primeraFila = resultado.rows[0];
+    const primeraFila =
+      resultado.rows[0];
 
     // Sin proyecto disponible, el conteo tampoco produce una fila.
     if (!primeraFila) {
       return null;
     }
 
-    const totalTexto = primeraFila.total;
+    const totalTexto =
+      primeraFila.total;
 
     if (
       typeof totalTexto !== 'string'
@@ -129,33 +142,66 @@ export class FotografiasConsultaRepository {
       );
     }
 
-    const total = Number(totalTexto);
+    const total =
+      Number(totalTexto);
 
-    if (!Number.isSafeInteger(total) || total < 0) {
+    if (
+      !Number.isSafeInteger(total)
+      || total < 0
+    ) {
       throw new Error(
         'El total de fotografías no puede representarse correctamente.',
       );
     }
 
-    const fotografias: FotografiaRow[] = [];
+    const fotografias:
+      FotografiaRow[] = [];
 
-    for (const fila of resultado.rows) {
+    for (
+      const fila of
+      resultado.rows
+    ) {
       // El LEFT JOIN permite conservar el total con una página vacía.
-      if (fila.id_fotografia === null) {
+      if (
+        fila.id_fotografia ===
+        null
+      ) {
         continue;
       }
 
       fotografias.push({
-        id_fotografia: fila.id_fotografia,
-        id_proyecto: fila.id_proyecto,
-        id_usuario_subida: fila.id_usuario_subida,
-        titulo: fila.titulo,
-        url: fila.url,
-        s3_key: fila.s3_key,
-        original_s3_key: fila.original_s3_key,
-        fecha_subida: fila.fecha_subida,
-        latitud: fila.latitud,
-        longitud: fila.longitud,
+        id_fotografia:
+          fila.id_fotografia,
+
+        id_proyecto:
+          fila.id_proyecto,
+
+        id_usuario_subida:
+          fila.id_usuario_subida,
+
+        titulo:
+          fila.titulo,
+
+        url:
+          fila.url,
+
+        s3_key:
+          fila.s3_key,
+
+        original_s3_key:
+          fila.original_s3_key,
+
+        fecha_subida:
+          fila.fecha_subida,
+
+        latitud:
+          fila.latitud,
+
+        longitud:
+          fila.longitud,
+
+        es_portada:
+          fila.es_portada,
       });
     }
 

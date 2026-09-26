@@ -1,0 +1,451 @@
+.overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1.5rem;
+
+  background: rgba(22, 26, 29, 0.58);
+
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+
+  width: min(920px, 100%);
+  max-height: calc(100vh - 3rem);
+
+  overflow: hidden;
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 70px
+    rgba(0, 0, 0, 0.22);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1.35rem 1.5rem;
+
+  border-bottom: 1px solid #e8eaed;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.headerText h2 {
+  margin: 0;
+
+  color: var(--color-brand-charcoal);
+  font-size: 1.25rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.headerText p {
+  margin: 0.35rem 0 0;
+
+  color: #737b85;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 auto;
+
+  border: 1px solid #e2e5e8;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #626a73;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.closeButton:hover:not(:disabled) {
+  border-color: #cfd4d9;
+
+  background: #f5f6f7;
+
+  color: #22282d;
+}
+
+.closeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.closeButton svg {
+  width: 19px;
+  height: 19px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+
+  padding: 1.5rem;
+
+  overflow-y: auto;
+}
+
+.photoSection {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.preview {
+  position: relative;
+
+  width: 100%;
+  aspect-ratio: 4 / 3;
+
+  overflow: hidden;
+
+  border: 1px solid #e1e4e7;
+  border-radius: 12px;
+
+  background: #f4f5f6;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.previewPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 1rem;
+
+  color: #818892;
+  text-align: center;
+}
+
+.previewPlaceholder svg {
+  width: 34px;
+  height: 34px;
+
+  fill: none;
+  stroke: var(--color-brand-orange);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.previewPlaceholder span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.field label {
+  color: var(--color-brand-charcoal);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.field input {
+  width: 100%;
+  min-height: 43px;
+
+  padding: 0.7rem 0.8rem;
+
+  border: 1px solid #d8dde2;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: var(--color-brand-charcoal);
+  font: inherit;
+  font-size: 0.88rem;
+
+  outline: none;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.field input:focus {
+  border-color: var(--color-brand-orange);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(234, 117, 26, 0.12);
+}
+
+.field input:disabled {
+  background: #f4f5f6;
+
+  cursor: not-allowed;
+}
+
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  padding: 0.8rem;
+
+  border: 1px solid #e3e6e9;
+  border-radius: 9px;
+
+  background: #f8f9fa;
+}
+
+.fileInfo span {
+  overflow: hidden;
+
+  color: #333a42;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileInfo small {
+  color: #7c848e;
+  font-size: 0.73rem;
+}
+
+.locationSection {
+  padding-top: 0.1rem;
+}
+
+.error {
+  margin: 0;
+
+  padding: 0.75rem 0.85rem;
+
+  border: 1px solid
+    rgba(180, 35, 24, 0.18);
+  border-radius: 9px;
+
+  background: #fff5f4;
+
+  color: #b42318;
+  font-size: 0.82rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  padding: 1rem 1.5rem;
+
+  border-top: 1px solid #e8eaed;
+
+  background: #fafafa;
+}
+
+.cancelButton,
+.submitButton {
+  min-height: 42px;
+
+  padding: 0.68rem 1.05rem;
+
+  border-radius: 9px;
+
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.cancelButton {
+  border: 1px solid #d8dce0;
+
+  background: #ffffff;
+
+  color: #555e67;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f4f5f6;
+
+  color: #2d343a;
+}
+
+.submitButton {
+  border: 1px solid
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 6px 16px
+    rgba(234, 117, 26, 0.2);
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 20px
+    rgba(234, 117, 26, 0.27);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.cancelButton:focus-visible,
+.submitButton:focus-visible,
+.closeButton:focus-visible {
+  outline: 3px solid
+    rgba(234, 117, 26, 0.18);
+
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .overlay {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 94vh;
+
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+
+    border-radius:
+      18px 18px 0 0;
+  }
+
+  .header {
+    padding:
+      1.1rem 1rem;
+  }
+
+  .body {
+    padding: 1rem;
+  }
+
+  .photoSection {
+    grid-template-columns: 1fr;
+  }
+
+  .preview {
+    max-height: 260px;
+  }
+
+  .footer {
+    padding:
+      0.9rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerText h2 {
+    font-size: 1.08rem;
+  }
+
+  .headerText p {
+    font-size: 0.79rem;
+  }
+
+  .footer {
+    display: grid;
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+  }
+}
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .closeButton,
+  .cancelButton,
+  .submitButton,
+  .field input {
+    transition: none;
+  }
+}

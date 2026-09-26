@@ -6,9 +6,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { UsuariosRepository } from './usuarios.repository';
-import { toUsuarioResponse } from './mappers/usuario.mapper';
-import type { CrearUsuarioTradicionalInput } from './types/crear-usuario.types';
+import {
+  UsuariosRepository,
+  type UsuariosColaboradoresPaginadosRow,
+} from './usuarios.repository';
+
+import {
+  toUsuarioResponse,
+} from './mappers/usuario.mapper';
+
+import type {
+  CrearUsuarioTradicionalInput,
+} from './types/crear-usuario.types';
+
 import type {
   EstadoUsuario,
   UsuarioResponse,
@@ -18,6 +28,22 @@ import type {
 import type {
   ActualizarPerfilInput,
 } from './types/actualizar-perfil.types';
+
+import type {
+  UsuarioColaboradorResponse,
+} from './types/usuario-colaborador.types';
+
+import type {
+  ListarUsuariosColaboradoresQueryDto,
+} from './dto/listar-usuarios-colaboradores-query.dto';
+
+export interface UsuariosColaboradoresPaginadosResponse {
+  usuarios: UsuarioColaboradorResponse[];
+  pagina: number;
+  limite: number;
+  total: number;
+  total_paginas: number;
+}
 
 /**
  * Expone los casos de uso del módulo de usuarios.
@@ -29,8 +55,9 @@ import type {
 @Injectable()
 export class UsuariosService {
   constructor(
-    private readonly usuariosRepository: UsuariosRepository,
-  ) { }
+    private readonly usuariosRepository:
+      UsuariosRepository,
+  ) {}
 
   /**
    * Obtiene el perfil de la identidad previamente autenticada.
@@ -44,17 +71,86 @@ export class UsuariosService {
   async obtenerMiPerfil(
     idUsuarioAutenticado: string,
   ): Promise<UsuarioResponse> {
-    const usuario = await this.usuariosRepository.findById(
-      idUsuarioAutenticado,
-    );
+    const usuario =
+      await this.usuariosRepository.findById(
+        idUsuarioAutenticado,
+      );
 
-    if (!usuario || usuario.estado !== 'ACTIVO') {
+    if (
+      !usuario ||
+      usuario.estado !== 'ACTIVO'
+    ) {
       throw new UnauthorizedException(
         'La sesión no es válida o la cuenta no está activa.',
       );
     }
 
-    return toUsuarioResponse(usuario);
+    return toUsuarioResponse(
+      usuario,
+    );
+  }
+
+  /**
+   * Lista usuarios activos que pueden mostrarse
+   * como candidatos a colaborador.
+   *
+   * El usuario autenticado no aparece en los resultados.
+   * El repositorio devuelve únicamente campos públicos mínimos.
+   */
+  async listarDisponiblesParaColaborador(
+    idUsuarioAutenticado: string,
+    consulta: ListarUsuariosColaboradoresQueryDto,
+  ): Promise<UsuariosColaboradoresPaginadosResponse> {
+    const {
+      pagina,
+      limite,
+      correo,
+    } = consulta;
+
+    const resultado:
+      UsuariosColaboradoresPaginadosRow =
+        await this.usuariosRepository
+          .findColaboradoresDisponiblesPaginados(
+            idUsuarioAutenticado,
+            pagina,
+            limite,
+            correo,
+          );
+
+    return {
+      usuarios:
+        resultado.usuarios.map(
+          (usuario) => ({
+            id_usuario:
+              usuario.id_usuario,
+
+            nombre:
+              usuario.nombre,
+
+            apellidos:
+              usuario.apellidos,
+
+            correo:
+              usuario.correo,
+
+            foto_perfil_url:
+              usuario.foto_perfil_url,
+          }),
+        ),
+
+      pagina,
+
+      limite,
+
+      total:
+        resultado.total,
+
+      total_paginas:
+        Math.ceil(
+          resultado.total /
+            limite,
+        ),
+    };
   }
 
   /**
@@ -74,27 +170,33 @@ export class UsuariosService {
   async buscarPorCorreoParaAutenticacion(
     correo: string,
   ): Promise<UsuarioRow | null> {
-    return this.usuariosRepository.findByCorreo(correo);
+    return this.usuariosRepository
+      .findByCorreo(
+        correo,
+      );
   }
 
-
   /**
- * Crea una cuenta tradicional utilizando un hash ya generado.
- *
- * PostgreSQL resuelve la unicidad del correo durante la inserción.
- * Si el repositorio devuelve null, respondemos con un conflicto.
- *
- * El resultado es interno: contiene el hash y debe pasar por
- * el mapper antes de enviarse al cliente.
- */
+   * Crea una cuenta tradicional utilizando un hash ya generado.
+   *
+   * PostgreSQL resuelve la unicidad del correo durante la inserción.
+   * Si el repositorio devuelve null, respondemos con un conflicto.
+   *
+   * El resultado es interno: contiene el hash y debe pasar por
+   * el mapper antes de enviarse al cliente.
+   */
   async crearTradicional(
     datos: CrearUsuarioTradicionalInput,
   ): Promise<UsuarioRow> {
-    const usuario = await this.usuariosRepository.crearTradicional(
-      datos,
-    );
+    const usuario =
+      await this.usuariosRepository
+        .crearTradicional(
+          datos,
+        );
 
-    if (usuario === null) {
+    if (
+      usuario === null
+    ) {
       throw new ConflictException(
         'No se puede registrar una cuenta con ese correo.',
       );
@@ -119,18 +221,24 @@ export class UsuariosService {
     idUsuario: string,
     estado: EstadoUsuario,
   ): Promise<UsuarioResponse> {
-    const usuario = await this.usuariosRepository.actualizarEstado(
-      idUsuario,
-      estado,
-    );
+    const usuario =
+      await this.usuariosRepository
+        .actualizarEstado(
+          idUsuario,
+          estado,
+        );
 
-    if (usuario === null) {
+    if (
+      usuario === null
+    ) {
       throw new NotFoundException(
         'El usuario no existe.',
       );
     }
 
-    return toUsuarioResponse(usuario);
+    return toUsuarioResponse(
+      usuario,
+    );
   }
 
   /**
@@ -147,16 +255,28 @@ export class UsuariosService {
     idUsuarioAutenticado: string,
     datos: ActualizarPerfilInput,
   ): Promise<UsuarioResponse> {
-    const cambios: ActualizarPerfilInput = {
-      nombre: datos.nombre,
-      apellidos: datos.apellidos,
-      telefono: datos.telefono,
-      ubicacion: datos.ubicacion,
-    };
+    const cambios:
+      ActualizarPerfilInput = {
+        nombre:
+          datos.nombre,
 
-    const tieneCambios = Object.values(cambios).some(
-      (valor) => valor !== undefined,
-    );
+        apellidos:
+          datos.apellidos,
+
+        telefono:
+          datos.telefono,
+
+        ubicacion:
+          datos.ubicacion,
+      };
+
+    const tieneCambios =
+      Object.values(
+        cambios,
+      ).some(
+        (valor) =>
+          valor !== undefined,
+      );
 
     if (!tieneCambios) {
       throw new BadRequestException(
@@ -164,34 +284,41 @@ export class UsuariosService {
       );
     }
 
-    /*
-     * La comprobación de cuenta activa está incluida en el UPDATE.
-     * Evitamos una lectura previa que podría quedar desactualizada.
-     */
-    const usuario = await this.usuariosRepository.actualizarPerfil(
-      idUsuarioAutenticado,
-      cambios,
-    );
+    const usuario =
+      await this.usuariosRepository
+        .actualizarPerfil(
+          idUsuarioAutenticado,
+          cambios,
+        );
 
-    if (!usuario || usuario.estado !== 'ACTIVO') {
+    if (
+      !usuario ||
+      usuario.estado !==
+        'ACTIVO'
+    ) {
       throw new UnauthorizedException(
         'La sesión no es válida o la cuenta no está activa.',
       );
     }
 
-    return toUsuarioResponse(usuario);
+    return toUsuarioResponse(
+      usuario,
+    );
   }
 
   /**
- * Consulta interna para operaciones de autenticación.
- *
- * El resultado contiene información sensible.
- * No debe devolverse desde un controlador ni registrarse en logs.
- */
+   * Consulta interna para operaciones de autenticación.
+   *
+   * El resultado contiene información sensible.
+   * No debe devolverse desde un controlador ni registrarse en logs.
+   */
   async buscarPorIdParaAutenticacion(
     idUsuario: string,
   ): Promise<UsuarioRow | null> {
-    return this.usuariosRepository.findById(idUsuario);
+    return this.usuariosRepository
+      .findById(
+        idUsuario,
+      );
   }
 
   /**
@@ -204,48 +331,59 @@ export class UsuariosService {
     hashActual: string,
     hashNuevo: string,
   ): Promise<boolean> {
-    return this.usuariosRepository.actualizarPasswordSiCoincide(
-      idUsuario,
-      hashActual,
-      hashNuevo,
-    );
+    return this.usuariosRepository
+      .actualizarPasswordSiCoincide(
+        idUsuario,
+        hashActual,
+        hashNuevo,
+      );
   }
 
   /**
- * Obtiene el perfil únicamente si la sesión conserva su vigencia.
- *
- * Consulta estado y versión en la misma fila.
- * La versión procede de un token previamente verificado.
- *
- * No expone version_sesion ni información de autenticación.
- */
+   * Obtiene el perfil únicamente si la sesión conserva su vigencia.
+   *
+   * Consulta estado y versión en la misma fila.
+   * La versión procede de un token previamente verificado.
+   *
+   * No expone version_sesion ni información de autenticación.
+   */
   async obtenerPerfilDeSesion(
     idUsuario: string,
     versionSesion: number,
   ): Promise<UsuarioResponse> {
     if (
-      !Number.isInteger(versionSesion) ||
+      !Number.isInteger(
+        versionSesion,
+      ) ||
       versionSesion < 0 ||
-      versionSesion > 2_147_483_647
+      versionSesion >
+        2_147_483_647
     ) {
       throw new UnauthorizedException(
         'La sesión no es válida o ha expirado.',
       );
     }
 
-    const usuario = await this.usuariosRepository.findById(idUsuario);
+    const usuario =
+      await this.usuariosRepository
+        .findById(
+          idUsuario,
+        );
 
     if (
       !usuario ||
-      usuario.estado !== 'ACTIVO' ||
-      usuario.version_sesion !== versionSesion
+      usuario.estado !==
+        'ACTIVO' ||
+      usuario.version_sesion !==
+        versionSesion
     ) {
       throw new UnauthorizedException(
         'La sesión no es válida o ha expirado.',
       );
     }
 
-    return toUsuarioResponse(usuario);
+    return toUsuarioResponse(
+      usuario,
+    );
   }
-
 }

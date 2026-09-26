@@ -5,6 +5,7 @@ import {
 
 import type {
   EstadoProyecto,
+  ParticipanteProyecto,
   Proyecto,
   ProyectosPaginados,
 } from '../types/proyecto';
@@ -28,6 +29,10 @@ export interface DatosCrearProyecto {
 
   latitud?: number | null;
   longitud?: number | null;
+}
+
+interface DatosAgregarColaborador {
+  id_usuario: string;
 }
 
 export function listarProyectos(
@@ -78,6 +83,53 @@ export function crearProyecto(
     {
       method: 'POST',
       ...cuerpoJson(datos),
+    },
+  );
+}
+
+export function listarParticipantesProyecto(
+  idProyecto: string,
+): Promise<ParticipanteProyecto[]> {
+  return http<ParticipanteProyecto[]>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}/participantes`,
+  );
+}
+
+export async function agregarColaboradorProyecto(
+  idProyecto: string,
+  idUsuario: string,
+): Promise<void> {
+  const datos:
+    DatosAgregarColaborador = {
+      id_usuario:
+        idUsuario,
+    };
+
+  await http<void>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}/colaboradores`,
+    {
+      method: 'POST',
+      ...cuerpoJson(datos),
+    },
+  );
+}
+
+export async function retirarColaboradorProyecto(
+  idProyecto: string,
+  idUsuario: string,
+): Promise<void> {
+  await http<void>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}/colaboradores/${encodeURIComponent(
+      idUsuario,
+    )}`,
+    {
+      method: 'DELETE',
     },
   );
 }

@@ -8,15 +8,26 @@ export interface FotografiaRow {
   id_fotografia: string;
   id_proyecto: string;
   id_usuario_subida: string;
+
   titulo: string;
+
   url: string;
   s3_key: string;
+
   /** Clave del archivo original conservado sin modificar sus bytes. */
   original_s3_key: string;
+
   fecha_subida: Date;
+
   /** PostgreSQL devuelve numeric como texto; null indica ubicación pendiente. */
   latitud: string | null;
   longitud: string | null;
+
+  /**
+   * Indica si esta fotografía fue seleccionada
+   * como portada del proyecto.
+   */
+  es_portada: boolean;
 }
 
 /**
@@ -25,16 +36,25 @@ export interface FotografiaRow {
  * s3_key se mantiene como detalle interno del almacenamiento.
  * El frontend utilizará id_fotografia para solicitar operaciones
  * al backend y url para acceder al recurso según el mecanismo
- * de autorización que implementemos.
+ * de autorización implementado.
  */
 export interface FotografiaResponse {
   id_fotografia: string;
   id_proyecto: string;
   id_usuario_subida: string;
+
   titulo: string;
   url: string;
+
   fecha_subida: string;
+
   /** Coordenadas WGS84; ambas null para fotografías antiguas sin ubicación. */
   latitud: number | null;
   longitud: number | null;
+
+  /**
+   * true cuando esta fotografía es la portada
+   * actualmente seleccionada para el proyecto.
+   */
+  es_portada: boolean;
 }

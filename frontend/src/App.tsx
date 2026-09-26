@@ -389,6 +389,9 @@ export default function App() {
             idProyecto={
               proyectoSeleccionadoId
             }
+            idUsuarioActual={
+              estado.usuario.id_usuario
+            }
             onVolver={
               volverAProyectos
             }

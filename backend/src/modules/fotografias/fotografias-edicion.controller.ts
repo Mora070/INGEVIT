@@ -28,17 +28,18 @@ import type {
 } from './types/fotografia.types';
 
 /**
- * Expone la edición del título de fotografías.
+ * Expone la edición de metadatos de fotografías.
  *
  * AuthGuard establece la identidad del solicitante.
  * El servicio comprueba los permisos sobre el proyecto
- * y coordina la actualización con su actividad.
+ * y coordina las actualizaciones con su actividad.
  */
 @Controller('proyectos/:idProyecto/fotografias')
 @UseGuards(AuthGuard)
 export class FotografiasEdicionController {
   constructor(
-    private readonly edicionService: FotografiasEdicionService,
+    private readonly edicionService:
+      FotografiasEdicionService,
   ) {}
 
   /**
@@ -54,14 +55,27 @@ export class FotografiasEdicionController {
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   async actualizarTitulo(
-    @Param('idProyecto', new ParseUUIDPipe())
+    @Param(
+      'idProyecto',
+      new ParseUUIDPipe(),
+    )
     idProyecto: string,
-    @Param('idFotografia', new ParseUUIDPipe())
+
+    @Param(
+      'idFotografia',
+      new ParseUUIDPipe(),
+    )
     idFotografia: string,
-    @Req() request: AuthRequest,
-    @Body() datos: ActualizarTituloFotografiaDto,
+
+    @Req()
+    request: AuthRequest,
+
+    @Body()
+    datos:
+      ActualizarTituloFotografiaDto,
   ): Promise<FotografiaResponse> {
-    const usuario = request.usuario;
+    const usuario =
+      request.usuario;
 
     if (!usuario) {
       throw new UnauthorizedException(
@@ -74,6 +88,51 @@ export class FotografiasEdicionController {
       idFotografia,
       usuario.id_usuario,
       datos,
+    );
+  }
+
+  /**
+   * Selecciona una fotografía como portada del proyecto.
+   *
+   * Solo el propietario del proyecto puede realizar esta operación.
+   *
+   * No recibe body:
+   * - idProyecto procede de la ruta;
+   * - idFotografia procede de la ruta;
+   * - idUsuario procede de la sesión autenticada.
+   */
+  @Patch(':idFotografia/portada')
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
+  async establecerPortada(
+    @Param(
+      'idProyecto',
+      new ParseUUIDPipe(),
+    )
+    idProyecto: string,
+
+    @Param(
+      'idFotografia',
+      new ParseUUIDPipe(),
+    )
+    idFotografia: string,
+
+    @Req()
+    request: AuthRequest,
+  ): Promise<FotografiaResponse> {
+    const usuario =
+      request.usuario;
+
+    if (!usuario) {
+      throw new UnauthorizedException(
+        'La sesión no es válida o ha expirado.',
+      );
+    }
+
+    return this.edicionService.establecerPortada(
+      idProyecto,
+      idFotografia,
+      usuario.id_usuario,
     );
   }
 }

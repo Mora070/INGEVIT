@@ -1,4 +1,6 @@
-import type { FotografiaRow } from './fotografia.types';
+import type {
+  FotografiaRow,
+} from './fotografia.types';
 
 /**
  * Resultado interno de la consulta para un proyecto disponible.
@@ -31,13 +33,19 @@ interface FotografiaPaginaVaciaRow {
   id_fotografia: null;
   id_proyecto: null;
   id_usuario_subida: null;
+
   titulo: null;
+
   url: null;
   s3_key: null;
   original_s3_key: null;
+
   fecha_subida: null;
+
   latitud: null;
   longitud: null;
+
+  es_portada: null;
 }
 
 /**
