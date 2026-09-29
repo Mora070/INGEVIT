@@ -14,6 +14,10 @@ import {
 } from '../../api/fotografias.api';
 
 import {
+  listarPanoramicasProyecto,
+} from '../../api/panoramicas.api';
+
+import {
   CollaboratorsModal,
 } from '../../components/CollaboratorsModal/CollaboratorsModal';
 
@@ -21,9 +25,21 @@ import {
   UploadPhotoModal,
 } from '../../components/UploadPhotoModal/UploadPhotoModal';
 
+import {
+  UploadPanoramaModal,
+} from '../../components/UploadPanoramaModal/UploadPanoramaModal';
+
+import {
+  PanoramaViewer,
+} from '../../components/PanoramaViewer/PanoramaViewer';
+
 import type {
   FotografiaProyecto,
 } from '../../types/fotografia';
+
+import type {
+  PanoramicaProyecto,
+} from '../../types/panoramica';
 
 import type {
   Proyecto,
@@ -37,7 +53,9 @@ import styles from './ProjectDetailPage.module.css';
 
 interface ProjectDetailPageProps {
   idProyecto: string;
+
   idUsuarioActual: string;
+
   onVolver: () => void;
 }
 
@@ -50,13 +68,20 @@ type SeccionProyecto =
   | 'carpetas';
 
 function formatearEstado(
-  estado: Proyecto['estado_proyecto'],
+  estado:
+    Proyecto['estado_proyecto'],
 ): string {
-  if (estado === 'ACTIVA') {
+  if (
+    estado ===
+    'ACTIVA'
+  ) {
     return 'Activo';
   }
 
-  if (estado === 'PAUSA') {
+  if (
+    estado ===
+    'PAUSA'
+  ) {
     return 'En pausa';
   }
 
@@ -64,7 +89,8 @@ function formatearEstado(
 }
 
 function formatearFecha(
-  fecha: string | null,
+  fecha:
+    string | null,
 ): string {
   if (!fecha) {
     return 'Sin definir';
@@ -86,9 +112,14 @@ function formatearFecha(
   return new Intl.DateTimeFormat(
     'es-CO',
     {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+      day:
+        'numeric',
+
+      month:
+        'short',
+
+      year:
+        'numeric',
     },
   ).format(
     fechaNormalizada,
@@ -103,9 +134,10 @@ export function ProjectDetailPage({
   const [
     proyecto,
     setProyecto,
-  ] = useState<Proyecto | null>(
-    null,
-  );
+  ] =
+    useState<Proyecto | null>(
+      null,
+    );
 
   const [
     fotografias,
@@ -115,14 +147,32 @@ export function ProjectDetailPage({
   >([]);
 
   const [
+    panoramicas,
+    setPanoramicas,
+  ] = useState<
+    PanoramicaProyecto[]
+  >([]);
+
+  const [
     cargando,
     setCargando,
-  ] = useState(true);
+  ] = useState(
+    true,
+  );
 
   const [
     cargandoFotografias,
     setCargandoFotografias,
-  ] = useState(true);
+  ] = useState(
+    true,
+  );
+
+  const [
+    cargandoPanoramicas,
+    setCargandoPanoramicas,
+  ] = useState(
+    true,
+  );
 
   const [
     cambiandoPortada,
@@ -146,36 +196,68 @@ export function ProjectDetailPage({
   >(null);
 
   const [
+    errorPanoramicas,
+    setErrorPanoramicas,
+  ] = useState<
+    string | null
+  >(null);
+
+  const [
     mostrandoColaboradores,
     setMostrandoColaboradores,
-  ] = useState(false);
+  ] = useState(
+    false,
+  );
 
   const [
     mostrandoMenuSubida,
     setMostrandoMenuSubida,
-  ] = useState(false);
+  ] = useState(
+    false,
+  );
 
   const [
     archivoFotografia,
     setArchivoFotografia,
-  ] = useState<File | null>(
-    null,
-  );
+  ] = useState<
+    File | null
+  >(null);
+
+  const [
+    archivoPanoramica,
+    setArchivoPanoramica,
+  ] = useState<
+    File | null
+  >(null);
+
+  const [
+    panoramicaAbierta,
+    setPanoramicaAbierta,
+  ] = useState<
+    PanoramicaProyecto | null
+  >(null);
 
   const [
     seccionActiva,
     setSeccionActiva,
-  ] = useState<SeccionProyecto>(
-    'resumen',
-  );
+  ] =
+    useState<SeccionProyecto>(
+      'resumen',
+    );
 
   const inputFotografiaRef =
     useRef<HTMLInputElement | null>(
       null,
     );
 
+  const inputPanoramicaRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
+
   useEffect(() => {
-    let activa = true;
+    let activa =
+      true;
 
     async function cargarProyecto() {
       setCargando(
@@ -192,7 +274,9 @@ export function ProjectDetailPage({
             idProyecto,
           );
 
-        if (!activa) {
+        if (
+          !activa
+        ) {
           return;
         }
 
@@ -202,7 +286,9 @@ export function ProjectDetailPage({
       } catch (
         errorObtenido
       ) {
-        if (!activa) {
+        if (
+          !activa
+        ) {
           return;
         }
 
@@ -219,7 +305,9 @@ export function ProjectDetailPage({
           );
         }
       } finally {
-        if (activa) {
+        if (
+          activa
+        ) {
           setCargando(
             false,
           );
@@ -230,64 +318,170 @@ export function ProjectDetailPage({
     void cargarProyecto();
 
     return () => {
-      activa = false;
+      activa =
+        false;
     };
   }, [
     idProyecto,
   ]);
 
-  async function cargarFotografias() {
-    setCargandoFotografias(
-      true,
-    );
+  useEffect(() => {
+    let activa =
+      true;
 
-    setErrorFotografias(
-      null,
-    );
-
-    try {
-      const respuesta =
-        await listarFotografiasProyecto(
-          idProyecto,
-          {
-            pagina: 1,
-            limite: 50,
-          },
-        );
-
-      setFotografias(
-        respuesta.fotografias,
-      );
-    } catch (
-      errorObtenido
-    ) {
-      if (
-        errorObtenido instanceof
-        ApiError
-      ) {
-        setErrorFotografias(
-          errorObtenido.message,
-        );
-      } else {
-        setErrorFotografias(
-          'No fue posible cargar las fotografías.',
-        );
-      }
-    } finally {
+    async function cargarFotografias() {
       setCargandoFotografias(
-        false,
+        true,
       );
+
+      setErrorFotografias(
+        null,
+      );
+
+      try {
+        const respuesta =
+          await listarFotografiasProyecto(
+            idProyecto,
+            {
+              pagina:
+                1,
+
+              limite:
+                50,
+            },
+          );
+
+        if (
+          !activa
+        ) {
+          return;
+        }
+
+        setFotografias(
+          respuesta.fotografias,
+        );
+      } catch (
+        errorObtenido
+      ) {
+        if (
+          !activa
+        ) {
+          return;
+        }
+
+        if (
+          errorObtenido instanceof
+          ApiError
+        ) {
+          setErrorFotografias(
+            errorObtenido.message,
+          );
+        } else {
+          setErrorFotografias(
+            'No fue posible cargar las fotografías.',
+          );
+        }
+      } finally {
+        if (
+          activa
+        ) {
+          setCargandoFotografias(
+            false,
+          );
+        }
+      }
     }
-  }
+
+    void cargarFotografias();
+
+    return () => {
+      activa =
+        false;
+    };
+  }, [
+    idProyecto,
+  ]);
 
   useEffect(() => {
-    void cargarFotografias();
+    let activa =
+      true;
+
+    async function cargarPanoramicas() {
+      setCargandoPanoramicas(
+        true,
+      );
+
+      setErrorPanoramicas(
+        null,
+      );
+
+      try {
+        const respuesta =
+          await listarPanoramicasProyecto(
+            idProyecto,
+            {
+              pagina:
+                1,
+
+              limite:
+                20,
+            },
+          );
+
+        if (
+          !activa
+        ) {
+          return;
+        }
+
+        setPanoramicas(
+          respuesta.panoramicas,
+        );
+      } catch (
+        errorObtenido
+      ) {
+        if (
+          !activa
+        ) {
+          return;
+        }
+
+        if (
+          errorObtenido instanceof
+          ApiError
+        ) {
+          setErrorPanoramicas(
+            errorObtenido.message,
+          );
+        } else {
+          setErrorPanoramicas(
+            'No fue posible cargar las panorámicas 360°.',
+          );
+        }
+      } finally {
+        if (
+          activa
+        ) {
+          setCargandoPanoramicas(
+            false,
+          );
+        }
+      }
+    }
+
+    void cargarPanoramicas();
+
+    return () => {
+      activa =
+        false;
+    };
   }, [
     idProyecto,
   ]);
 
   function seleccionarArchivoFotografia(
-    archivo: File,
+    archivo:
+      File,
   ) {
     setErrorFotografias(
       null,
@@ -298,12 +492,27 @@ export function ProjectDetailPage({
     );
   }
 
+  function seleccionarArchivoPanoramica(
+    archivo:
+      File,
+  ) {
+    setErrorPanoramicas(
+      null,
+    );
+
+    setArchivoPanoramica(
+      archivo,
+    );
+  }
+
   function fotografiaSubida(
     nuevaFotografia:
       FotografiaProyecto,
   ) {
     setFotografias(
-      (actuales) => [
+      (
+        actuales,
+      ) => [
         nuevaFotografia,
         ...actuales,
       ],
@@ -322,8 +531,40 @@ export function ProjectDetailPage({
     );
   }
 
+  function panoramicaSubida(
+    nuevaPanoramica:
+      PanoramicaProyecto,
+  ) {
+    setPanoramicas(
+      (
+        actuales,
+      ) => [
+        nuevaPanoramica,
+        ...actuales,
+      ],
+    );
+
+    setArchivoPanoramica(
+      null,
+    );
+
+    setErrorPanoramicas(
+      null,
+    );
+
+    setSeccionActiva(
+      '360',
+    );
+  }
+
   function cerrarModalFotografia() {
     setArchivoFotografia(
+      null,
+    );
+  }
+
+  function cerrarModalPanoramica() {
+    setArchivoPanoramica(
       null,
     );
   }
@@ -355,9 +596,13 @@ export function ProjectDetailPage({
         );
 
       setFotografias(
-        (actuales) =>
+        (
+          actuales,
+        ) =>
           actuales.map(
-            (actual) => ({
+            (
+              actual,
+            ) => ({
               ...actual,
 
               es_portada:
@@ -388,7 +633,9 @@ export function ProjectDetailPage({
     }
   }
 
-  if (cargando) {
+  if (
+    cargando
+  ) {
     return (
       <section
         className={
@@ -442,12 +689,13 @@ export function ProjectDetailPage({
           }
         >
           <strong>
-            No pudimos cargar el
-            proyecto
+            No pudimos cargar el proyecto
           </strong>
 
           <span>
-            {error}
+            {
+              error
+            }
           </span>
         </div>
       </section>
@@ -460,7 +708,9 @@ export function ProjectDetailPage({
 
   const portada =
     fotografias.find(
-      (fotografia) =>
+      (
+        fotografia,
+      ) =>
         fotografia.es_portada,
     ) ?? null;
 
@@ -497,7 +747,9 @@ export function ProjectDetailPage({
           </span>
 
           <strong>
-            {proyecto.nombre}
+            {
+              proyecto.nombre
+            }
           </strong>
         </nav>
 
@@ -665,9 +917,7 @@ export function ProjectDetailPage({
                 </strong>
 
                 <span>
-                  Sube una fotografía
-                  y selecciónala como
-                  portada.
+                  Sube una fotografía y selecciónala como portada.
                 </span>
               </div>
             )}
@@ -690,7 +940,9 @@ export function ProjectDetailPage({
                 type="button"
                 onClick={() => {
                   setMostrandoMenuSubida(
-                    (actual) =>
+                    (
+                      actual,
+                    ) =>
                       !actual,
                   );
                 }}
@@ -747,8 +999,7 @@ export function ProjectDetailPage({
                     </span>
 
                     <small>
-                      JPG, PNG o formato
-                      compatible
+                      Imagen del proyecto
                     </small>
                   </button>
 
@@ -767,14 +1018,20 @@ export function ProjectDetailPage({
 
                   <button
                     type="button"
-                    disabled
+                    onClick={() => {
+                      setMostrandoMenuSubida(
+                        false,
+                      );
+
+                      inputPanoramicaRef.current?.click();
+                    }}
                   >
                     <span>
                       Recorrido 360°
                     </span>
 
                     <small>
-                      Próximamente
+                      Imagen panorámica equirectangular
                     </small>
                   </button>
                 </div>
@@ -793,11 +1050,40 @@ export function ProjectDetailPage({
                   event,
                 ) => {
                   const archivo =
-                    event.target
-                      .files?.[0];
+                    event.target.files?.[0];
 
-                  if (archivo) {
+                  if (
+                    archivo
+                  ) {
                     seleccionarArchivoFotografia(
+                      archivo,
+                    );
+                  }
+
+                  event.currentTarget.value =
+                    '';
+                }}
+              />
+
+              <input
+                ref={
+                  inputPanoramicaRef
+                }
+                className={
+                  styles.hiddenInput
+                }
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(
+                  event,
+                ) => {
+                  const archivo =
+                    event.target.files?.[0];
+
+                  if (
+                    archivo
+                  ) {
+                    seleccionarArchivoPanoramica(
                       archivo,
                     );
                   }
@@ -926,7 +1212,9 @@ export function ProjectDetailPage({
                   );
                 }}
               >
-                {etiqueta}
+                {
+                  etiqueta
+                }
               </button>
             ),
           )}
@@ -941,6 +1229,19 @@ export function ProjectDetailPage({
           >
             {
               errorFotografias
+            }
+          </div>
+        )}
+
+        {errorPanoramicas && (
+          <div
+            className={
+              styles.inlineError
+            }
+            role="alert"
+          >
+            {
+              errorPanoramicas
             }
           </div>
         )}
@@ -964,14 +1265,11 @@ export function ProjectDetailPage({
               >
                 <div>
                   <h2>
-                    Fotografías
-                    recientes
+                    Fotografías recientes
                   </h2>
 
                   <p>
-                    Últimos registros
-                    visuales del
-                    proyecto.
+                    Últimos registros visuales del proyecto.
                   </p>
                 </div>
 
@@ -993,8 +1291,7 @@ export function ProjectDetailPage({
                     styles.emptySection
                   }
                 >
-                  Cargando
-                  fotografías...
+                  Cargando fotografías...
                 </div>
               ) : fotografiasRecientes.length ===
                 0 ? (
@@ -1003,9 +1300,7 @@ export function ProjectDetailPage({
                     styles.emptySection
                   }
                 >
-                  Todavía no hay
-                  fotografías en este
-                  proyecto.
+                  Todavía no hay fotografías en este proyecto.
                 </div>
               ) : (
                 <div
@@ -1070,8 +1365,7 @@ export function ProjectDetailPage({
                   </h2>
 
                   <p>
-                    Datos generales
-                    del proyecto.
+                    Datos generales del proyecto.
                   </p>
                 </div>
               </div>
@@ -1139,8 +1433,7 @@ export function ProjectDetailPage({
                 </h2>
 
                 <p>
-                  Evidencia visual
-                  asociada al proyecto.
+                  Evidencia visual asociada al proyecto.
                 </p>
               </div>
 
@@ -1160,8 +1453,7 @@ export function ProjectDetailPage({
                   styles.emptySection
                 }
               >
-                Cargando
-                fotografías...
+                Cargando fotografías...
               </div>
             ) : fotografias.length ===
               0 ? (
@@ -1170,8 +1462,7 @@ export function ProjectDetailPage({
                   styles.emptySection
                 }
               >
-                No hay fotografías
-                todavía.
+                No hay fotografías todavía.
               </div>
             ) : (
               <div
@@ -1264,8 +1555,7 @@ export function ProjectDetailPage({
             </h2>
 
             <p>
-              Aquí conectaremos los
-              planos del proyecto.
+              Aquí conectaremos los planos del proyecto.
             </p>
           </section>
         )}
@@ -1274,17 +1564,130 @@ export function ProjectDetailPage({
           '360' && (
           <section
             className={
-              styles.emptyContent
+              styles.card
             }
           >
-            <h2>
-              Recorridos 360°
-            </h2>
+            <div
+              className={
+                styles.cardHeader
+              }
+            >
+              <div>
+                <h2>
+                  Panorámicas 360°
+                </h2>
 
-            <p>
-              Aquí mostraremos los
-              recorridos panorámicos.
-            </p>
+                <p>
+                  Recorridos visuales panorámicos del proyecto.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  inputPanoramicaRef.current?.click();
+                }}
+              >
+                Subir panorámica
+              </button>
+            </div>
+
+            {cargandoPanoramicas ? (
+              <div
+                className={
+                  styles.emptySection
+                }
+              >
+                Cargando panorámicas...
+              </div>
+            ) : panoramicas.length ===
+              0 ? (
+              <div
+                className={
+                  styles.emptySection
+                }
+              >
+                Todavía no hay panorámicas 360° en este proyecto.
+              </div>
+            ) : (
+              <div
+                className={
+                  styles.galleryGrid
+                }
+              >
+                {panoramicas.map(
+                  (
+                    panoramica,
+                  ) => (
+                    <article
+                      key={
+                        panoramica.id_panoramica
+                      }
+                      className={
+                        styles.galleryCard
+                      }
+                      role="button"
+                      tabIndex={
+                        0
+                      }
+                      aria-label={`Abrir panorámica 360° ${panoramica.titulo}`}
+                      onClick={() => {
+                        setPanoramicaAbierta(
+                          panoramica,
+                        );
+                      }}
+                      onKeyDown={(
+                        event,
+                      ) => {
+                        if (
+                          event.key ===
+                            'Enter' ||
+                          event.key ===
+                            ' '
+                        ) {
+                          event.preventDefault();
+
+                          setPanoramicaAbierta(
+                            panoramica,
+                          );
+                        }
+                      }}
+                    >
+                      <img
+                        src={
+                          panoramica.url
+                        }
+                        alt={
+                          panoramica.titulo
+                        }
+                      />
+
+                      <div
+                        className={
+                          styles.galleryInfo
+                        }
+                      >
+                        <div>
+                          <strong>
+                            {
+                              panoramica.titulo
+                            }
+                          </strong>
+
+                          <span
+                            className={
+                              styles.coverBadge
+                            }
+                          >
+                            360°
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ),
+                )}
+              </div>
+            )}
           </section>
         )}
 
@@ -1300,9 +1703,7 @@ export function ProjectDetailPage({
             </h2>
 
             <p>
-              Aquí conectaremos el
-              mapa específico del
-              proyecto.
+              Aquí conectaremos el mapa específico del proyecto.
             </p>
           </section>
         )}
@@ -1319,9 +1720,7 @@ export function ProjectDetailPage({
             </h2>
 
             <p>
-              Aquí construiremos la
-              organización documental
-              del proyecto.
+              Aquí construiremos la organización documental del proyecto.
             </p>
           </section>
         )}
@@ -1360,6 +1759,45 @@ export function ProjectDetailPage({
           onSubidaCompleta={
             fotografiaSubida
           }
+        />
+      )}
+
+      {archivoPanoramica && (
+        <UploadPanoramaModal
+          idProyecto={
+            proyecto.id_proyecto
+          }
+          archivo={
+            archivoPanoramica
+          }
+          latitudProyecto={
+            proyecto.latitud
+          }
+          longitudProyecto={
+            proyecto.longitud
+          }
+          onCerrar={
+            cerrarModalPanoramica
+          }
+          onSubidaCompleta={
+            panoramicaSubida
+          }
+        />
+      )}
+
+      {panoramicaAbierta && (
+        <PanoramaViewer
+          url={
+            panoramicaAbierta.url
+          }
+          titulo={
+            panoramicaAbierta.titulo
+          }
+          onCerrar={() => {
+            setPanoramicaAbierta(
+              null,
+            );
+          }}
         />
       )}
     </>

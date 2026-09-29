@@ -1,0 +1,1 @@
+declare module 'pannellum/build/pannellum.js';

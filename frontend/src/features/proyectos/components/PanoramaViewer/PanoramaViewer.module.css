@@ -1,0 +1,173 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1rem;
+
+  background: rgba(10, 13, 16, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+
+  width: min(1180px, 100%);
+  height: min(780px, calc(100vh - 2rem));
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+
+  background: #11161a;
+
+  box-shadow:
+    0 30px 80px
+    rgba(0, 0, 0, 0.4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1rem 1.25rem;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7ea;
+}
+
+.header > div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-width: 0;
+}
+
+.header h2 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-brand-charcoal);
+  font-size: 1rem;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex: 0 0 auto;
+
+  padding: 0.32rem 0.55rem;
+
+  border-radius: 999px;
+
+  background: var(--color-brand-orange);
+
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 auto;
+
+  border: 1px solid #dfe3e7;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #555e67;
+
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: #f3f4f5;
+
+  color: #22282d;
+}
+
+.closeButton svg {
+  width: 19px;
+  height: 19px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.viewer {
+  position: relative;
+
+  width: 100%;
+  flex: 1;
+
+  min-height: 0;
+
+  background: #0d1114;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 0.75rem 1.25rem;
+
+  background: #ffffff;
+
+  border-top: 1px solid #e5e7ea;
+
+  color: #747c85;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .overlay {
+    align-items: stretch;
+
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    height: 100%;
+
+    border: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 0.9rem 1rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+
+    padding: 0.65rem 1rem;
+  }
+}
