@@ -1,17 +1,33 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-
 import {
-  UbicacionGeograficaDto,
-} from '../../../common/dto/ubicacion-geografica.dto';
+  IsNotEmpty,
+  IsString,
+} from 'class-validator';
 
 /**
  * Metadatos enviados junto al archivo.
  *
- * El backend establece autor, proyecto, URL, clave, MIME y fecha.
- * El formato real de la imagen se comprobará a partir de sus bytes.
+ * La ubicación ya no se solicita durante la subida.
+ * Se definirá al crear una incidencia sobre el mapa.
+ *
+ * El backend establece:
+ * - autor;
+ * - proyecto;
+ * - URL;
+ * - clave de almacenamiento;
+ * - MIME;
+ * - fecha.
+ *
+ * El formato real de la imagen se comprueba
+ * a partir de sus bytes.
  */
-export class SubirPanoramicaDto extends UbicacionGeograficaDto {
-  @IsString({ message: 'El título debe ser un texto.' })
-  @IsNotEmpty({ message: 'El título es obligatorio.' })
+export class SubirPanoramicaDto {
+  @IsString({
+    message:
+      'El título debe ser un texto.',
+  })
+  @IsNotEmpty({
+    message:
+      'El título es obligatorio.',
+  })
   titulo!: string;
 }

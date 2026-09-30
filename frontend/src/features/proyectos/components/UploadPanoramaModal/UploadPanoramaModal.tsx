@@ -7,10 +7,6 @@ import {
   subirPanoramicaProyecto,
 } from '../../api/panoramicas.api';
 
-import {
-  PhotoLocationPicker,
-} from '../PhotoLocationPicker/PhotoLocationPicker';
-
 import type {
   PanoramicaProyecto,
 } from '../../types/panoramica';
@@ -26,10 +22,16 @@ interface UploadPanoramaModalProps {
 
   archivo: File;
 
-  latitudProyecto:
+  /*
+   * Se conservan temporalmente para no romper
+   * los componentes que todavía las envíen.
+   *
+   * Ya no intervienen en la subida.
+   */
+  latitudProyecto?:
     number | null;
 
-  longitudProyecto:
+  longitudProyecto?:
     number | null;
 
   onCerrar: () => void;
@@ -53,11 +55,17 @@ interface ValidacionImagen {
     string | null;
 }
 
-const ANCHO_MINIMO = 2048;
-const ALTO_MINIMO = 1024;
+const ANCHO_MINIMO =
+  2048;
 
-const PROPORCION_MINIMA = 1.98;
-const PROPORCION_MAXIMA = 2.02;
+const ALTO_MINIMO =
+  1024;
+
+const PROPORCION_MINIMA =
+  1.98;
+
+const PROPORCION_MAXIMA =
+  2.02;
 
 const TIPOS_PERMITIDOS = [
   'image/jpeg',
@@ -66,7 +74,9 @@ const TIPOS_PERMITIDOS = [
 ];
 
 const MAX_BYTES =
-  50 * 1024 * 1024;
+  50 *
+  1024 *
+  1024;
 
 function obtenerTituloInicial(
   archivo: File,
@@ -90,16 +100,19 @@ function formatearTamanoArchivo(
   bytes: number,
 ): string {
   if (
-    bytes < 1024
+    bytes <
+    1024
   ) {
     return `${bytes} B`;
   }
 
   const kilobytes =
-    bytes / 1024;
+    bytes /
+    1024;
 
   if (
-    kilobytes < 1024
+    kilobytes <
+    1024
   ) {
     return `${kilobytes.toFixed(
       1,
@@ -107,7 +120,8 @@ function formatearTamanoArchivo(
   }
 
   const megabytes =
-    kilobytes / 1024;
+    kilobytes /
+    1024;
 
   return `${megabytes.toFixed(
     1,
@@ -126,7 +140,8 @@ function validarTipoArchivo(
   }
 
   if (
-    archivo.size === 0
+    archivo.size ===
+    0
   ) {
     return 'El archivo seleccionado está vacío.';
   }
@@ -223,8 +238,10 @@ async function validarDimensionesImagen(
       !Number.isFinite(
         alto,
       ) ||
-      ancho < 1 ||
-      alto < 1
+      ancho <
+        1 ||
+      alto <
+        1
     ) {
       return {
         valida:
@@ -319,8 +336,6 @@ async function validarDimensionesImagen(
 export function UploadPanoramaModal({
   idProyecto,
   archivo,
-  latitudProyecto,
-  longitudProyecto,
   onCerrar,
   onSubidaCompleta,
 }: UploadPanoramaModalProps) {
@@ -333,20 +348,6 @@ export function UploadPanoramaModal({
         archivo,
       ),
   );
-
-  const [
-    latitud,
-    setLatitud,
-  ] = useState<
-    number | null
-  >(null);
-
-  const [
-    longitud,
-    setLongitud,
-  ] = useState<
-    number | null
-  >(null);
 
   const [
     subiendo,
@@ -367,7 +368,9 @@ export function UploadPanoramaModal({
     setError,
   ] = useState<
     string | null
-  >(null);
+  >(
+    null,
+  );
 
   const [
     validacion,
@@ -391,7 +394,9 @@ export function UploadPanoramaModal({
     setUrlPrevisualizacion,
   ] = useState<
     string | null
-  >(null);
+  >(
+    null,
+  );
 
   useEffect(() => {
     const nuevaUrl =
@@ -499,26 +504,19 @@ export function UploadPanoramaModal({
     };
   }, []);
 
-  const tieneUbicacion =
-    latitud !== null &&
-    longitud !== null;
-
   const tituloValido =
     titulo.trim().length >
     0;
 
   const puedeSubir =
     tituloValido &&
-    tieneUbicacion &&
     validacion.valida &&
     !validando &&
     !subiendo;
 
   async function subir() {
     if (
-      !puedeSubir ||
-      latitud === null ||
-      longitud === null
+      !puedeSubir
     ) {
       return;
     }
@@ -540,10 +538,6 @@ export function UploadPanoramaModal({
               titulo.trim(),
 
             archivo,
-
-            latitud,
-
-            longitud,
           },
         );
 
@@ -622,9 +616,7 @@ export function UploadPanoramaModal({
             </h2>
 
             <p>
-              Selecciona la ubicación
-              donde fue tomada la
-              imagen panorámica.
+              Agrega una panorámica 360° a la galería del proyecto.
             </p>
           </div>
 
@@ -646,6 +638,7 @@ export function UploadPanoramaModal({
               aria-hidden="true"
             >
               <path d="M6 6l12 12" />
+
               <path d="M18 6 6 18" />
             </svg>
           </button>
@@ -724,6 +717,10 @@ export function UploadPanoramaModal({
                     setTitulo(
                       event.target.value,
                     );
+
+                    setError(
+                      null,
+                    );
                   }}
                   disabled={
                     subiendo
@@ -751,8 +748,10 @@ export function UploadPanoramaModal({
                     archivo.size,
                   )}
 
-                  {validacion.ancho !== null &&
-                    validacion.alto !== null &&
+                  {validacion.ancho !==
+                    null &&
+                    validacion.alto !==
+                      null &&
                     ` · ${validacion.ancho} × ${validacion.alto}px`}
                 </small>
               </div>
@@ -763,9 +762,7 @@ export function UploadPanoramaModal({
                     styles.notice
                   }
                 >
-                  Verificando que la imagen
-                  sea compatible con el
-                  visor 360°...
+                  Verificando que la imagen sea compatible con el visor 360°...
                 </p>
               )}
 
@@ -776,10 +773,7 @@ export function UploadPanoramaModal({
                       styles.notice
                     }
                   >
-                    La imagen cumple la
-                    resolución y proporción
-                    necesarias para el visor
-                    360°.
+                    La imagen cumple la resolución y proporción necesarias para el visor 360°.
                   </p>
                 )}
 
@@ -798,56 +792,6 @@ export function UploadPanoramaModal({
                   </p>
                 )}
             </div>
-          </div>
-
-          <div
-            className={
-              styles.locationSection
-            }
-          >
-            <PhotoLocationPicker
-              latitud={
-                latitud
-              }
-              longitud={
-                longitud
-              }
-              latitudReferencia={
-                latitudProyecto
-              }
-              longitudReferencia={
-                longitudProyecto
-              }
-              disabled={
-                subiendo ||
-                !validacion.valida
-              }
-              onChange={(
-                nuevaLatitud,
-                nuevaLongitud,
-              ) => {
-                setLatitud(
-                  nuevaLatitud,
-                );
-
-                setLongitud(
-                  nuevaLongitud,
-                );
-
-                setError(
-                  null,
-                );
-              }}
-              onLimpiar={() => {
-                setLatitud(
-                  null,
-                );
-
-                setLongitud(
-                  null,
-                );
-              }}
-            />
           </div>
 
           {error && (

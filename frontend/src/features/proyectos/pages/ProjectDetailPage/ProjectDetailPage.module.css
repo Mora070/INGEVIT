@@ -1335,3 +1335,404 @@
     animation: none;
   }
 }
+
+.planCard {
+  position: relative;
+}
+
+.planActions {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 5;
+}
+
+.planMenuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  border: 1px solid #dfe3e7;
+  border-radius: 9px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  color: #555e67;
+
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, 0.08);
+}
+
+.planMenuButton:hover {
+  border-color: #cdd3d8;
+
+  background: #ffffff;
+
+  color: var(--color-brand-charcoal);
+}
+
+.planMenu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+
+  z-index: 10;
+
+  width: 190px;
+
+  overflow: hidden;
+
+  border: 1px solid #e0e4e7;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 12px 30px
+    rgba(0, 0, 0, 0.14);
+}
+
+.planMenu button {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  padding: 0.72rem 0.85rem;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #4f5861;
+
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.planMenu button:hover {
+  background: #f4f5f6;
+
+  color: var(--color-brand-charcoal);
+}
+
+.planMenuDanger {
+  color: #b42318 !important;
+}
+
+.planMenuDanger:hover {
+  background: #fff3f2 !important;
+
+  color: #951d15 !important;
+}
+
+
+.mapSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  min-width: 0;
+}
+
+.mapHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mapHeader h2 {
+  margin: 0;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.mapHeader p {
+  margin:
+    0.3rem
+    0
+    0;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.projectMap {
+  position: relative;
+
+  width: 100%;
+  height: min(
+    68vh,
+    720px
+  );
+
+  min-height: 520px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 10%);
+
+  border-radius: 12px;
+
+  background: #e7e9e6;
+}
+
+@media (max-width: 1180px) {
+  .projectMap {
+    height: 58vh;
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 700px) {
+  .projectMap {
+    height: 52vh;
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 480px) {
+  .projectMap {
+    min-height: 320px;
+  }
+}
+
+/* ======================================================
+   MENÚ DE ACCIONES EN GALERÍA
+   ====================================================== */
+
+.galleryCard {
+  position: relative;
+}
+
+.planActions {
+  position: absolute;
+
+  top: 0.65rem;
+  right: 0.65rem;
+
+  z-index: 20;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.planMenuButton {
+  width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: #34332f;
+
+  background:
+    rgb(255 255 255 / 94%);
+
+  border:
+    1px solid
+    rgb(57 59 62 / 12%);
+
+  border-radius: 9px;
+
+  box-shadow:
+    0 4px 14px
+    rgb(25 25 22 / 12%);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.planMenuButton:hover {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    #ffffff;
+
+  border-color:
+    rgb(234 117 26 / 28%);
+
+  box-shadow:
+    0 6px 18px
+    rgb(25 25 22 / 16%);
+
+  transform:
+    translateY(-1px);
+}
+
+.planMenu {
+  position: absolute;
+
+  top:
+    calc(100% + 0.45rem);
+
+  right: 0;
+
+  width: 190px;
+
+  overflow: hidden;
+
+  padding: 0.35rem;
+
+  background:
+    #ffffff;
+
+  border:
+    1px solid
+    rgb(57 59 62 / 10%);
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 16px 38px
+    rgb(25 25 22 / 16%);
+}
+
+.planMenu button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  min-height: 36px;
+
+  padding:
+    0.55rem
+    0.7rem;
+
+  color:
+    var(--color-text-strong);
+
+  background:
+    transparent;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 0.64rem;
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.planMenu button:hover:not(:disabled) {
+  color:
+    var(--color-brand-orange);
+
+  background:
+    rgb(234 117 26 / 7%);
+}
+
+.planMenu button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+.planMenu .planMenuDanger {
+  color:
+    #a63b30;
+}
+
+.planMenu .planMenuDanger:hover:not(:disabled) {
+  color:
+    #8d3027;
+
+  background:
+    rgb(166 59 48 / 8%);
+}
+
+/*
+ * Importante:
+ * permite que el menú desplegable
+ * sobresalga de la tarjeta.
+ */
+.galleryCard {
+  overflow: visible;
+}
+
+/*
+ * Conservamos el recorte visual
+ * de la imagen.
+ */
+.galleryCard > img {
+  border-radius:
+    11px
+    11px
+    0
+    0;
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 560px) {
+  .planActions {
+    top: 0.55rem;
+    right: 0.55rem;
+  }
+
+  .planMenu {
+    width: 175px;
+  }
+}

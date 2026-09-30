@@ -4,41 +4,28 @@ import {
 } from 'react';
 
 import {
-  subirFotografiaProyecto,
-} from '../../api/fotografias.api';
+  subirPlanoProyecto,
+} from '../../api/planos.api';
 
 import type {
-  FotografiaProyecto,
-} from '../../types/fotografia';
+  PlanoProyecto,
+} from '../../types/plano';
 
 import {
   ApiError,
 } from '../../../../shared/api/http';
 
-import styles from './UploadPhotoModal.module.css';
+import styles from './UploadPlanModal.module.css';
 
-interface UploadPhotoModalProps {
+interface UploadPlanModalProps {
   idProyecto: string;
 
   archivo: File;
 
-  /*
-   * Se mantienen temporalmente por compatibilidad
-   * con los componentes que todavía puedan enviarlas.
-   *
-   * Ya no se utilizan para subir la fotografía.
-   */
-  latitudProyecto?:
-    number | null;
-
-  longitudProyecto?:
-    number | null;
-
   onCerrar: () => void;
 
   onSubidaCompleta: (
-    fotografia:
-      FotografiaProyecto,
+    plano: PlanoProyecto,
   ) => void;
 }
 
@@ -56,27 +43,21 @@ function obtenerTituloInicial(
 
   return (
     limpio ||
-    'Fotografía del proyecto'
+    'Plano del proyecto'
   );
 }
 
 function formatearTamanoArchivo(
   bytes: number,
 ): string {
-  if (
-    bytes <
-    1024
-  ) {
+  if (bytes < 1024) {
     return `${bytes} B`;
   }
 
   const kilobytes =
     bytes / 1024;
 
-  if (
-    kilobytes <
-    1024
-  ) {
+  if (kilobytes < 1024) {
     return `${kilobytes.toFixed(
       1,
     )} KB`;
@@ -90,12 +71,12 @@ function formatearTamanoArchivo(
   )} MB`;
 }
 
-export function UploadPhotoModal({
+export function UploadPlanModal({
   idProyecto,
   archivo,
   onCerrar,
   onSubidaCompleta,
-}: UploadPhotoModalProps) {
+}: UploadPlanModalProps) {
   const [
     titulo,
     setTitulo,
@@ -107,54 +88,26 @@ export function UploadPhotoModal({
   );
 
   const [
+    descripcion,
+    setDescripcion,
+  ] = useState('');
+
+  const [
     subiendo,
     setSubiendo,
-  ] = useState(
-    false,
-  );
+  ] = useState(false);
 
   const [
     error,
     setError,
   ] = useState<
     string | null
-  >(
-    null,
-  );
-
-  const [
-    urlPrevisualizacion,
-    setUrlPrevisualizacion,
-  ] = useState<
-    string | null
-  >(
-    null,
-  );
+  >(null);
 
   useEffect(() => {
-    const nuevaUrl =
-      URL.createObjectURL(
-        archivo,
-      );
-
-    setUrlPrevisualizacion(
-      nuevaUrl,
-    );
-
-    return () => {
-      URL.revokeObjectURL(
-        nuevaUrl,
-      );
-    };
-  }, [
-    archivo,
-  ]);
-
-  useEffect(() => {
-    const manejarEscape = (
-      event:
-        KeyboardEvent,
-    ) => {
+    function manejarEscape(
+      event: KeyboardEvent,
+    ) {
       if (
         event.key ===
           'Escape' &&
@@ -162,7 +115,7 @@ export function UploadPhotoModal({
       ) {
         onCerrar();
       }
-    };
+    }
 
     window.addEventListener(
       'keydown',
@@ -198,14 +151,22 @@ export function UploadPhotoModal({
     titulo.trim().length >
     0;
 
+  const archivoValido =
+    archivo.type ===
+      'application/pdf' ||
+    archivo.name
+      .toLowerCase()
+      .endsWith(
+        '.pdf',
+      );
+
   const puedeSubir =
     tituloValido &&
+    archivoValido &&
     !subiendo;
 
   async function subir() {
-    if (
-      !puedeSubir
-    ) {
+    if (!puedeSubir) {
       return;
     }
 
@@ -218,19 +179,22 @@ export function UploadPhotoModal({
     );
 
     try {
-      const fotografia =
-        await subirFotografiaProyecto(
+      const plano =
+        await subirPlanoProyecto(
           idProyecto,
           {
             titulo:
               titulo.trim(),
+
+            descripcion:
+              descripcion.trim(),
 
             archivo,
           },
         );
 
       onSubidaCompleta(
-        fotografia,
+        plano,
       );
     } catch (
       errorObtenido
@@ -244,7 +208,7 @@ export function UploadPhotoModal({
         );
       } else {
         setError(
-          'No fue posible subir la fotografía.',
+          'No fue posible subir el plano PDF.',
         );
       }
     } finally {
@@ -285,7 +249,7 @@ export function UploadPhotoModal({
         }
         role="dialog"
         aria-modal="true"
-        aria-labelledby="upload-photo-title"
+        aria-labelledby="upload-plan-title"
       >
         <header
           className={
@@ -298,13 +262,15 @@ export function UploadPhotoModal({
             }
           >
             <h2
-              id="upload-photo-title"
+              id="upload-plan-title"
             >
-              Subir fotografía
+              Subir plano PDF
             </h2>
 
             <p>
-              Agrega una fotografía a la galería del proyecto.
+              Agrega el título y la
+              descripción del plano antes
+              de subirlo al proyecto.
             </p>
           </div>
 
@@ -326,7 +292,6 @@ export function UploadPhotoModal({
               aria-hidden="true"
             >
               <path d="M6 6l12 12" />
-
               <path d="M18 6 6 18" />
             </svg>
           </button>
@@ -339,119 +304,156 @@ export function UploadPhotoModal({
         >
           <div
             className={
-              styles.photoSection
+              styles.fileCard
             }
           >
             <div
               className={
-                styles.preview
+                styles.fileIcon
               }
             >
-              {urlPrevisualizacion ? (
-                <img
-                  src={
-                    urlPrevisualizacion
-                  }
-                  alt="Vista previa de la fotografía seleccionada"
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 2h8l4 4v16H6Z"
                 />
-              ) : (
-                <div
-                  className={
-                    styles.previewPlaceholder
-                  }
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="3"
-                      y="4"
-                      width="18"
-                      height="16"
-                      rx="2"
-                    />
 
-                    <circle
-                      cx="9"
-                      cy="10"
-                      r="2"
-                    />
+                <path
+                  d="M14 2v5h5"
+                />
 
-                    <path
-                      d="m21 15-5-4-7 7"
-                    />
-                  </svg>
+                <path
+                  d="M9 13h6"
+                />
 
-                  <span>
-                    Preparando vista previa...
-                  </span>
-                </div>
-              )}
+                <path
+                  d="M9 17h6"
+                />
+              </svg>
             </div>
 
             <div
               className={
-                styles.fields
+                styles.fileInfo
               }
             >
-              <div
-                className={
-                  styles.field
+              <strong>
+                {
+                  archivo.name
                 }
-              >
-                <label
-                  htmlFor="titulo-fotografia"
-                >
-                  Título de la fotografía
-                </label>
+              </strong>
 
-                <input
-                  id="titulo-fotografia"
-                  type="text"
-                  value={
-                    titulo
-                  }
-                  onChange={(
-                    event,
-                  ) => {
-                    setTitulo(
-                      event.target.value,
-                    );
-
-                    setError(
-                      null,
-                    );
-                  }}
-                  disabled={
-                    subiendo
-                  }
-                  maxLength={
-                    200
-                  }
-                  autoFocus
-                />
-              </div>
-
-              <div
-                className={
-                  styles.fileInfo
-                }
-              >
-                <span>
-                  {
-                    archivo.name
-                  }
-                </span>
-
-                <small>
-                  {formatearTamanoArchivo(
-                    archivo.size,
-                  )}
-                </small>
-              </div>
+              <span>
+                {formatearTamanoArchivo(
+                  archivo.size,
+                )}
+              </span>
             </div>
           </div>
+
+          {!archivoValido && (
+            <p
+              className={
+                styles.error
+              }
+              role="alert"
+            >
+              El archivo seleccionado no
+              parece ser un PDF válido.
+            </p>
+          )}
+
+          <div
+            className={
+              styles.fields
+            }
+          >
+            <div
+              className={
+                styles.field
+              }
+            >
+              <label
+                htmlFor="titulo-plano"
+              >
+                Título
+              </label>
+
+              <input
+                id="titulo-plano"
+                type="text"
+                value={
+                  titulo
+                }
+                onChange={(
+                  event,
+                ) => {
+                  setTitulo(
+                    event.target.value,
+                  );
+
+                  setError(
+                    null,
+                  );
+                }}
+                disabled={
+                  subiendo
+                }
+                maxLength={
+                  200
+                }
+                autoFocus
+              />
+            </div>
+
+            <div
+              className={
+                styles.field
+              }
+            >
+              <label
+                htmlFor="descripcion-plano"
+              >
+                Descripción
+              </label>
+
+              <textarea
+                id="descripcion-plano"
+                value={
+                  descripcion
+                }
+                onChange={(
+                  event,
+                ) => {
+                  setDescripcion(
+                    event.target.value,
+                  );
+
+                  setError(
+                    null,
+                  );
+                }}
+                disabled={
+                  subiendo
+                }
+                rows={
+                  5
+                }
+                placeholder="Ej. Plano estructural correspondiente al nivel 1."
+              />
+            </div>
+          </div>
+
+          <p
+            className={
+              styles.notice
+            }
+          >
+            El sistema validará el contenido
+            real del PDF antes de guardarlo.
+          </p>
 
           {error && (
             <p
@@ -499,7 +501,7 @@ export function UploadPhotoModal({
           >
             {subiendo
               ? 'Subiendo...'
-              : 'Subir fotografía'}
+              : 'Subir plano'}
           </button>
         </footer>
       </section>

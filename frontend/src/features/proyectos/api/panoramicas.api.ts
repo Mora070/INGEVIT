@@ -17,10 +17,6 @@ interface DatosSubirPanoramica {
   titulo: string;
 
   archivo: File;
-
-  latitud: number;
-
-  longitud: number;
 }
 
 /**
@@ -59,11 +55,9 @@ export function listarPanoramicasProyecto(
  *
  * El backend recibe multipart/form-data:
  * - titulo
- * - latitud
- * - longitud
  * - archivo
  *
- * No se define Content-Type manualmente.
+ * La panorámica se almacena sin ubicación.
  */
 export function subirPanoramicaProyecto(
   idProyecto: string,
@@ -76,20 +70,6 @@ export function subirPanoramicaProyecto(
   formulario.append(
     'titulo',
     datos.titulo,
-  );
-
-  formulario.append(
-    'latitud',
-    String(
-      datos.latitud,
-    ),
-  );
-
-  formulario.append(
-    'longitud',
-    String(
-      datos.longitud,
-    ),
   );
 
   formulario.append(
@@ -107,6 +87,30 @@ export function subirPanoramicaProyecto(
 
       body:
         formulario,
+    },
+  );
+}
+
+/**
+ * Elimina una panorámica 360°
+ * asociada al proyecto.
+ *
+ * El backend responde 204 cuando
+ * la eliminación se completa.
+ */
+export function eliminarPanoramicaProyecto(
+  idProyecto: string,
+  idPanoramica: string,
+): Promise<void> {
+  return http<void>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}/panoramicas/${encodeURIComponent(
+      idPanoramica,
+    )}`,
+    {
+      method:
+        'DELETE',
     },
   );
 }

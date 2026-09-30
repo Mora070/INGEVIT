@@ -24,9 +24,10 @@ export interface CrearFotografiaInput {
   /** Clave del original guardado sin modificar sus bytes. */
   originalS3Key: string;
 
-  /** Latitud WGS84 seleccionada manualmente y validada por el DTO. */
+  /** Latitud WGS84 seleccionada manualmente y validada por el DTO. 
   latitud: number;
-
-  /** Longitud WGS84 seleccionada manualmente y validada por el DTO. */
+*/
+  /** Longitud WGS84 seleccionada manualmente y validada por el DTO. 
   longitud: number;
+  */
 }

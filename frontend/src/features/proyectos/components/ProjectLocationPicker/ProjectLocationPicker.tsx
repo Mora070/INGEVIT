@@ -23,6 +23,10 @@ interface ProjectLocationPickerProps {
     longitud: number,
   ) => void;
 
+  onDireccionChange: (
+    direccion: string,
+  ) => void;
+
   onLimpiar: () => void;
 }
 
@@ -33,6 +37,14 @@ interface ResultadoGeocodificacion {
         number,
         number,
       ];
+    };
+
+    properties?: {
+      full_address?: string;
+
+      name?: string;
+
+      place_formatted?: string;
     };
   }>;
 }
@@ -51,23 +63,38 @@ export function ProjectLocationPicker({
   longitud,
   disabled = false,
   onChange,
+  onDireccionChange,
   onLimpiar,
 }: ProjectLocationPickerProps) {
   const mapContainer =
-    useRef<HTMLDivElement | null>(null);
+    useRef<HTMLDivElement | null>(
+      null,
+    );
 
   const map =
-    useRef<mapboxgl.Map | null>(null);
+    useRef<mapboxgl.Map | null>(
+      null,
+    );
 
   const marker =
-    useRef<mapboxgl.Marker | null>(null);
+    useRef<mapboxgl.Marker | null>(
+      null,
+    );
 
   const onChangeRef =
     useRef(onChange);
 
+  const onDireccionChangeRef =
+    useRef(onDireccionChange);
+
   const [
     buscando,
     setBuscando,
+  ] = useState(false);
+
+  const [
+    buscandoDireccionMapa,
+    setBuscandoDireccionMapa,
   ] = useState(false);
 
   const [
@@ -78,12 +105,23 @@ export function ProjectLocationPicker({
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     onChangeRef.current =
       onChange;
-  }, [onChange]);
+  }, [
+    onChange,
+  ]);
+
+  useEffect(() => {
+    onDireccionChangeRef.current =
+      onDireccionChange;
+  }, [
+    onDireccionChange,
+  ]);
 
   useEffect(() => {
     const accessToken =
@@ -132,12 +170,21 @@ export function ProjectLocationPicker({
       'top-right',
     );
 
+    /*
+     * Usaremos doble clic para seleccionar
+     * la ubicación del proyecto, por eso
+     * desactivamos el zoom por doble clic.
+     */
+    mapa.doubleClickZoom.disable();
+
     mapa.on(
-      'click',
+      'dblclick',
       (event) => {
         if (disabled) {
           return;
         }
+
+        event.preventDefault();
 
         const nuevaLongitud =
           event.lngLat.lng;
@@ -155,6 +202,11 @@ export function ProjectLocationPicker({
           nuevaLatitud,
           nuevaLongitud,
         );
+
+        void obtenerDireccionPorCoordenadas(
+          nuevaLatitud,
+          nuevaLongitud,
+        );
       },
     );
 
@@ -164,11 +216,13 @@ export function ProjectLocationPicker({
     return () => {
       marker.current?.remove();
 
-      marker.current = null;
+      marker.current =
+        null;
 
       mapa.remove();
 
-      map.current = null;
+      map.current =
+        null;
     };
   }, []);
 
@@ -184,7 +238,8 @@ export function ProjectLocationPicker({
       ) {
         marker.current?.remove();
 
-        marker.current = null;
+        marker.current =
+          null;
       }
 
       return;
@@ -203,19 +258,22 @@ export function ProjectLocationPicker({
   function colocarMarcador(
     nuevaLatitud: number,
     nuevaLongitud: number,
-    mapa: mapboxgl.Map,
+    mapaActual: mapboxgl.Map,
   ) {
     if (!marker.current) {
       const nuevoMarcador =
         new mapboxgl.Marker({
           color: '#ea751a',
-          draggable: !disabled,
+          draggable:
+            !disabled,
         })
           .setLngLat([
             nuevaLongitud,
             nuevaLatitud,
           ])
-          .addTo(mapa);
+          .addTo(
+            mapaActual,
+          );
 
       nuevoMarcador.on(
         'dragend',
@@ -224,6 +282,11 @@ export function ProjectLocationPicker({
             nuevoMarcador.getLngLat();
 
           onChangeRef.current(
+            posicion.lat,
+            posicion.lng,
+          );
+
+          void obtenerDireccionPorCoordenadas(
             posicion.lat,
             posicion.lng,
           );
@@ -240,6 +303,130 @@ export function ProjectLocationPicker({
       nuevaLongitud,
       nuevaLatitud,
     ]);
+  }
+
+  async function obtenerDireccionPorCoordenadas(
+    nuevaLatitud: number,
+    nuevaLongitud: number,
+  ) {
+    const accessToken =
+      import.meta.env
+        .VITE_MAPBOX_ACCESS_TOKEN;
+
+    if (!accessToken) {
+      setError(
+        'Mapbox no está configurado.',
+      );
+
+      return;
+    }
+
+    setBuscandoDireccionMapa(
+      true,
+    );
+
+    setError(
+      null,
+    );
+
+    try {
+      const parametros =
+        new URLSearchParams({
+          longitude:
+            String(
+              nuevaLongitud,
+            ),
+
+          latitude:
+            String(
+              nuevaLatitud,
+            ),
+
+          access_token:
+            accessToken,
+
+          language:
+            'es',
+
+          limit:
+            '1',
+        });
+
+      const respuesta =
+        await fetch(
+          `https://api.mapbox.com/search/geocode/v6/reverse?${parametros.toString()}`,
+          {
+            method:
+              'GET',
+
+            headers: {
+              Accept:
+                'application/json',
+            },
+          },
+        );
+
+      if (
+        !respuesta.ok
+      ) {
+        throw new Error(
+          'No fue posible obtener la dirección.',
+        );
+      }
+
+      const datos =
+        (await respuesta.json()) as ResultadoGeocodificacion;
+
+      const resultado =
+        datos.features?.[0];
+
+      if (
+        !resultado
+      ) {
+        setError(
+          'La ubicación fue seleccionada, pero no encontramos una dirección para ese punto.',
+        );
+
+        return;
+      }
+
+      const propiedades =
+        resultado.properties;
+
+      const direccionEncontrada =
+        propiedades?.full_address?.trim() ||
+        [
+          propiedades?.name,
+          propiedades?.place_formatted,
+        ]
+          .filter(
+            Boolean,
+          )
+          .join(', ')
+          .trim();
+
+      if (
+        !direccionEncontrada
+      ) {
+        setError(
+          'La ubicación fue seleccionada, pero Mapbox no devolvió una dirección para ese punto.',
+        );
+
+        return;
+      }
+
+      onDireccionChangeRef.current(
+        direccionEncontrada,
+      );
+    } catch {
+      setError(
+        'La ubicación fue seleccionada, pero no fue posible obtener la dirección.',
+      );
+    } finally {
+      setBuscandoDireccionMapa(
+        false,
+      );
+    }
   }
 
   async function buscarDireccion() {
@@ -266,24 +453,37 @@ export function ProjectLocationPicker({
       return;
     }
 
-    setBuscando(true);
-    setError(null);
+    setBuscando(
+      true,
+    );
+
+    setError(
+      null,
+    );
 
     try {
       const parametros =
         new URLSearchParams({
-          q: consulta,
+          q:
+            consulta,
+
           access_token:
             accessToken,
-          limit: '1',
-          language: 'es',
+
+          limit:
+            '1',
+
+          language:
+            'es',
         });
 
       const respuesta =
         await fetch(
           `https://api.mapbox.com/search/geocode/v6/forward?${parametros.toString()}`,
           {
-            method: 'GET',
+            method:
+              'GET',
+
             headers: {
               Accept:
                 'application/json',
@@ -291,7 +491,9 @@ export function ProjectLocationPicker({
           },
         );
 
-      if (!respuesta.ok) {
+      if (
+        !respuesta.ok
+      ) {
         throw new Error(
           'No fue posible buscar la dirección.',
         );
@@ -305,7 +507,9 @@ export function ProjectLocationPicker({
           ?.geometry
           ?.coordinates;
 
-      if (!coordenadas) {
+      if (
+        !coordenadas
+      ) {
         setError(
           'No encontramos esa dirección. Puedes seleccionar el punto manualmente en el mapa.',
         );
@@ -316,14 +520,17 @@ export function ProjectLocationPicker({
       const [
         nuevaLongitud,
         nuevaLatitud,
-      ] = coordenadas;
+      ] =
+        coordenadas;
 
-      onChange(
+      onChangeRef.current(
         nuevaLatitud,
         nuevaLongitud,
       );
 
-      if (map.current) {
+      if (
+        map.current
+      ) {
         colocarMarcador(
           nuevaLatitud,
           nuevaLongitud,
@@ -336,7 +543,8 @@ export function ProjectLocationPicker({
             nuevaLatitud,
           ],
 
-          zoom: 16,
+          zoom:
+            16,
         });
       }
     } catch {
@@ -344,12 +552,16 @@ export function ProjectLocationPicker({
         'No fue posible buscar la dirección. Inténtalo nuevamente.',
       );
     } finally {
-      setBuscando(false);
+      setBuscando(
+        false,
+      );
     }
   }
 
   function usarUbicacionActual() {
-    if (!navigator.geolocation) {
+    if (
+      !navigator.geolocation
+    ) {
       setError(
         'Tu navegador no permite obtener la ubicación actual.',
       );
@@ -357,23 +569,34 @@ export function ProjectLocationPicker({
       return;
     }
 
-    setObteniendoUbicacion(true);
-    setError(null);
+    setObteniendoUbicacion(
+      true,
+    );
+
+    setError(
+      null,
+    );
 
     navigator.geolocation.getCurrentPosition(
-      (posicion) => {
+      (
+        posicion,
+      ) => {
         const nuevaLatitud =
-          posicion.coords.latitude;
+          posicion.coords
+            .latitude;
 
         const nuevaLongitud =
-          posicion.coords.longitude;
+          posicion.coords
+            .longitude;
 
-        onChange(
+        onChangeRef.current(
           nuevaLatitud,
           nuevaLongitud,
         );
 
-        if (map.current) {
+        if (
+          map.current
+        ) {
           colocarMarcador(
             nuevaLatitud,
             nuevaLongitud,
@@ -386,14 +609,24 @@ export function ProjectLocationPicker({
               nuevaLatitud,
             ],
 
-            zoom: 16,
+            zoom:
+              16,
           });
         }
 
-        setObteniendoUbicacion(false);
+        void obtenerDireccionPorCoordenadas(
+          nuevaLatitud,
+          nuevaLongitud,
+        );
+
+        setObteniendoUbicacion(
+          false,
+        );
       },
 
-      (errorGeolocalizacion) => {
+      (
+        errorGeolocalizacion,
+      ) => {
         if (
           errorGeolocalizacion.code ===
           errorGeolocalizacion.PERMISSION_DENIED
@@ -407,13 +640,20 @@ export function ProjectLocationPicker({
           );
         }
 
-        setObteniendoUbicacion(false);
+        setObteniendoUbicacion(
+          false,
+        );
       },
 
       {
-        enableHighAccuracy: true,
-        timeout: 10_000,
-        maximumAge: 30_000,
+        enableHighAccuracy:
+          true,
+
+        timeout:
+          10_000,
+
+        maximumAge:
+          30_000,
       },
     );
   }
@@ -421,17 +661,21 @@ export function ProjectLocationPicker({
   function limpiarUbicacion() {
     marker.current?.remove();
 
-    marker.current = null;
+    marker.current =
+      null;
 
     onLimpiar();
 
-    setError(null);
+    setError(
+      null,
+    );
 
     map.current?.flyTo({
       center:
         CENTRO_INICIAL,
 
-      zoom: 5,
+      zoom:
+        5,
     });
   }
 
@@ -446,8 +690,16 @@ export function ProjectLocationPicker({
     longitud !== null;
 
   return (
-    <div className={styles.picker}>
-      <div className={styles.actions}>
+    <div
+      className={
+        styles.picker
+      }
+    >
+      <div
+        className={
+          styles.actions
+        }
+      >
         <button
           className={
             styles.searchButton
@@ -459,6 +711,7 @@ export function ProjectLocationPicker({
           disabled={
             disabled ||
             buscando ||
+            buscandoDireccionMapa ||
             !direccion.trim()
           }
         >
@@ -492,7 +745,8 @@ export function ProjectLocationPicker({
           }
           disabled={
             disabled ||
-            obteniendoUbicacion
+            obteniendoUbicacion ||
+            buscandoDireccionMapa
           }
         >
           <svg
@@ -525,7 +779,11 @@ export function ProjectLocationPicker({
         </button>
       </div>
 
-      <div className={styles.mapWrapper}>
+      <div
+        className={
+          styles.mapWrapper
+        }
+      >
         {!tokenConfigurado && (
           <div
             className={
@@ -538,8 +796,12 @@ export function ProjectLocationPicker({
         )}
 
         <div
-          ref={mapContainer}
-          className={styles.map}
+          ref={
+            mapContainer
+          }
+          className={
+            styles.map
+          }
           aria-label="Seleccionar ubicación del proyecto"
         />
 
@@ -550,10 +812,20 @@ export function ProjectLocationPicker({
                 styles.mapHint
               }
             >
-              Haz clic en el mapa para
+              Haz doble clic en el mapa para
               seleccionar la ubicación.
             </div>
           )}
+
+        {buscandoDireccionMapa && (
+          <div
+            className={
+              styles.mapHint
+            }
+          >
+            Obteniendo dirección...
+          </div>
+        )}
       </div>
 
       {tieneUbicacion && (
@@ -568,7 +840,9 @@ export function ProjectLocationPicker({
             </span>
 
             <strong>
-              {latitud.toFixed(6)}
+              {latitud.toFixed(
+                6,
+              )}
             </strong>
           </div>
 
@@ -578,7 +852,9 @@ export function ProjectLocationPicker({
             </span>
 
             <strong>
-              {longitud.toFixed(6)}
+              {longitud.toFixed(
+                6,
+              )}
             </strong>
           </div>
 
@@ -590,7 +866,9 @@ export function ProjectLocationPicker({
             onClick={
               limpiarUbicacion
             }
-            disabled={disabled}
+            disabled={
+              disabled
+            }
           >
             Quitar ubicación
           </button>
@@ -599,21 +877,27 @@ export function ProjectLocationPicker({
 
       {error && (
         <p
-          className={styles.error}
+          className={
+            styles.error
+          }
           role="alert"
         >
           {error}
         </p>
       )}
 
-      <p className={styles.help}>
+      <p
+        className={
+          styles.help
+        }
+      >
         Puedes buscar la dirección,
-        seleccionar un punto directamente
-        en el mapa o usar la ubicación
+        hacer doble clic sobre un punto
+        del mapa o usar la ubicación
         actual de tu dispositivo. El
         marcador también se puede
-        arrastrar para ajustar el punto
-        exacto.
+        arrastrar y la dirección se
+        actualizará automáticamente.
       </p>
     </div>
   );

@@ -14,10 +14,8 @@ interface OpcionesListadoFotografias {
 
 interface DatosSubirFotografia {
   titulo: string;
-  archivo: File;
 
-  latitud: number;
-  longitud: number;
+  archivo: File;
 }
 
 /**
@@ -36,8 +34,11 @@ export function listarFotografiasProyecto(
 
   const parametros =
     new URLSearchParams({
-      pagina: String(pagina),
-      limite: String(limite),
+      pagina:
+        String(pagina),
+
+      limite:
+        String(limite),
     });
 
   return http<FotografiasPaginadas>(
@@ -53,15 +54,15 @@ export function listarFotografiasProyecto(
  * El backend recibe multipart/form-data:
  * - titulo
  * - archivo
- * - latitud
- * - longitud
  *
- * No se establece Content-Type manualmente.
- * El navegador genera el boundary.
+ * La fotografía se almacena sin ubicación.
+ * La ubicación pertenece a la incidencia
+ * creada posteriormente sobre el mapa.
  */
 export function subirFotografiaProyecto(
   idProyecto: string,
-  datos: DatosSubirFotografia,
+  datos:
+    DatosSubirFotografia,
 ): Promise<FotografiaProyecto> {
   const formulario =
     new FormData();
@@ -69,16 +70,6 @@ export function subirFotografiaProyecto(
   formulario.append(
     'titulo',
     datos.titulo,
-  );
-
-  formulario.append(
-    'latitud',
-    String(datos.latitud),
-  );
-
-  formulario.append(
-    'longitud',
-    String(datos.longitud),
   );
 
   formulario.append(
@@ -91,8 +82,11 @@ export function subirFotografiaProyecto(
       idProyecto,
     )}/fotografias`,
     {
-      method: 'POST',
-      body: formulario,
+      method:
+        'POST',
+
+      body:
+        formulario,
     },
   );
 }
@@ -112,7 +106,31 @@ export function establecerPortadaProyecto(
       idFotografia,
     )}/portada`,
     {
-      method: 'PATCH',
+      method:
+        'PATCH',
+    },
+  );
+}
+
+/**
+ * Elimina una fotografía del proyecto.
+ *
+ * El backend responde 204 cuando
+ * la eliminación se completa.
+ */
+export function eliminarFotografiaProyecto(
+  idProyecto: string,
+  idFotografia: string,
+): Promise<void> {
+  return http<void>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}/fotografias/${encodeURIComponent(
+      idFotografia,
+    )}`,
+    {
+      method:
+        'DELETE',
     },
   );
 }

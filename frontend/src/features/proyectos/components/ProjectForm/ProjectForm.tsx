@@ -3,13 +3,17 @@ import {
   useState,
 } from 'react';
 
-import { ApiError } from '../../../../shared/api/http';
+import {
+  ApiError,
+} from '../../../../shared/api/http';
 
 import {
   crearProyecto,
 } from '../../api/proyectos.api';
 
-import { ProjectLocationPicker } from '../ProjectLocationPicker/ProjectLocationPicker';
+import {
+  ProjectLocationPicker,
+} from '../ProjectLocationPicker/ProjectLocationPicker';
 
 import type {
   EstadoProyecto,
@@ -19,39 +23,71 @@ import type {
 import styles from './ProjectForm.module.css';
 
 interface ProjectFormProps {
-  onCreado: (proyecto: Proyecto) => void;
+  onCreado: (
+    proyecto: Proyecto,
+  ) => void;
+
   onCancelar: () => void;
 }
 
 interface FormularioProyecto {
-  nombre: string;
-  descripcion: string;
-  direccion: string;
-  contratante: string;
+  nombre:
+    string;
 
-  fechaInicio: string;
-  fechaFinalizacion: string;
+  descripcion:
+    string;
 
-  estadoProyecto: EstadoProyecto;
+  direccion:
+    string;
 
-  latitud: number | null;
-  longitud: number | null;
+  contratante:
+    string;
+
+  fechaInicio:
+    string;
+
+  fechaFinalizacion:
+    string;
+
+  estadoProyecto:
+    EstadoProyecto;
+
+  latitud:
+    number | null;
+
+  longitud:
+    number | null;
 }
 
-const FORMULARIO_INICIAL: FormularioProyecto = {
-  nombre: '',
-  descripcion: '',
-  direccion: '',
-  contratante: '',
+const FORMULARIO_INICIAL:
+  FormularioProyecto = {
+    nombre:
+      '',
 
-  fechaInicio: '',
-  fechaFinalizacion: '',
+    descripcion:
+      '',
 
-  estadoProyecto: 'ACTIVA',
+    direccion:
+      '',
 
-  latitud: null,
-  longitud: null,
-};
+    contratante:
+      '',
+
+    fechaInicio:
+      '',
+
+    fechaFinalizacion:
+      '',
+
+    estadoProyecto:
+      'ACTIVA',
+
+    latitud:
+      null,
+
+    longitud:
+      null,
+  };
 
 export function ProjectForm({
   onCreado,
@@ -60,76 +96,139 @@ export function ProjectForm({
   const [
     formulario,
     setFormulario,
-  ] = useState<FormularioProyecto>(
-    FORMULARIO_INICIAL,
-  );
+  ] =
+    useState<FormularioProyecto>(
+      FORMULARIO_INICIAL,
+    );
 
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<
+    string | null
+  >(null);
 
   const [
     guardando,
     setGuardando,
-  ] = useState(false);
+  ] = useState(
+    false,
+  );
 
   const envioActivo =
-    useRef(false);
+    useRef(
+      false,
+    );
 
   function actualizarCampo<
     Campo extends keyof FormularioProyecto,
   >(
     campo: Campo,
-    valor: FormularioProyecto[Campo],
+    valor:
+      FormularioProyecto[Campo],
   ) {
-    setFormulario((actual) => ({
-      ...actual,
-      [campo]: valor,
-    }));
+    setFormulario(
+      (
+        actual,
+      ) => ({
+        ...actual,
+
+        [campo]:
+          valor,
+      }),
+    );
   }
 
   function actualizarUbicacion(
-    latitud: number,
-    longitud: number,
-  ) {
-    setFormulario((actual) => ({
-      ...actual,
-      latitud,
-      longitud,
-    }));
+    latitud:
+      number,
 
-    setError(null);
+    longitud:
+      number,
+  ) {
+    setFormulario(
+      (
+        actual,
+      ) => ({
+        ...actual,
+
+        latitud,
+
+        longitud,
+      }),
+    );
+
+    setError(
+      null,
+    );
+  }
+
+  function actualizarDireccionDesdeMapa(
+    nuevaDireccion:
+      string,
+  ) {
+    setFormulario(
+      (
+        actual,
+      ) => ({
+        ...actual,
+
+        direccion:
+          nuevaDireccion,
+      }),
+    );
+
+    setError(
+      null,
+    );
   }
 
   function limpiarUbicacion() {
-    setFormulario((actual) => ({
-      ...actual,
-      latitud: null,
-      longitud: null,
-    }));
+    setFormulario(
+      (
+        actual,
+      ) => ({
+        ...actual,
+
+        latitud:
+          null,
+
+        longitud:
+          null,
+      }),
+    );
   }
 
   function validarFormulario():
     | string
     | null {
-    if (!formulario.nombre.trim()) {
+    if (
+      !formulario.nombre.trim()
+    ) {
       return 'El nombre del proyecto es obligatorio.';
     }
 
-    if (!formulario.descripcion.trim()) {
+    if (
+      !formulario.descripcion.trim()
+    ) {
       return 'La descripción es obligatoria.';
     }
 
-    if (!formulario.direccion.trim()) {
+    if (
+      !formulario.direccion.trim()
+    ) {
       return 'La dirección es obligatoria.';
     }
 
-    if (!formulario.contratante.trim()) {
+    if (
+      !formulario.contratante.trim()
+    ) {
       return 'El contratante es obligatorio.';
     }
 
-    if (!formulario.fechaInicio) {
+    if (
+      !formulario.fechaInicio
+    ) {
       return 'La fecha de inicio es obligatoria.';
     }
 
@@ -142,10 +241,12 @@ export function ProjectForm({
     }
 
     const tieneLatitud =
-      formulario.latitud !== null;
+      formulario.latitud !==
+      null;
 
     const tieneLongitud =
-      formulario.longitud !== null;
+      formulario.longitud !==
+      null;
 
     if (
       tieneLatitud !==
@@ -155,20 +256,26 @@ export function ProjectForm({
     }
 
     if (
-      formulario.latitud !== null &&
+      formulario.latitud !==
+        null &&
       (
-        formulario.latitud < -90 ||
-        formulario.latitud > 90
+        formulario.latitud <
+          -90 ||
+        formulario.latitud >
+          90
       )
     ) {
       return 'La latitud seleccionada no es válida.';
     }
 
     if (
-      formulario.longitud !== null &&
+      formulario.longitud !==
+        null &&
       (
-        formulario.longitud < -180 ||
-        formulario.longitud > 180
+        formulario.longitud <
+          -180 ||
+        formulario.longitud >
+          180
       )
     ) {
       return 'La longitud seleccionada no es válida.';
@@ -178,26 +285,40 @@ export function ProjectForm({
   }
 
   async function enviar(
-    event: React.FormEvent<HTMLFormElement>,
+    event:
+      React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    if (envioActivo.current) {
+    if (
+      envioActivo.current
+    ) {
       return;
     }
 
     const mensajeValidacion =
       validarFormulario();
 
-    if (mensajeValidacion) {
-      setError(mensajeValidacion);
+    if (
+      mensajeValidacion
+    ) {
+      setError(
+        mensajeValidacion,
+      );
+
       return;
     }
 
-    envioActivo.current = true;
+    envioActivo.current =
+      true;
 
-    setGuardando(true);
-    setError(null);
+    setGuardando(
+      true,
+    );
+
+    setError(
+      null,
+    );
 
     try {
       const proyecto =
@@ -231,10 +352,15 @@ export function ProjectForm({
             formulario.longitud,
         });
 
-      onCreado(proyecto);
-    } catch (errorCapturado) {
+      onCreado(
+        proyecto,
+      );
+    } catch (
+      errorCapturado
+    ) {
       if (
-        errorCapturado instanceof ApiError
+        errorCapturado instanceof
+        ApiError
       ) {
         setError(
           errorCapturado.message,
@@ -245,19 +371,34 @@ export function ProjectForm({
         );
       }
     } finally {
-      envioActivo.current = false;
+      envioActivo.current =
+        false;
 
-      setGuardando(false);
+      setGuardando(
+        false,
+      );
     }
   }
 
   return (
     <form
-      className={styles.form}
-      onSubmit={enviar}
+      className={
+        styles.form
+      }
+      onSubmit={
+        enviar
+      }
     >
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
+      <div
+        className={
+          styles.section
+        }
+      >
+        <div
+          className={
+            styles.sectionHeader
+          }
+        >
           <h2>
             Información general
           </h2>
@@ -268,9 +409,15 @@ export function ProjectForm({
           </p>
         </div>
 
-        <div className={styles.fields}>
+        <div
+          className={
+            styles.fields
+          }
+        >
           <label
-            className={styles.field}
+            className={
+              styles.field
+            }
           >
             <span>
               Nombre del proyecto
@@ -278,21 +425,29 @@ export function ProjectForm({
 
             <input
               type="text"
-              value={formulario.nombre}
-              onChange={(event) =>
+              value={
+                formulario.nombre
+              }
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'nombre',
                   event.target.value,
                 )
               }
               autoComplete="off"
-              disabled={guardando}
+              disabled={
+                guardando
+              }
               required
             />
           </label>
 
           <label
-            className={styles.field}
+            className={
+              styles.field
+            }
           >
             <span>
               Contratante
@@ -303,14 +458,18 @@ export function ProjectForm({
               value={
                 formulario.contratante
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'contratante',
                   event.target.value,
                 )
               }
               autoComplete="organization"
-              disabled={guardando}
+              disabled={
+                guardando
+              }
               required
             />
           </label>
@@ -326,14 +485,20 @@ export function ProjectForm({
               value={
                 formulario.descripcion
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'descripcion',
                   event.target.value,
                 )
               }
-              rows={4}
-              disabled={guardando}
+              rows={
+                4
+              }
+              disabled={
+                guardando
+              }
               required
             />
           </label>
@@ -350,22 +515,34 @@ export function ProjectForm({
               value={
                 formulario.direccion
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'direccion',
                   event.target.value,
                 )
               }
               autoComplete="street-address"
-              disabled={guardando}
+              disabled={
+                guardando
+              }
               required
             />
           </label>
         </div>
       </div>
 
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
+      <div
+        className={
+          styles.section
+        }
+      >
+        <div
+          className={
+            styles.sectionHeader
+          }
+        >
           <h2>
             Fechas y estado
           </h2>
@@ -376,9 +553,15 @@ export function ProjectForm({
           </p>
         </div>
 
-        <div className={styles.fields}>
+        <div
+          className={
+            styles.fields
+          }
+        >
           <label
-            className={styles.field}
+            className={
+              styles.field
+            }
           >
             <span>
               Fecha de inicio
@@ -389,19 +572,25 @@ export function ProjectForm({
               value={
                 formulario.fechaInicio
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'fechaInicio',
                   event.target.value,
                 )
               }
-              disabled={guardando}
+              disabled={
+                guardando
+              }
               required
             />
           </label>
 
           <label
-            className={styles.field}
+            className={
+              styles.field
+            }
           >
             <span>
               Fecha de finalización
@@ -416,13 +605,17 @@ export function ProjectForm({
                 formulario.fechaInicio ||
                 undefined
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'fechaFinalizacion',
                   event.target.value,
                 )
               }
-              disabled={guardando}
+              disabled={
+                guardando
+              }
             />
           </label>
 
@@ -437,14 +630,17 @@ export function ProjectForm({
               value={
                 formulario.estadoProyecto
               }
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 actualizarCampo(
                   'estadoProyecto',
-                  event.target
-                    .value as EstadoProyecto,
+                  event.target.value as EstadoProyecto,
                 )
               }
-              disabled={guardando}
+              disabled={
+                guardando
+              }
             >
               <option value="ACTIVA">
                 Activa
@@ -462,8 +658,16 @@ export function ProjectForm({
         </div>
       </div>
 
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
+      <div
+        className={
+          styles.section
+        }
+      >
+        <div
+          className={
+            styles.sectionHeader
+          }
+        >
           <h2>
             Ubicación
           </h2>
@@ -485,9 +689,14 @@ export function ProjectForm({
           longitud={
             formulario.longitud
           }
-          disabled={guardando}
+          disabled={
+            guardando
+          }
           onChange={
             actualizarUbicacion
+          }
+          onDireccionChange={
+            actualizarDireccionDesdeMapa
           }
           onLimpiar={
             limpiarUbicacion
@@ -497,7 +706,9 @@ export function ProjectForm({
 
       {error && (
         <div
-          className={styles.error}
+          className={
+            styles.error
+          }
           role="alert"
         >
           <svg
@@ -511,6 +722,7 @@ export function ProjectForm({
             />
 
             <path d="M12 7v6" />
+
             <path d="M12 17h.01" />
           </svg>
 
@@ -520,20 +732,34 @@ export function ProjectForm({
         </div>
       )}
 
-      <footer className={styles.actions}>
+      <footer
+        className={
+          styles.actions
+        }
+      >
         <button
-          className={styles.cancelButton}
+          className={
+            styles.cancelButton
+          }
           type="button"
-          onClick={onCancelar}
-          disabled={guardando}
+          onClick={
+            onCancelar
+          }
+          disabled={
+            guardando
+          }
         >
           Cancelar
         </button>
 
         <button
-          className={styles.submitButton}
+          className={
+            styles.submitButton
+          }
           type="submit"
-          disabled={guardando}
+          disabled={
+            guardando
+          }
         >
           {guardando
             ? 'Creando proyecto...'

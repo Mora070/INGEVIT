@@ -3,29 +3,32 @@ import {
   IsString,
 } from 'class-validator';
 
-import {
-  UbicacionGeograficaDto,
-} from '../../../common/dto/ubicacion-geografica.dto';
-
-
 /**
  * Metadatos recibidos al subir una fotografía.
  *
- * El archivo se recibirá por separado mediante multipart/form-data.
+ * El archivo se recibe por separado mediante multipart/form-data.
+ *
+ * La ubicación ya no pertenece a la fotografía.
+ * Se definirá posteriormente al crear una incidencia en el mapa.
  *
  * No admite:
- * - Identidad del usuario que sube el archivo.
- * - URL o clave de almacenamiento.
- * - Identificador o fecha de creación de la fotografía.
+ * - identidad del usuario;
+ * - proyecto;
+ * - URL;
+ * - clave de almacenamiento;
+ * - fecha;
+ * - ubicación geográfica.
  *
- * Esos valores los determina el backend.
+ * Esos valores los determina o administra el backend.
  */
-export class SubirFotografiaDto extends UbicacionGeograficaDto {
+export class SubirFotografiaDto {
   @IsString({
-    message: 'El título debe ser un texto.',
+    message:
+      'El título debe ser un texto.',
   })
   @IsNotEmpty({
-    message: 'El título es obligatorio.',
+    message:
+      'El título es obligatorio.',
   })
   titulo!: string;
 }

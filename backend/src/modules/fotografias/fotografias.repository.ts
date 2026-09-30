@@ -28,72 +28,70 @@ export class FotografiasRepository {
    *
    * Los errores de integridad se propagan al servicio.
    */
-  async crear(
-    client: PoolClient,
-    datos: CrearFotografiaInput,
-  ): Promise<FotografiaRow> {
-    const resultado =
-      await client.query<FotografiaRow>(
-        `
-          INSERT INTO obra.fotografias (
-            id_proyecto,
-            id_usuario_subida,
-            titulo,
-            url,
-            s3_key,
-            original_s3_key,
-            latitud,
-            longitud
-          )
-          VALUES (
-            $1::uuid,
-            $2::uuid,
-            $3,
-            $4,
-            $5,
-            $6,
-            $7::numeric,
-            $8::numeric
-          )
-          RETURNING
-            id_fotografia,
-            id_proyecto,
-            id_usuario_subida,
-            titulo,
-            url,
-            s3_key,
-            original_s3_key,
-            latitud,
-            longitud,
-            fecha_subida,
-            es_portada
-        `,
-        [
-          datos.idProyecto,
-          datos.idUsuarioSubida,
-          datos.titulo,
-          datos.url,
-          datos.s3Key,
-          datos.originalS3Key,
-          datos.latitud,
-          datos.longitud,
-        ],
-      );
+async crear(
+  client: PoolClient,
+  datos: CrearFotografiaInput,
+): Promise<FotografiaRow> {
+  const resultado =
+    await client.query<FotografiaRow>(
+      `
+        INSERT INTO obra.fotografias (
+          id_proyecto,
+          id_usuario_subida,
+          titulo,
+          url,
+          s3_key,
+          original_s3_key,
+          latitud,
+          longitud
+        )
+        VALUES (
+          $1::uuid,
+          $2::uuid,
+          $3,
+          $4,
+          $5,
+          $6,
+          NULL,
+          NULL
+        )
+        RETURNING
+          id_fotografia,
+          id_proyecto,
+          id_usuario_subida,
+          titulo,
+          url,
+          s3_key,
+          original_s3_key,
+          latitud,
+          longitud,
+          fecha_subida,
+          es_portada
+      `,
+      [
+        datos.idProyecto,
+        datos.idUsuarioSubida,
+        datos.titulo,
+        datos.url,
+        datos.s3Key,
+        datos.originalS3Key,
+      ],
+    );
 
-    const fotografia =
-      resultado.rows[0];
+  const fotografia =
+    resultado.rows[0];
 
-    if (
-      resultado.rowCount !== 1 ||
-      !fotografia
-    ) {
-      throw new Error(
-        'La inserción de la fotografía no devolvió el registro esperado.',
-      );
-    }
-
-    return fotografia;
+  if (
+    resultado.rowCount !== 1 ||
+    !fotografia
+  ) {
+    throw new Error(
+      'La inserción de la fotografía no devolvió el registro esperado.',
+    );
   }
+
+  return fotografia;
+}
 
   /**
    * Actualiza el título de una fotografía del proyecto indicado.
