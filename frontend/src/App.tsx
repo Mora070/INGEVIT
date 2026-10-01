@@ -44,6 +44,14 @@ import {
   HomePage,
 } from './features/workspace/pages/HomePage/HomePage';
 
+import type {
+  Notificacion,
+} from './features/workspace/api/notificaciones.api';
+
+import type {
+  NavegacionProyecto,
+} from './features/proyectos/types/navegacion-proyecto';
+
 import {
   ApiError,
 } from './shared/api/http';
@@ -80,6 +88,14 @@ export default function App() {
   ] = useState<string | null>(
     null,
   );
+
+  const [
+    navegacionProyecto,
+    setNavegacionProyecto,
+  ] =
+    useState<NavegacionProyecto | null>(
+      null,
+    );
 
   const [
     cerrando,
@@ -127,6 +143,10 @@ export default function App() {
       setProyectoSeleccionadoId(
         null,
       );
+
+      setNavegacionProyecto(
+        null,
+      );
     } catch (error) {
       if (
         error instanceof
@@ -147,6 +167,10 @@ export default function App() {
         );
 
         setProyectoSeleccionadoId(
+          null,
+        );
+
+        setNavegacionProyecto(
           null,
         );
       } else {
@@ -190,6 +214,10 @@ export default function App() {
     setProyectoSeleccionadoId(
       null,
     );
+
+    setNavegacionProyecto(
+      null,
+    );
   }
 
   function mostrarProyectos() {
@@ -200,6 +228,10 @@ export default function App() {
     setProyectoSeleccionadoId(
       null,
     );
+
+    setNavegacionProyecto(
+      null,
+    );
   }
 
   function mostrarPerfil() {
@@ -208,6 +240,10 @@ export default function App() {
     );
 
     setProyectoSeleccionadoId(
+      null,
+    );
+
+    setNavegacionProyecto(
       null,
     );
   }
@@ -222,10 +258,43 @@ export default function App() {
     setProyectoSeleccionadoId(
       idProyecto,
     );
+
+    setNavegacionProyecto(
+      null,
+    );
+  }
+
+  function abrirNotificacion(
+    notificacion:
+      Notificacion,
+  ) {
+    setSeccionWorkspace(
+      'proyectos',
+    );
+
+    setProyectoSeleccionadoId(
+      notificacion.id_proyecto,
+    );
+
+    setNavegacionProyecto({
+      clave:
+        notificacion.id_notificacion,
+
+      destino:
+        notificacion.destino,
+
+      idRecurso:
+        notificacion.id_recurso ??
+        notificacion.id_incidencia,
+    });
   }
 
   function volverAProyectos() {
     setProyectoSeleccionadoId(
+      null,
+    );
+
+    setNavegacionProyecto(
       null,
     );
 
@@ -349,6 +418,9 @@ export default function App() {
       onIrPerfil={
         mostrarPerfil
       }
+      onAbrirNotificacion={
+        abrirNotificacion
+      }
       onCerrarSesion={
         salir
       }
@@ -391,6 +463,9 @@ export default function App() {
             }
             idUsuarioActual={
               estado.usuario.id_usuario
+            }
+            navegacionInicial={
+              navegacionProyecto
             }
             onVolver={
               volverAProyectos

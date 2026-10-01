@@ -13,6 +13,17 @@ import type {
   Usuario,
 } from '../../../auth/types/usuario';
 
+import {
+  listarNotificaciones,
+  marcarNotificacionLeida,
+  marcarTodasNotificacionesLeidas,
+  obtenerConteoNoLeidas,
+} from '../../api/notificaciones.api';
+
+import type {
+  Notificacion,
+} from '../../api/notificaciones.api';
+
 import logoIngevit from '../../../../assets/branding/ingevit-logo2.png';
 
 import styles from './AppShell.module.css';
@@ -24,28 +35,49 @@ export type SeccionWorkspace =
 
 interface AppShellProps {
   usuario: Usuario;
-  seccionActiva: SeccionWorkspace;
 
-  children: ReactNode;
+  seccionActiva:
+    SeccionWorkspace;
 
-  onIrInicio: () => void;
-  onIrProyectos: () => void;
-  onIrPerfil: () => void;
-  onCerrarSesion: () => void;
+  children:
+    ReactNode;
 
-  cerrandoSesion?: boolean;
+  onIrInicio:
+    () => void;
+
+  onIrProyectos:
+    () => void;
+
+  onIrPerfil:
+    () => void;
+
+  onAbrirNotificacion: (
+    notificacion:
+      Notificacion,
+  ) => void;
+
+  onCerrarSesion:
+    () => void;
+
+  cerrandoSesion?:
+    boolean;
 }
 
 function obtenerIniciales(
   usuario: Usuario,
 ): string {
   const nombre =
-    usuario.nombre?.trim() ?? '';
+    usuario.nombre?.trim() ??
+    '';
 
   const apellidos =
-    usuario.apellidos?.trim() ?? '';
+    usuario.apellidos?.trim() ??
+    '';
 
-  if (nombre || apellidos) {
+  if (
+    nombre ||
+    apellidos
+  ) {
     const primera =
       nombre.charAt(0);
 
@@ -54,11 +86,17 @@ function obtenerIniciales(
 
     return `${primera}${segunda}`
       .toUpperCase()
-      .slice(0, 2);
+      .slice(
+        0,
+        2,
+      );
   }
 
   return usuario.correo
-    .slice(0, 2)
+    .slice(
+      0,
+      2,
+    )
     .toUpperCase();
 }
 
@@ -69,15 +107,98 @@ function obtenerNombreVisible(
     usuario.nombre?.trim(),
     usuario.apellidos?.trim(),
   ].filter(
-    (valor): valor is string =>
+    (
+      valor,
+    ): valor is string =>
       Boolean(valor),
   );
 
-  if (partes.length > 0) {
-    return partes.join(' ');
+  if (
+    partes.length >
+    0
+  ) {
+    return partes.join(
+      ' ',
+    );
   }
 
   return usuario.correo;
+}
+
+function formatearFechaNotificacion(
+  fecha: string,
+): string {
+  const fechaNotificacion =
+    new Date(
+      fecha,
+    );
+
+  const ahora =
+    new Date();
+
+  const diferenciaMs =
+    ahora.getTime() -
+    fechaNotificacion.getTime();
+
+  const minutos =
+    Math.floor(
+      diferenciaMs /
+        60_000,
+    );
+
+  if (
+    minutos <
+    1
+  ) {
+    return 'Ahora';
+  }
+
+  if (
+    minutos <
+    60
+  ) {
+    return `Hace ${minutos} min`;
+  }
+
+  const horas =
+    Math.floor(
+      minutos /
+        60,
+    );
+
+  if (
+    horas <
+    24
+  ) {
+    return `Hace ${horas} h`;
+  }
+
+  const dias =
+    Math.floor(
+      horas /
+        24,
+    );
+
+  if (
+    dias <
+    7
+  ) {
+    return `Hace ${dias} d`;
+  }
+
+  return fechaNotificacion.toLocaleDateString(
+    'es-CO',
+    {
+      day:
+        '2-digit',
+
+      month:
+        'short',
+
+      year:
+        'numeric',
+    },
+  );
 }
 
 export function AppShell({
@@ -87,26 +208,79 @@ export function AppShell({
   onIrInicio,
   onIrProyectos,
   onIrPerfil,
+  onAbrirNotificacion,
   onCerrarSesion,
   cerrandoSesion = false,
 }: AppShellProps) {
   const [
     menuUsuarioAbierto,
     setMenuUsuarioAbierto,
-  ] = useState(false);
+  ] =
+    useState(
+      false,
+    );
 
   const [
     notificacionesAbiertas,
     setNotificacionesAbiertas,
-  ] = useState(false);
+  ] =
+    useState(
+      false,
+    );
+
+  const [
+    notificaciones,
+    setNotificaciones,
+  ] =
+    useState<
+      Notificacion[]
+    >(
+      [],
+    );
+
+  const [
+    totalNoLeidas,
+    setTotalNoLeidas,
+  ] =
+    useState(
+      0,
+    );
+
+  const [
+    cargandoNotificaciones,
+    setCargandoNotificaciones,
+  ] =
+    useState(
+      false,
+    );
+
+  const [
+    errorNotificaciones,
+    setErrorNotificaciones,
+  ] =
+    useState(
+      '',
+    );
+
+  const [
+    marcandoTodas,
+    setMarcandoTodas,
+  ] =
+    useState(
+      false,
+    );
 
   const menuUsuarioRef =
-    useRef<HTMLDivElement | null>(
+    useRef<
+      HTMLDivElement | null
+    >(
       null,
     );
 
   const notificacionesRef =
-    useRef<HTMLDivElement | null>(
+    useRef<
+      HTMLDivElement | null
+    >(
       null,
     );
 
@@ -121,101 +295,369 @@ export function AppShell({
     );
 
   const avatarUrl =
-    useMemo(() => {
-      if (
-        !usuario.foto_perfil_url
-      ) {
-        return null;
+    useMemo(
+      () => {
+        if (
+          !usuario.foto_perfil_url
+        ) {
+          return null;
+        }
+
+        const separador =
+          usuario.foto_perfil_url.includes(
+            '?',
+          )
+            ? '&'
+            : '?';
+
+        return `${usuario.foto_perfil_url}${separador}v=${Date.now()}`;
+      },
+      [
+        usuario.foto_perfil_url,
+      ],
+    );
+
+  useEffect(
+    () => {
+      let activo =
+        true;
+
+      async function cargarConteo() {
+        try {
+          const respuesta =
+            await obtenerConteoNoLeidas();
+
+          if (
+            activo
+          ) {
+            setTotalNoLeidas(
+              respuesta.total,
+            );
+          }
+        } catch {
+          // No bloqueamos la aplicación.
+        }
       }
 
-      const separador =
-        usuario.foto_perfil_url.includes(
-          '?',
-        )
-          ? '&'
-          : '?';
+      void cargarConteo();
 
-      return `${usuario.foto_perfil_url}${separador}v=${Date.now()}`;
-    }, [
-      usuario.foto_perfil_url,
-    ]);
+      const eventos =
+        new EventSource(
+          '/api/notificaciones/eventos',
+        );
 
-  useEffect(() => {
-    function manejarClickExterior(
-      event: MouseEvent,
-    ) {
-      const objetivo =
-        event.target;
+      eventos.addEventListener(
+        'notificacion',
+        () => {
+          void cargarConteo();
 
-      if (
-        !(objetivo instanceof Node)
-      ) {
-        return;
+          if (
+            notificacionesAbiertas
+          ) {
+            void cargarNotificaciones();
+          }
+        },
+      );
+
+      eventos.onerror =
+        () => {
+          // EventSource se reconecta automáticamente.
+        };
+
+      function actualizarAlVolver() {
+        void cargarConteo();
       }
 
-      if (
-        menuUsuarioRef.current &&
-        !menuUsuarioRef.current.contains(
-          objetivo,
-        )
+      window.addEventListener(
+        'focus',
+        actualizarAlVolver,
+      );
+
+      return () => {
+        activo =
+          false;
+
+        eventos.close();
+
+        window.removeEventListener(
+          'focus',
+          actualizarAlVolver,
+        );
+      };
+    },
+    [
+      usuario.id_usuario,
+      notificacionesAbiertas,
+    ],
+  );
+
+  useEffect(
+    () => {
+      function manejarClickExterior(
+        event:
+          MouseEvent,
       ) {
+        const objetivo =
+          event.target;
+
+        if (
+          !(
+            objetivo instanceof
+            Node
+          )
+        ) {
+          return;
+        }
+
+        if (
+          menuUsuarioRef.current &&
+          !menuUsuarioRef.current.contains(
+            objetivo,
+          )
+        ) {
+          setMenuUsuarioAbierto(
+            false,
+          );
+        }
+
+        if (
+          notificacionesRef.current &&
+          !notificacionesRef.current.contains(
+            objetivo,
+          )
+        ) {
+          setNotificacionesAbiertas(
+            false,
+          );
+        }
+      }
+
+      function manejarEscape(
+        event:
+          KeyboardEvent,
+      ) {
+        if (
+          event.key !==
+          'Escape'
+        ) {
+          return;
+        }
+
         setMenuUsuarioAbierto(
           false,
         );
-      }
 
-      if (
-        notificacionesRef.current &&
-        !notificacionesRef.current.contains(
-          objetivo,
-        )
-      ) {
         setNotificacionesAbiertas(
           false,
         );
       }
-    }
 
-    function manejarEscape(
-      event: KeyboardEvent,
-    ) {
-      if (
-        event.key !== 'Escape'
-      ) {
-        return;
-      }
-
-      setMenuUsuarioAbierto(
-        false,
-      );
-
-      setNotificacionesAbiertas(
-        false,
-      );
-    }
-
-    document.addEventListener(
-      'mousedown',
-      manejarClickExterior,
-    );
-
-    document.addEventListener(
-      'keydown',
-      manejarEscape,
-    );
-
-    return () => {
-      document.removeEventListener(
+      document.addEventListener(
         'mousedown',
         manejarClickExterior,
       );
 
-      document.removeEventListener(
+      document.addEventListener(
         'keydown',
         manejarEscape,
       );
-    };
-  }, []);
+
+      return () => {
+        document.removeEventListener(
+          'mousedown',
+          manejarClickExterior,
+        );
+
+        document.removeEventListener(
+          'keydown',
+          manejarEscape,
+        );
+      };
+    },
+    [],
+  );
+
+  async function cargarNotificaciones() {
+    setCargandoNotificaciones(
+      true,
+    );
+
+    setErrorNotificaciones(
+      '',
+    );
+
+    try {
+      const [
+        listado,
+        conteo,
+      ] =
+        await Promise.all(
+          [
+            listarNotificaciones(
+              1,
+              20,
+            ),
+
+            obtenerConteoNoLeidas(),
+          ],
+        );
+
+      setNotificaciones(
+        listado.notificaciones,
+      );
+
+      setTotalNoLeidas(
+        conteo.total,
+      );
+    } catch {
+      setErrorNotificaciones(
+        'No fue posible cargar las notificaciones.',
+      );
+    } finally {
+      setCargandoNotificaciones(
+        false,
+      );
+    }
+  }
+
+  async function alternarNotificaciones() {
+    const abrir =
+      !notificacionesAbiertas;
+
+    setNotificacionesAbiertas(
+      abrir,
+    );
+
+    setMenuUsuarioAbierto(
+      false,
+    );
+
+    if (
+      abrir
+    ) {
+      await cargarNotificaciones();
+    }
+  }
+
+  async function abrirNotificacion(
+    notificacion:
+      Notificacion,
+  ) {
+    if (
+      !notificacion.leida
+    ) {
+      try {
+        await marcarNotificacionLeida(
+          notificacion.id_notificacion,
+        );
+
+        setNotificaciones(
+          (
+            actuales,
+          ) =>
+            actuales.map(
+              (
+                item,
+              ) =>
+                item.id_notificacion ===
+                notificacion.id_notificacion
+                  ? {
+                      ...item,
+
+                      leida:
+                        true,
+
+                      fecha_leida:
+                        new Date().toISOString(),
+                    }
+                  : item,
+            ),
+        );
+
+        setTotalNoLeidas(
+          (
+            actual,
+          ) =>
+            Math.max(
+              0,
+              actual -
+                1,
+            ),
+        );
+      } catch {
+        setErrorNotificaciones(
+          'No fue posible marcar la notificación como leída.',
+        );
+
+        return;
+      }
+    }
+
+    setNotificacionesAbiertas(
+      false,
+    );
+
+    onAbrirNotificacion(
+      notificacion,
+    );
+  }
+
+  async function marcarTodas() {
+    if (
+      marcandoTodas ||
+      totalNoLeidas ===
+        0
+    ) {
+      return;
+    }
+
+    setMarcandoTodas(
+      true,
+    );
+
+    setErrorNotificaciones(
+      '',
+    );
+
+    try {
+      await marcarTodasNotificacionesLeidas();
+
+      const ahora =
+        new Date().toISOString();
+
+      setNotificaciones(
+        (
+          actuales,
+        ) =>
+          actuales.map(
+            (
+              item,
+            ) => ({
+              ...item,
+
+              leida:
+                true,
+
+              fecha_leida:
+                item.fecha_leida ??
+                ahora,
+            }),
+          ),
+      );
+
+      setTotalNoLeidas(
+        0,
+      );
+    } catch {
+      setErrorNotificaciones(
+        'No fue posible marcar todas las notificaciones como leídas.',
+      );
+    } finally {
+      setMarcandoTodas(
+        false,
+      );
+    }
+  }
 
   function abrirPerfilDesdeMenu() {
     setMenuUsuarioAbierto(
@@ -280,22 +722,18 @@ export function AppShell({
                   : ''
               }`}
               type="button"
-              aria-label="Notificaciones"
+              aria-label={
+                totalNoLeidas >
+                0
+                  ? `Notificaciones, ${totalNoLeidas} sin leer`
+                  : 'Notificaciones'
+              }
               aria-expanded={
                 notificacionesAbiertas
               }
               aria-haspopup="dialog"
               onClick={() => {
-                setNotificacionesAbiertas(
-                  (
-                    valorActual,
-                  ) =>
-                    !valorActual,
-                );
-
-                setMenuUsuarioAbierto(
-                  false,
-                );
+                void alternarNotificaciones();
               }}
             >
               <svg
@@ -310,6 +748,20 @@ export function AppShell({
                   d="M13.73 21a2 2 0 0 1-3.46 0"
                 />
               </svg>
+
+              {totalNoLeidas >
+                0 && (
+                <span
+                  className={
+                    styles.notificationBadge
+                  }
+                >
+                  {totalNoLeidas >
+                  99
+                    ? '99+'
+                    : totalNoLeidas}
+                </span>
+              )}
             </button>
 
             {notificacionesAbiertas && (
@@ -330,44 +782,178 @@ export function AppShell({
                     </strong>
 
                     <span>
-                      Actividad reciente
+                      {totalNoLeidas >
+                      0
+                        ? `${totalNoLeidas} sin leer`
+                        : 'Actividad reciente'}
                     </span>
                   </div>
+
+                  {totalNoLeidas >
+                    0 && (
+                    <button
+                      className={
+                        styles.notificationsMarkAll
+                      }
+                      type="button"
+                      disabled={
+                        marcandoTodas
+                      }
+                      onClick={() => {
+                        void marcarTodas();
+                      }}
+                    >
+                      {marcandoTodas
+                        ? 'Marcando...'
+                        : 'Marcar todas como leídas'}
+                    </button>
+                  )}
                 </header>
 
-                <div
-                  className={
-                    styles.notificationsEmpty
-                  }
-                >
+                {cargandoNotificaciones ? (
                   <div
                     className={
-                      styles.notificationsEmptyIcon
+                      styles.notificationsEmpty
                     }
-                    aria-hidden="true"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
-                      />
-
-                      <path
-                        d="M13.73 21a2 2 0 0 1-3.46 0"
-                      />
-                    </svg>
+                    <span>
+                      Cargando notificaciones...
+                    </span>
                   </div>
+                ) : errorNotificaciones ? (
+                  <div
+                    className={
+                      styles.notificationsEmpty
+                    }
+                  >
+                    <strong>
+                      No se pudieron cargar
+                    </strong>
 
-                  <strong>
-                    Sin notificaciones
-                  </strong>
+                    <span>
+                      {
+                        errorNotificaciones
+                      }
+                    </span>
 
-                  <span>
-                    Cuando tengas novedades,
-                    aparecerán aquí.
-                  </span>
-                </div>
+                    <button
+                      className={
+                        styles.notificationsRetry
+                      }
+                      type="button"
+                      onClick={() => {
+                        void cargarNotificaciones();
+                      }}
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                ) : notificaciones.length ===
+                  0 ? (
+                  <div
+                    className={
+                      styles.notificationsEmpty
+                    }
+                  >
+                    <div
+                      className={
+                        styles.notificationsEmptyIcon
+                      }
+                      aria-hidden="true"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                        />
+
+                        <path
+                          d="M13.73 21a2 2 0 0 1-3.46 0"
+                        />
+                      </svg>
+                    </div>
+
+                    <strong>
+                      Sin notificaciones
+                    </strong>
+
+                    <span>
+                      Cuando tengas novedades, aparecerán aquí.
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      styles.notificationsList
+                    }
+                  >
+                    {notificaciones.map(
+                      (
+                        notificacion,
+                      ) => (
+                        <button
+                          key={
+                            notificacion.id_notificacion
+                          }
+                          className={`${styles.notificationItem} ${
+                            !notificacion.leida
+                              ? styles.notificationItemUnread
+                              : ''
+                          }`}
+                          type="button"
+                          onClick={() => {
+                            void abrirNotificacion(
+                              notificacion,
+                            );
+                          }}
+                        >
+                          <span
+                            className={
+                              styles.notificationItemIcon
+                            }
+                            aria-hidden="true"
+                          >
+                            !
+                          </span>
+
+                          <span
+                            className={
+                              styles.notificationItemContent
+                            }
+                          >
+                            <strong>
+                              {
+                                notificacion.titulo
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                notificacion.mensaje
+                              }
+                            </span>
+
+                            <small>
+                              {formatearFechaNotificacion(
+                                notificacion.fecha_creacion,
+                              )}
+                            </small>
+                          </span>
+
+                          {!notificacion.leida && (
+                            <span
+                              className={
+                                styles.notificationUnreadDot
+                              }
+                              aria-label="Sin leer"
+                            />
+                          )}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
               </section>
             )}
           </div>
@@ -429,7 +1015,9 @@ export function AppShell({
                 }
               >
                 <strong>
-                  {nombreVisible}
+                  {
+                    nombreVisible
+                  }
                 </strong>
 
                 <span>
@@ -494,7 +1082,9 @@ export function AppShell({
                     }
                   >
                     <strong>
-                      {nombreVisible}
+                      {
+                        nombreVisible
+                      }
                     </strong>
 
                     <span>

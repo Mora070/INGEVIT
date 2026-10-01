@@ -75,6 +75,10 @@ import type {
   Proyecto,
 } from '../../types/proyecto';
 
+import type {
+  NavegacionProyecto,
+} from '../../types/navegacion-proyecto';
+
 import {
   ApiError,
 } from '../../../../shared/api/http';
@@ -85,6 +89,8 @@ interface ProjectDetailPageProps {
   idProyecto: string;
 
   idUsuarioActual: string;
+
+  navegacionInicial?: NavegacionProyecto | null;
 
   onVolver: () => void;
 }
@@ -99,17 +105,17 @@ type SeccionProyecto =
 
 type ContenidoEliminando =
   | {
-      tipo: 'fotografia';
+    tipo: 'fotografia';
 
-      fotografia:
-        FotografiaProyecto;
-    }
+    fotografia:
+    FotografiaProyecto;
+  }
   | {
-      tipo: 'panoramica';
+    tipo: 'panoramica';
 
-      panoramica:
-        PanoramicaProyecto;
-    };
+    panoramica:
+    PanoramicaProyecto;
+  };
 
 interface ConfirmDeleteMediaModalProps {
   titulo: string;
@@ -137,7 +143,7 @@ function ConfirmDeleteMediaModal({
     ) {
       if (
         event.key ===
-          'Escape' &&
+        'Escape' &&
         !eliminando
       ) {
         onCerrar();
@@ -168,7 +174,7 @@ function ConfirmDeleteMediaModal({
       ) => {
         if (
           event.target ===
-            event.currentTarget &&
+          event.currentTarget &&
           !eliminando
         ) {
           onCerrar();
@@ -598,6 +604,7 @@ function formatearFechaHora(
 export function ProjectDetailPage({
   idProyecto,
   idUsuarioActual,
+  navegacionInicial = null,
   onVolver,
 }: ProjectDetailPageProps) {
   const [
@@ -840,6 +847,16 @@ export function ProjectDetailPage({
       'resumen',
     );
 
+  const navegacionAplicadaRef =
+    useRef<string | null>(
+      null,
+    );
+
+  const recursoAbiertoRef =
+    useRef<string | null>(
+      null,
+    );
+
   const inputFotografiaRef =
     useRef<
       HTMLInputElement | null
@@ -890,7 +907,7 @@ export function ProjectDetailPage({
           respuesta,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -967,7 +984,7 @@ export function ProjectDetailPage({
           respuesta.fotografias,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -1007,7 +1024,6 @@ export function ProjectDetailPage({
   }, [
     idProyecto,
   ]);
-
   useEffect(() => {
     let activa =
       true;
@@ -1044,7 +1060,7 @@ export function ProjectDetailPage({
           respuesta.panoramicas,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -1121,7 +1137,7 @@ export function ProjectDetailPage({
           respuesta.planos,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -1160,6 +1176,198 @@ export function ProjectDetailPage({
     };
   }, [
     idProyecto,
+  ]);
+
+  /*
+   * ====================================================
+   * NAVEGACIÓN DESDE NOTIFICACIONES
+   * ====================================================
+   */
+
+  useEffect(() => {
+    if (
+      !navegacionInicial ||
+      navegacionAplicadaRef.current ===
+      navegacionInicial.clave
+    ) {
+      return;
+    }
+
+    navegacionAplicadaRef.current =
+      navegacionInicial.clave;
+
+    setMostrandoColaboradores(
+      false,
+    );
+
+    setPlanoAbierto(
+      null,
+    );
+
+    setPanoramicaAbierta(
+      null,
+    );
+
+    switch (
+    navegacionInicial.destino
+    ) {
+      case 'FOTOGRAFIAS':
+        setSeccionActiva(
+          'fotografias',
+        );
+        break;
+
+      case 'PLANOS':
+        setSeccionActiva(
+          'planos',
+        );
+        break;
+
+      case 'PANORAMICAS':
+        setSeccionActiva(
+          '360',
+        );
+        break;
+
+      case 'MAPA':
+      case 'CAPAS':
+        setSeccionActiva(
+          'mapa',
+        );
+        break;
+
+      case 'COLABORADORES':
+        setSeccionActiva(
+          'resumen',
+        );
+
+        setMostrandoColaboradores(
+          true,
+        );
+        break;
+
+      case 'RESUMEN':
+      default:
+        setSeccionActiva(
+          'resumen',
+        );
+        break;
+    }
+  }, [
+    navegacionInicial,
+  ]);
+
+  useEffect(() => {
+    if (
+      !navegacionInicial ||
+      !navegacionInicial.idRecurso ||
+      recursoAbiertoRef.current ===
+      navegacionInicial.clave
+    ) {
+      return;
+    }
+
+    if (
+      navegacionInicial.destino ===
+      'PLANOS'
+    ) {
+      const plano =
+        planos.find(
+          (
+            item,
+          ) =>
+            item.id_plano ===
+            navegacionInicial.idRecurso,
+        );
+
+      if (
+        !plano
+      ) {
+        return;
+      }
+
+      recursoAbiertoRef.current =
+        navegacionInicial.clave;
+
+      setPlanoAbierto(
+        plano,
+      );
+
+      return;
+    }
+
+    if (
+      navegacionInicial.destino ===
+      'PANORAMICAS'
+    ) {
+      const panoramica =
+        panoramicas.find(
+          (
+            item,
+          ) =>
+            item.id_panoramica ===
+            navegacionInicial.idRecurso,
+        );
+
+      if (
+        !panoramica
+      ) {
+        return;
+      }
+
+      recursoAbiertoRef.current =
+        navegacionInicial.clave;
+
+      setPanoramicaAbierta(
+        panoramica,
+      );
+
+      return;
+    }
+
+    if (
+      navegacionInicial.destino ===
+      'FOTOGRAFIAS'
+    ) {
+      const existe =
+        fotografias.some(
+          (
+            item,
+          ) =>
+            item.id_fotografia ===
+            navegacionInicial.idRecurso,
+        );
+
+      if (
+        !existe
+      ) {
+        return;
+      }
+
+      recursoAbiertoRef.current =
+        navegacionInicial.clave;
+
+      requestAnimationFrame(
+        () => {
+          document
+            .getElementById(
+              `fotografia-${navegacionInicial.idRecurso}`,
+            )
+            ?.scrollIntoView({
+              behavior:
+                'smooth',
+
+              block:
+                'center',
+            });
+        },
+      );
+    }
+  }, [
+    navegacionInicial,
+    fotografias,
+    panoramicas,
+    planos,
   ]);
 
   function seleccionarArchivoFotografia(
@@ -1209,9 +1417,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevaFotografia,
-        ...actuales,
-      ],
+          nuevaFotografia,
+          ...actuales,
+        ],
     );
 
     setArchivoFotografia(
@@ -1235,9 +1443,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevaPanoramica,
-        ...actuales,
-      ],
+          nuevaPanoramica,
+          ...actuales,
+        ],
     );
 
     setArchivoPanoramica(
@@ -1261,9 +1469,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevoPlano,
-        ...actuales,
-      ],
+          nuevoPlano,
+          ...actuales,
+        ],
     );
 
     setArchivoPlano(
@@ -1419,7 +1627,7 @@ export function ProjectDetailPage({
           ),
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1528,7 +1736,7 @@ export function ProjectDetailPage({
           null,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           errorObtenido instanceof
@@ -1597,7 +1805,7 @@ export function ProjectDetailPage({
         null,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1709,7 +1917,6 @@ export function ProjectDetailPage({
       0,
       4,
     );
-
   return (
     <>
       <section
@@ -1765,15 +1972,14 @@ export function ProjectDetailPage({
               </h1>
 
               <span
-                className={`${styles.statusBadge} ${
-                  proyecto.estado_proyecto ===
+                className={`${styles.statusBadge} ${proyecto.estado_proyecto ===
                   'ACTIVA'
-                    ? styles.statusActive
-                    : proyecto.estado_proyecto ===
-                        'PAUSA'
-                      ? styles.statusPaused
-                      : styles.statusFinished
-                }`}
+                  ? styles.statusActive
+                  : proyecto.estado_proyecto ===
+                    'PAUSA'
+                    ? styles.statusPaused
+                    : styles.statusFinished
+                  }`}
               >
                 {formatearEstado(
                   proyecto.estado_proyecto,
@@ -2218,7 +2424,7 @@ export function ProjectDetailPage({
                 type="button"
                 className={
                   seccionActiva ===
-                  valor
+                    valor
                     ? styles.tabActive
                     : undefined
                 }
@@ -2289,11 +2495,175 @@ export function ProjectDetailPage({
 
         {seccionActiva ===
           'resumen' && (
-          <div
-            className={
-              styles.summaryGrid
-            }
-          >
+            <div
+              className={
+                styles.summaryGrid
+              }
+            >
+              <section
+                className={
+                  styles.card
+                }
+              >
+                <div
+                  className={
+                    styles.cardHeader
+                  }
+                >
+                  <div>
+                    <h2>
+                      Fotografías recientes
+                    </h2>
+
+                    <p>
+                      Últimos registros visuales del proyecto.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSeccionActiva(
+                        'fotografias',
+                      );
+                    }}
+                  >
+                    Ver todas
+                  </button>
+                </div>
+
+                {cargandoFotografias ? (
+                  <div
+                    className={
+                      styles.emptySection
+                    }
+                  >
+                    Cargando fotografías...
+                  </div>
+                ) : fotografiasRecientes.length ===
+                  0 ? (
+                  <div
+                    className={
+                      styles.emptySection
+                    }
+                  >
+                    Todavía no hay fotografías en este proyecto.
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      styles.photoGrid
+                    }
+                  >
+                    {fotografiasRecientes.map(
+                      (
+                        fotografia,
+                      ) => (
+                        <div
+                          key={
+                            fotografia.id_fotografia
+                          }
+                          className={
+                            styles.photoCard
+                          }
+                        >
+                          <img
+                            src={
+                              fotografia.url
+                            }
+                            alt={
+                              fotografia.titulo
+                            }
+                          />
+
+                          <div>
+                            <strong>
+                              {
+                                fotografia.titulo
+                              }
+                            </strong>
+
+                            {fotografia.es_portada && (
+                              <span>
+                                Portada
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+              </section>
+
+              <section
+                className={
+                  styles.card
+                }
+              >
+                <div
+                  className={
+                    styles.cardHeader
+                  }
+                >
+                  <div>
+                    <h2>
+                      Información
+                    </h2>
+
+                    <p>
+                      Datos generales del proyecto.
+                    </p>
+                  </div>
+                </div>
+
+                <dl
+                  className={
+                    styles.infoList
+                  }
+                >
+                  <div>
+                    <dt>
+                      Estado
+                    </dt>
+
+                    <dd>
+                      {formatearEstado(
+                        proyecto.estado_proyecto,
+                      )}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>
+                      Contratante
+                    </dt>
+
+                    <dd>
+                      {
+                        proyecto.contratante
+                      }
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>
+                      Dirección
+                    </dt>
+
+                    <dd>
+                      {
+                        proyecto.direccion
+                      }
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+            </div>
+          )}
+
+        {seccionActiva ===
+          'fotografias' && (
             <section
               className={
                 styles.card
@@ -2306,23 +2676,21 @@ export function ProjectDetailPage({
               >
                 <div>
                   <h2>
-                    Fotografías recientes
+                    Fotografías
                   </h2>
 
                   <p>
-                    Últimos registros visuales del proyecto.
+                    Evidencia visual asociada al proyecto.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    setSeccionActiva(
-                      'fotografias',
-                    );
+                    inputFotografiaRef.current?.click();
                   }}
                 >
-                  Ver todas
+                  Subir fotografía
                 </button>
               </div>
 
@@ -2334,33 +2702,121 @@ export function ProjectDetailPage({
                 >
                   Cargando fotografías...
                 </div>
-              ) : fotografiasRecientes.length ===
+              ) : fotografias.length ===
                 0 ? (
                 <div
                   className={
                     styles.emptySection
                   }
                 >
-                  Todavía no hay fotografías en este proyecto.
+                  No hay fotografías todavía.
                 </div>
               ) : (
                 <div
                   className={
-                    styles.photoGrid
+                    styles.galleryGrid
                   }
                 >
-                  {fotografiasRecientes.map(
+                  {fotografias.map(
                     (
                       fotografia,
                     ) => (
-                      <div
+                      <article
+                        id={`fotografia-${fotografia.id_fotografia}`}
                         key={
                           fotografia.id_fotografia
                         }
                         className={
-                          styles.photoCard
+                          styles.galleryCard
                         }
                       >
+                        <div
+                          className={
+                            styles.planActions
+                          }
+                        >
+                          <button
+                            className={
+                              styles.planMenuButton
+                            }
+                            type="button"
+                            aria-label={`Opciones de ${fotografia.titulo}`}
+                            aria-expanded={
+                              menuFotografiaAbierto ===
+                              fotografia.id_fotografia
+                            }
+                            onClick={() => {
+                              setMenuPanoramicaAbierto(
+                                null,
+                              );
+
+                              setMenuPlanoAbierto(
+                                null,
+                              );
+
+                              setMenuFotografiaAbierto(
+                                (
+                                  actual,
+                                ) =>
+                                  actual ===
+                                    fotografia.id_fotografia
+                                    ? null
+                                    : fotografia.id_fotografia,
+                              );
+                            }}
+                          >
+                            ⋮
+                          </button>
+
+                          {menuFotografiaAbierto ===
+                            fotografia.id_fotografia && (
+                              <div
+                                className={
+                                  styles.planMenu
+                                }
+                              >
+                                {esPropietario &&
+                                  !fotografia.es_portada && (
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        cambiandoPortada !==
+                                        null
+                                      }
+                                      onClick={() => {
+                                        setMenuFotografiaAbierto(
+                                          null,
+                                        );
+
+                                        void establecerPortada(
+                                          fotografia,
+                                        );
+                                      }}
+                                    >
+                                      {cambiandoPortada ===
+                                        fotografia.id_fotografia
+                                        ? 'Guardando...'
+                                        : 'Usar como portada'}
+                                    </button>
+                                  )}
+
+                                <button
+                                  className={
+                                    styles.planMenuDanger
+                                  }
+                                  type="button"
+                                  onClick={() => {
+                                    solicitarEliminarFotografia(
+                                      fotografia,
+                                    );
+                                  }}
+                                >
+                                  Eliminar fotografía
+                                </button>
+                              </div>
+                            )}
+                        </div>
+
                         <img
                           src={
                             fotografia.url
@@ -2370,26 +2826,38 @@ export function ProjectDetailPage({
                           }
                         />
 
-                        <div>
-                          <strong>
-                            {
-                              fotografia.titulo
-                            }
-                          </strong>
+                        <div
+                          className={
+                            styles.galleryInfo
+                          }
+                        >
+                          <div>
+                            <strong>
+                              {
+                                fotografia.titulo
+                              }
+                            </strong>
 
-                          {fotografia.es_portada && (
-                            <span>
-                              Portada
-                            </span>
-                          )}
+                            {fotografia.es_portada && (
+                              <span
+                                className={
+                                  styles.coverBadge
+                                }
+                              >
+                                Portada
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      </article>
                     ),
                   )}
                 </div>
               )}
             </section>
-
+          )}
+        {seccionActiva ===
+          'planos' && (
             <section
               className={
                 styles.card
@@ -2402,856 +2870,608 @@ export function ProjectDetailPage({
               >
                 <div>
                   <h2>
-                    Información
+                    Planos
                   </h2>
 
                   <p>
-                    Datos generales del proyecto.
+                    Documentos PDF asociados al proyecto.
                   </p>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    inputPlanoRef.current?.click();
+                  }}
+                >
+                  Subir plano
+                </button>
               </div>
 
-              <dl
-                className={
-                  styles.infoList
-                }
-              >
-                <div>
-                  <dt>
-                    Estado
-                  </dt>
-
-                  <dd>
-                    {formatearEstado(
-                      proyecto.estado_proyecto,
-                    )}
-                  </dd>
+              {cargandoPlanos ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Cargando planos...
                 </div>
-
-                <div>
-                  <dt>
-                    Contratante
-                  </dt>
-
-                  <dd>
-                    {
-                      proyecto.contratante
-                    }
-                  </dd>
+              ) : planos.length ===
+                0 ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Todavía no hay planos PDF en este proyecto.
                 </div>
-
-                <div>
-                  <dt>
-                    Dirección
-                  </dt>
-
-                  <dd>
-                    {
-                      proyecto.direccion
-                    }
-                  </dd>
-                </div>
-              </dl>
-            </section>
-          </div>
-        )}
-
-        {seccionActiva ===
-          'fotografias' && (
-          <section
-            className={
-              styles.card
-            }
-          >
-            <div
-              className={
-                styles.cardHeader
-              }
-            >
-              <div>
-                <h2>
-                  Fotografías
-                </h2>
-
-                <p>
-                  Evidencia visual asociada al proyecto.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  inputFotografiaRef.current?.click();
-                }}
-              >
-                Subir fotografía
-              </button>
-            </div>
-
-            {cargandoFotografias ? (
-              <div
-                className={
-                  styles.emptySection
-                }
-              >
-                Cargando fotografías...
-              </div>
-            ) : fotografias.length ===
-              0 ? (
-              <div
-                className={
-                  styles.emptySection
-                }
-              >
-                No hay fotografías todavía.
-              </div>
-            ) : (
-              <div
-                className={
-                  styles.galleryGrid
-                }
-              >
-                {fotografias.map(
-                  (
-                    fotografia,
-                  ) => (
-                    <article
-                      key={
-                        fotografia.id_fotografia
-                      }
-                      className={
-                        styles.galleryCard
-                      }
-                    >
-                      <div
-                        className={
-                          styles.planActions
+              ) : (
+                <div
+                  className={
+                    styles.galleryGrid
+                  }
+                >
+                  {planos.map(
+                    (
+                      plano,
+                    ) => (
+                      <article
+                        key={
+                          plano.id_plano
                         }
+                        className={`${styles.galleryCard} ${styles.planCard}`}
+                        role="button"
+                        tabIndex={
+                          0
+                        }
+                        aria-label={`Abrir plano ${plano.titulo}`}
+                        onClick={() => {
+                          setPlanoAbierto(
+                            plano,
+                          );
+                        }}
+                        onKeyDown={(
+                          event,
+                        ) => {
+                          if (
+                            event.key ===
+                            'Enter' ||
+                            event.key ===
+                            ' '
+                          ) {
+                            event.preventDefault();
+
+                            setPlanoAbierto(
+                              plano,
+                            );
+                          }
+                        }}
                       >
-                        <button
+                        <div
                           className={
-                            styles.planMenuButton
+                            styles.planActions
                           }
-                          type="button"
-                          aria-label={`Opciones de ${fotografia.titulo}`}
-                          aria-expanded={
-                            menuFotografiaAbierto ===
-                            fotografia.id_fotografia
-                          }
-                          onClick={() => {
-                            setMenuPanoramicaAbierto(
-                              null,
-                            );
-
-                            setMenuPlanoAbierto(
-                              null,
-                            );
-
-                            setMenuFotografiaAbierto(
-                              (
-                                actual,
-                              ) =>
-                                actual ===
-                                fotografia.id_fotografia
-                                  ? null
-                                  : fotografia.id_fotografia,
-                            );
+                          onClick={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
+                          }}
+                          onKeyDown={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
                           }}
                         >
-                          ⋮
-                        </button>
-
-                        {menuFotografiaAbierto ===
-                          fotografia.id_fotografia && (
-                          <div
+                          <button
                             className={
-                              styles.planMenu
+                              styles.planMenuButton
                             }
+                            type="button"
+                            aria-label={`Opciones de ${plano.titulo}`}
+                            aria-expanded={
+                              menuPlanoAbierto ===
+                              plano.id_plano
+                            }
+                            onClick={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+
+                              setMenuFotografiaAbierto(
+                                null,
+                              );
+
+                              setMenuPanoramicaAbierto(
+                                null,
+                              );
+
+                              setMenuPlanoAbierto(
+                                (
+                                  actual,
+                                ) =>
+                                  actual ===
+                                    plano.id_plano
+                                    ? null
+                                    : plano.id_plano,
+                              );
+                            }}
                           >
-                            {esPropietario &&
-                              !fotografia.es_portada && (
+                            ⋮
+                          </button>
+
+                          {menuPlanoAbierto ===
+                            plano.id_plano && (
+                              <div
+                                className={
+                                  styles.planMenu
+                                }
+                              >
                                 <button
                                   type="button"
-                                  disabled={
-                                    cambiandoPortada !==
-                                    null
-                                  }
-                                  onClick={() => {
-                                    setMenuFotografiaAbierto(
+                                  onClick={(
+                                    event,
+                                  ) => {
+                                    event.stopPropagation();
+
+                                    setMenuPlanoAbierto(
                                       null,
                                     );
 
-                                    void establecerPortada(
-                                      fotografia,
+                                    setPlanoAbierto(
+                                      plano,
                                     );
                                   }}
                                 >
-                                  {cambiandoPortada ===
-                                    fotografia.id_fotografia
-                                    ? 'Guardando...'
-                                    : 'Usar como portada'}
+                                  Abrir plano
                                 </button>
-                              )}
 
-                            <button
-                              className={
-                                styles.planMenuDanger
+                                <button
+                                  type="button"
+                                  onClick={(
+                                    event,
+                                  ) => {
+                                    event.stopPropagation();
+
+                                    setMenuPlanoAbierto(
+                                      null,
+                                    );
+
+                                    setPlanoEditando(
+                                      plano,
+                                    );
+                                  }}
+                                >
+                                  Editar información
+                                </button>
+
+                                <button
+                                  className={
+                                    styles.planMenuDanger
+                                  }
+                                  type="button"
+                                  onClick={(
+                                    event,
+                                  ) => {
+                                    event.stopPropagation();
+
+                                    setMenuPlanoAbierto(
+                                      null,
+                                    );
+
+                                    setPlanoEliminando(
+                                      plano,
+                                    );
+                                  }}
+                                >
+                                  Eliminar plano
+                                </button>
+                              </div>
+                            )}
+                        </div>
+
+                        <div
+                          style={{
+                            minHeight:
+                              '180px',
+
+                            display:
+                              'flex',
+
+                            alignItems:
+                              'center',
+
+                            justifyContent:
+                              'center',
+
+                            background:
+                              '#f4f5f6',
+
+                            color:
+                              'var(--color-brand-orange)',
+                          }}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            style={{
+                              width:
+                                '54px',
+
+                              height:
+                                '54px',
+
+                              fill:
+                                'none',
+
+                              stroke:
+                                'currentColor',
+
+                              strokeWidth:
+                                1.5,
+
+                              strokeLinecap:
+                                'round',
+
+                              strokeLinejoin:
+                                'round',
+                            }}
+                          >
+                            <path d="M6 2h8l4 4v16H6Z" />
+
+                            <path d="M14 2v5h5" />
+
+                            <path d="M9 13h6" />
+
+                            <path d="M9 17h6" />
+                          </svg>
+                        </div>
+
+                        <div
+                          className={
+                            styles.galleryInfo
+                          }
+                        >
+                          <div>
+                            <strong>
+                              {
+                                plano.titulo
                               }
-                              type="button"
-                              onClick={() => {
-                                solicitarEliminarFotografia(
-                                  fotografia,
-                                );
-                              }}
-                            >
-                              Eliminar fotografía
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                            </strong>
 
-                      <img
-                        src={
-                          fotografia.url
-                        }
-                        alt={
-                          fotografia.titulo
-                        }
-                      />
-
-                      <div
-                        className={
-                          styles.galleryInfo
-                        }
-                      >
-                        <div>
-                          <strong>
-                            {
-                              fotografia.titulo
-                            }
-                          </strong>
-
-                          {fotografia.es_portada && (
                             <span
                               className={
                                 styles.coverBadge
                               }
                             >
-                              Portada
+                              PDF
                             </span>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  ),
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
-        {seccionActiva ===
-          'planos' && (
-          <section
-            className={
-              styles.card
-            }
-          >
-            <div
-              className={
-                styles.cardHeader
-              }
-            >
-              <div>
-                <h2>
-                  Planos
-                </h2>
-
-                <p>
-                  Documentos PDF asociados al proyecto.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  inputPlanoRef.current?.click();
-                }}
-              >
-                Subir plano
-              </button>
-            </div>
-
-            {cargandoPlanos ? (
-              <div
-                className={
-                  styles.emptySection
-                }
-              >
-                Cargando planos...
-              </div>
-            ) : planos.length ===
-              0 ? (
-              <div
-                className={
-                  styles.emptySection
-                }
-              >
-                Todavía no hay planos PDF en este proyecto.
-              </div>
-            ) : (
-              <div
-                className={
-                  styles.galleryGrid
-                }
-              >
-                {planos.map(
-                  (
-                    plano,
-                  ) => (
-                    <article
-                      key={
-                        plano.id_plano
-                      }
-                      className={`${styles.galleryCard} ${styles.planCard}`}
-                      role="button"
-                      tabIndex={
-                        0
-                      }
-                      aria-label={`Abrir plano ${plano.titulo}`}
-                      onClick={() => {
-                        setPlanoAbierto(
-                          plano,
-                        );
-                      }}
-                      onKeyDown={(
-                        event,
-                      ) => {
-                        if (
-                          event.key ===
-                            'Enter' ||
-                          event.key ===
-                            ' '
-                        ) {
-                          event.preventDefault();
-
-                          setPlanoAbierto(
-                            plano,
-                          );
-                        }
-                      }}
-                    >
-                      <div
-                        className={
-                          styles.planActions
-                        }
-                        onClick={(
-                          event,
-                        ) => {
-                          event.stopPropagation();
-                        }}
-                        onKeyDown={(
-                          event,
-                        ) => {
-                          event.stopPropagation();
-                        }}
-                      >
-                        <button
-                          className={
-                            styles.planMenuButton
-                          }
-                          type="button"
-                          aria-label={`Opciones de ${plano.titulo}`}
-                          aria-expanded={
-                            menuPlanoAbierto ===
-                            plano.id_plano
-                          }
-                          onClick={(
-                            event,
-                          ) => {
-                            event.stopPropagation();
-
-                            setMenuFotografiaAbierto(
-                              null,
-                            );
-
-                            setMenuPanoramicaAbierto(
-                              null,
-                            );
-
-                            setMenuPlanoAbierto(
-                              (
-                                actual,
-                              ) =>
-                                actual ===
-                                plano.id_plano
-                                  ? null
-                                  : plano.id_plano,
-                            );
-                          }}
-                        >
-                          ⋮
-                        </button>
-
-                        {menuPlanoAbierto ===
-                          plano.id_plano && (
-                          <div
-                            className={
-                              styles.planMenu
-                            }
-                          >
-                            <button
-                              type="button"
-                              onClick={(
-                                event,
-                              ) => {
-                                event.stopPropagation();
-
-                                setMenuPlanoAbierto(
-                                  null,
-                                );
-
-                                setPlanoAbierto(
-                                  plano,
-                                );
-                              }}
-                            >
-                              Abrir plano
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={(
-                                event,
-                              ) => {
-                                event.stopPropagation();
-
-                                setMenuPlanoAbierto(
-                                  null,
-                                );
-
-                                setPlanoEditando(
-                                  plano,
-                                );
-                              }}
-                            >
-                              Editar información
-                            </button>
-
-                            <button
-                              className={
-                                styles.planMenuDanger
-                              }
-                              type="button"
-                              onClick={(
-                                event,
-                              ) => {
-                                event.stopPropagation();
-
-                                setMenuPlanoAbierto(
-                                  null,
-                                );
-
-                                setPlanoEliminando(
-                                  plano,
-                                );
-                              }}
-                            >
-                              Eliminar plano
-                            </button>
                           </div>
-                        )}
-                      </div>
 
-                      <div
-                        style={{
-                          minHeight:
-                            '180px',
+                          <small>
+                            {formatearFechaHora(
+                              plano.fecha_subida,
+                            )}
+                          </small>
 
-                          display:
-                            'flex',
-
-                          alignItems:
-                            'center',
-
-                          justifyContent:
-                            'center',
-
-                          background:
-                            '#f4f5f6',
-
-                          color:
-                            'var(--color-brand-orange)',
-                        }}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                          style={{
-                            width:
-                              '54px',
-
-                            height:
-                              '54px',
-
-                            fill:
-                              'none',
-
-                            stroke:
-                              'currentColor',
-
-                            strokeWidth:
-                              1.5,
-
-                            strokeLinecap:
-                              'round',
-
-                            strokeLinejoin:
-                              'round',
-                          }}
-                        >
-                          <path d="M6 2h8l4 4v16H6Z" />
-
-                          <path d="M14 2v5h5" />
-
-                          <path d="M9 13h6" />
-
-                          <path d="M9 17h6" />
-                        </svg>
-                      </div>
-
-                      <div
-                        className={
-                          styles.galleryInfo
-                        }
-                      >
-                        <div>
-                          <strong>
-                            {
-                              plano.titulo
-                            }
-                          </strong>
-
-                          <span
-                            className={
-                              styles.coverBadge
-                            }
-                          >
-                            PDF
-                          </span>
-                        </div>
-
-                        <small>
-                          {formatearFechaHora(
-                            plano.fecha_subida,
+                          {plano.descripcion && (
+                            <p>
+                              {
+                                plano.descripcion
+                              }
+                            </p>
                           )}
-                        </small>
-
-                        {plano.descripcion && (
-                          <p>
-                            {
-                              plano.descripcion
-                            }
-                          </p>
-                        )}
-                      </div>
-                    </article>
-                  ),
-                )}
-              </div>
-            )}
-          </section>
-        )}
+                        </div>
+                      </article>
+                    ),
+                  )}
+                </div>
+              )}
+            </section>
+          )}
 
         {seccionActiva ===
           '360' && (
-          <section
-            className={
-              styles.card
-            }
-          >
-            <div
+            <section
               className={
-                styles.cardHeader
+                styles.card
               }
             >
-              <div>
-                <h2>
-                  Panorámicas 360°
-                </h2>
-
-                <p>
-                  Recorridos visuales panorámicos del proyecto.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  inputPanoramicaRef.current?.click();
-                }}
-              >
-                Subir panorámica
-              </button>
-            </div>
-
-            {cargandoPanoramicas ? (
               <div
                 className={
-                  styles.emptySection
+                  styles.cardHeader
                 }
               >
-                Cargando panorámicas...
-              </div>
-            ) : panoramicas.length ===
-              0 ? (
-              <div
-                className={
-                  styles.emptySection
-                }
-              >
-                Todavía no hay panorámicas 360° en este proyecto.
-              </div>
-            ) : (
-              <div
-                className={
-                  styles.galleryGrid
-                }
-              >
-                {panoramicas.map(
-                  (
-                    panoramica,
-                  ) => (
-                    <article
-                      key={
-                        panoramica.id_panoramica
-                      }
-                      className={
-                        styles.galleryCard
-                      }
-                      role="button"
-                      tabIndex={
-                        0
-                      }
-                      aria-label={`Abrir panorámica 360° ${panoramica.titulo}`}
-                      onClick={() => {
-                        setPanoramicaAbierta(
-                          panoramica,
-                        );
-                      }}
-                      onKeyDown={(
-                        event,
-                      ) => {
-                        if (
-                          event.key ===
-                            'Enter' ||
-                          event.key ===
-                            ' '
-                        ) {
-                          event.preventDefault();
+                <div>
+                  <h2>
+                    Panorámicas 360°
+                  </h2>
 
+                  <p>
+                    Recorridos visuales panorámicos del proyecto.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    inputPanoramicaRef.current?.click();
+                  }}
+                >
+                  Subir panorámica
+                </button>
+              </div>
+
+              {cargandoPanoramicas ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Cargando panorámicas...
+                </div>
+              ) : panoramicas.length ===
+                0 ? (
+                <div
+                  className={
+                    styles.emptySection
+                  }
+                >
+                  Todavía no hay panorámicas 360° en este proyecto.
+                </div>
+              ) : (
+                <div
+                  className={
+                    styles.galleryGrid
+                  }
+                >
+                  {panoramicas.map(
+                    (
+                      panoramica,
+                    ) => (
+                      <article
+                        key={
+                          panoramica.id_panoramica
+                        }
+                        className={
+                          styles.galleryCard
+                        }
+                        role="button"
+                        tabIndex={
+                          0
+                        }
+                        aria-label={`Abrir panorámica 360° ${panoramica.titulo}`}
+                        onClick={() => {
                           setPanoramicaAbierta(
                             panoramica,
                           );
-                        }
-                      }}
-                    >
-                      <div
-                        className={
-                          styles.planActions
-                        }
-                        onClick={(
-                          event,
-                        ) => {
-                          event.stopPropagation();
                         }}
                         onKeyDown={(
                           event,
                         ) => {
-                          event.stopPropagation();
+                          if (
+                            event.key ===
+                            'Enter' ||
+                            event.key ===
+                            ' '
+                          ) {
+                            event.preventDefault();
+
+                            setPanoramicaAbierta(
+                              panoramica,
+                            );
+                          }
                         }}
                       >
-                        <button
+                        <div
                           className={
-                            styles.planMenuButton
-                          }
-                          type="button"
-                          aria-label={`Opciones de ${panoramica.titulo}`}
-                          aria-expanded={
-                            menuPanoramicaAbierto ===
-                            panoramica.id_panoramica
+                            styles.planActions
                           }
                           onClick={(
                             event,
                           ) => {
                             event.stopPropagation();
-
-                            setMenuFotografiaAbierto(
-                              null,
-                            );
-
-                            setMenuPlanoAbierto(
-                              null,
-                            );
-
-                            setMenuPanoramicaAbierto(
-                              (
-                                actual,
-                              ) =>
-                                actual ===
-                                panoramica.id_panoramica
-                                  ? null
-                                  : panoramica.id_panoramica,
-                            );
+                          }}
+                          onKeyDown={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
                           }}
                         >
-                          ⋮
-                        </button>
-
-                        {menuPanoramicaAbierto ===
-                          panoramica.id_panoramica && (
-                          <div
+                          <button
                             className={
-                              styles.planMenu
+                              styles.planMenuButton
                             }
+                            type="button"
+                            aria-label={`Opciones de ${panoramica.titulo}`}
+                            aria-expanded={
+                              menuPanoramicaAbierto ===
+                              panoramica.id_panoramica
+                            }
+                            onClick={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+
+                              setMenuFotografiaAbierto(
+                                null,
+                              );
+
+                              setMenuPlanoAbierto(
+                                null,
+                              );
+
+                              setMenuPanoramicaAbierto(
+                                (
+                                  actual,
+                                ) =>
+                                  actual ===
+                                    panoramica.id_panoramica
+                                    ? null
+                                    : panoramica.id_panoramica,
+                              );
+                            }}
                           >
-                            <button
-                              type="button"
-                              onClick={(
-                                event,
-                              ) => {
-                                event.stopPropagation();
+                            ⋮
+                          </button>
 
-                                setMenuPanoramicaAbierto(
-                                  null,
-                                );
+                          {menuPanoramicaAbierto ===
+                            panoramica.id_panoramica && (
+                              <div
+                                className={
+                                  styles.planMenu
+                                }
+                              >
+                                <button
+                                  type="button"
+                                  onClick={(
+                                    event,
+                                  ) => {
+                                    event.stopPropagation();
 
-                                setPanoramicaAbierta(
-                                  panoramica,
-                                );
-                              }}
-                            >
-                              Abrir panorámica
-                            </button>
+                                    setMenuPanoramicaAbierto(
+                                      null,
+                                    );
 
-                            <button
-                              className={
-                                styles.planMenuDanger
-                              }
-                              type="button"
-                              onClick={(
-                                event,
-                              ) => {
-                                event.stopPropagation();
+                                    setPanoramicaAbierta(
+                                      panoramica,
+                                    );
+                                  }}
+                                >
+                                  Abrir panorámica
+                                </button>
 
-                                solicitarEliminarPanoramica(
-                                  panoramica,
-                                );
-                              }}
-                            >
-                              Eliminar panorámica
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                                <button
+                                  className={
+                                    styles.planMenuDanger
+                                  }
+                                  type="button"
+                                  onClick={(
+                                    event,
+                                  ) => {
+                                    event.stopPropagation();
 
-                      <img
-                        src={
-                          panoramica.url
-                        }
-                        alt={
-                          panoramica.titulo
-                        }
-                      />
-
-                      <div
-                        className={
-                          styles.galleryInfo
-                        }
-                      >
-                        <div>
-                          <strong>
-                            {
-                              panoramica.titulo
-                            }
-                          </strong>
-
-                          <span
-                            className={
-                              styles.coverBadge
-                            }
-                          >
-                            360°
-                          </span>
+                                    solicitarEliminarPanoramica(
+                                      panoramica,
+                                    );
+                                  }}
+                                >
+                                  Eliminar panorámica
+                                </button>
+                              </div>
+                            )}
                         </div>
-                      </div>
-                    </article>
-                  ),
-                )}
-              </div>
-            )}
-          </section>
-        )}
+
+                        <img
+                          src={
+                            panoramica.url
+                          }
+                          alt={
+                            panoramica.titulo
+                          }
+                        />
+
+                        <div
+                          className={
+                            styles.galleryInfo
+                          }
+                        >
+                          <div>
+                            <strong>
+                              {
+                                panoramica.titulo
+                              }
+                            </strong>
+
+                            <span
+                              className={
+                                styles.coverBadge
+                              }
+                            >
+                              360°
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    ),
+                  )}
+                </div>
+              )}
+            </section>
+          )}
 
         {seccionActiva ===
           'mapa' && (
-          <section
-            className={
-              styles.mapSection
-            }
-          >
-            <div
+            <section
               className={
-                styles.mapHeader
+                styles.mapSection
               }
             >
-              <div>
-                <h2>
-                  Mapa
-                </h2>
+              <div
+                className={
+                  styles.mapHeader
+                }
+              >
+                <div>
+                  <h2>
+                    Mapa
+                  </h2>
 
-                <p>
-                  Ortofotos, capas geográficas y ubicación del proyecto.
-                </p>
+                  <p>
+                    Ortofotos, capas geográficas y ubicación del proyecto.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div
-              className={
-                styles.projectMap
-              }
-            >
-              <ProjectsMap
-                proyectos={[
-                  proyecto,
-                ]}
-                proyectoSeleccionadoId={
-                  proyecto.id_proyecto
+              <div
+                className={
+                  styles.projectMap
                 }
-                mostrarMarcadores={
-                  false
-                }
-              />
-            </div>
-          </section>
-        )}
+              >
+                <ProjectsMap
+                  proyectos={[
+                    proyecto,
+                  ]}
+                  proyectoSeleccionadoId={
+                    proyecto.id_proyecto
+                  }
+                  mostrarMarcadores={
+                    false
+                  }
+                  incidenciaInicialId={
+                    navegacionInicial?.destino ===
+                      'MAPA'
+                      ? navegacionInicial.idRecurso
+                      : null
+                  }
+                  abrirCapasInicialmente={
+                    navegacionInicial?.destino ===
+                    'CAPAS'
+                  }
+                  navegacionClave={
+                    navegacionInicial?.clave ??
+                    null
+                  }
+                />
+              </div>
+            </section>
+          )}
 
         {seccionActiva ===
           'carpetas' && (
-          <section
-            className={
-              styles.emptyContent
-            }
-          >
-            <h2>
-              Carpetas
-            </h2>
+            <section
+              className={
+                styles.emptyContent
+              }
+            >
+              <h2>
+                Carpetas
+              </h2>
 
-            <p>
-              Aquí construiremos la organización documental del proyecto.
-            </p>
-          </section>
-        )}
+              <p>
+                Aquí construiremos la organización documental del proyecto.
+              </p>
+            </section>
+          )}
       </section>
 
       {mostrandoColaboradores && (
@@ -3401,13 +3621,13 @@ export function ProjectDetailPage({
         <ConfirmDeleteMediaModal
           titulo={
             contenidoEliminando.tipo ===
-            'fotografia'
+              'fotografia'
               ? '¿Eliminar esta fotografía?'
               : '¿Eliminar esta panorámica?'
           }
           nombre={
             contenidoEliminando.tipo ===
-            'fotografia'
+              'fotografia'
               ? contenidoEliminando.fotografia.titulo
               : contenidoEliminando.panoramica.titulo
           }
@@ -3431,3 +3651,4 @@ export function ProjectDetailPage({
     </>
   );
 }
+

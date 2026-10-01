@@ -151,6 +151,36 @@
   stroke-linejoin: round;
 }
 
+.notificationBadge {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+
+  min-width: 17px;
+  height: 17px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 4px;
+
+  color: #ffffff;
+
+  background:
+    var(--color-brand-orange);
+
+  border:
+    2px solid
+    #ffffff;
+
+  border-radius: 999px;
+
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 /* =========================
    PANEL DE NOTIFICACIONES
    ========================= */
@@ -257,6 +287,43 @@
   font-weight: 500;
 }
 
+.notificationsMarkAll {
+  flex: 0 0 auto;
+
+  padding:
+    0.35rem
+    0.5rem;
+
+  color:
+    var(--color-brand-orange);
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 7px;
+
+  font-family: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.notificationsMarkAll:hover:not(:disabled) {
+  background:
+    var(--color-brand-orange-soft);
+}
+
+.notificationsMarkAll:disabled {
+  cursor: wait;
+
+  opacity: 0.55;
+}
+
 .notificationsEmpty {
   min-height: 190px;
 
@@ -324,6 +391,179 @@
   line-height: 1.45;
 }
 
+.notificationsRetry {
+  margin-top: 0.35rem;
+
+  padding:
+    0.45rem
+    0.75rem;
+
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  border: 0;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.notificationsList {
+  max-height: 420px;
+
+  overflow-y: auto;
+}
+
+.notificationItem {
+  position: relative;
+
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.75rem;
+
+  padding:
+    0.9rem
+    1rem;
+
+  color: inherit;
+
+  background: #ffffff;
+
+  border: 0;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 7%);
+
+  font-family: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background-color 150ms ease;
+}
+
+.notificationItem:last-child {
+  border-bottom: 0;
+}
+
+.notificationItem:hover {
+  background: #faf9f7;
+}
+
+.notificationItemUnread {
+  background:
+    rgb(234 117 26 / 5%);
+}
+
+.notificationItemUnread:hover {
+  background:
+    rgb(234 117 26 / 8%);
+}
+
+.notificationItemIcon {
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  display: grid;
+  place-items: center;
+
+  color:
+    var(--color-brand-orange);
+
+  background:
+    var(--color-brand-orange-soft);
+
+  border-radius: 50%;
+
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.notificationItemContent {
+  min-width: 0;
+
+  flex: 1;
+
+  display: grid;
+
+  gap: 0.2rem;
+}
+
+.notificationItemContent strong {
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+.notificationItemContent > span {
+  display: -webkit-box;
+
+  overflow: hidden;
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 0.68rem;
+  font-weight: 500;
+
+  line-height: 1.4;
+
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notificationItemContent small {
+  margin-top: 0.1rem;
+
+  color:
+    rgb(57 59 62 / 55%);
+
+  font-size: 0.61rem;
+  font-weight: 500;
+}
+
+.notificationUnreadDot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 8px;
+
+  margin-top: 0.35rem;
+
+  background:
+    var(--color-brand-orange);
+
+  border-radius: 50%;
+}
+
+.notificationItem:focus-visible,
+.notificationsMarkAll:focus-visible,
+.notificationsRetry:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: -2px;
+}
+
 /* =========================
    RESUMEN DEL USUARIO
    ========================= */
@@ -342,8 +582,7 @@
     0.3rem
     0.3rem;
 
-  color:
-    inherit;
+  color: inherit;
 
   background: transparent;
 
@@ -565,8 +804,7 @@
 
   gap: 0.75rem;
 
-  padding:
-    1rem;
+  padding: 1rem;
 }
 
 .userDropdownAvatar {
@@ -1030,6 +1268,16 @@
     height: 38px;
   }
 
+  .notificationBadge {
+    top: 1px;
+    right: 0;
+
+    min-width: 16px;
+    height: 16px;
+
+    font-size: 0.54rem;
+  }
+
   .userSummaryButton {
     gap: 0.35rem;
 
@@ -1072,6 +1320,11 @@
 
   .notificationsPanel::before {
     display: none;
+  }
+
+  .notificationsList {
+    max-height:
+      calc(100dvh - 180px);
   }
 
   .userDropdown {
@@ -1213,6 +1466,26 @@
       calc(100vw - 1.5rem);
   }
 
+  .notificationsHeader {
+    align-items: flex-start;
+
+    gap: 0.5rem;
+
+    padding:
+      0.85rem
+      0.9rem;
+  }
+
+  .notificationsMarkAll {
+    font-size: 0.6rem;
+  }
+
+  .notificationItem {
+    padding:
+      0.8rem
+      0.85rem;
+  }
+
   .userDropdown {
     top: 70px;
     right: 0.75rem;
@@ -1255,6 +1528,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .notificationButton,
+  .notificationsMarkAll,
+  .notificationsRetry,
+  .notificationItem,
   .userSummaryButton,
   .userMenuButton,
   .userDropdownItem,

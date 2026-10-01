@@ -68,17 +68,30 @@ import styles from './ProjectsMap.module.css';
 interface ProjectsMapProps {
   proyectos: Proyecto[];
 
-  proyectoSeleccionadoId?: string | null;
+  proyectoSeleccionadoId?:
+  string | null;
 
-  mostrarMarcadores?: boolean;
+  mostrarMarcadores?:
+  boolean;
+
+  incidenciaInicialId?:
+  string | null;
+
+  abrirCapasInicialmente?:
+  boolean;
+
+  navegacionClave?:
+  string | null;
 }
 
 interface MarcadorProyecto {
   idProyecto: string;
 
-  marcador: mapboxgl.Marker;
+  marcador:
+  mapboxgl.Marker;
 
-  popup: mapboxgl.Popup;
+  popup:
+  mapboxgl.Popup;
 }
 
 type TipoNuevaIncidencia =
@@ -96,12 +109,13 @@ const CENTRO_INICIAL: [
   number,
   number,
 ] = [
-  -74.2973,
-  4.5709,
-];
+    -74.2973,
+    4.5709,
+  ];
 
 function crearContenidoPopup(
-  proyecto: Proyecto,
+  proyecto:
+    Proyecto,
 ): HTMLElement {
   const contenedor =
     document.createElement(
@@ -145,7 +159,8 @@ function obtenerLayerId(
 }
 
 function obtenerTipoIncidencia(
-  incidencia: IncidenciaMapa,
+  incidencia:
+    IncidenciaMapa,
 ): string {
   if (
     incidencia.id_fotografia
@@ -163,7 +178,8 @@ function obtenerTipoIncidencia(
 }
 
 function obtenerTextoEstado(
-  estado: EstadoIncidencia,
+  estado:
+    EstadoIncidencia,
 ): string {
   if (
     estado ===
@@ -183,7 +199,8 @@ function obtenerTextoEstado(
 }
 
 function obtenerTextoPrioridad(
-  prioridad: PrioridadIncidencia,
+  prioridad:
+    PrioridadIncidencia,
 ): string {
   if (
     prioridad ===
@@ -206,14 +223,21 @@ export function ProjectsMap({
   proyectos,
   proyectoSeleccionadoId = null,
   mostrarMarcadores = true,
+  incidenciaInicialId = null,
+  abrirCapasInicialmente = false,
+  navegacionClave = null,
 }: ProjectsMapProps) {
   const mapContainer =
-    useRef<HTMLDivElement | null>(
+    useRef<
+      HTMLDivElement | null
+    >(
       null,
     );
 
   const map =
-    useRef<mapboxgl.Map | null>(
+    useRef<
+      mapboxgl.Map | null
+    >(
       null,
     );
 
@@ -265,6 +289,13 @@ export function ProjectsMap({
   const enfoqueInicialRealizadoRef =
     useRef(
       false,
+    );
+
+  const navegacionExternaAplicadaRef =
+    useRef<
+      string | null
+    >(
+      null,
     );
 
   const [
@@ -503,9 +534,6 @@ export function ProjectsMap({
     null,
   );
 
-  /*
-   * Modal de confirmación propio.
-   */
   const [
     confirmacionEliminarAbierta,
     setConfirmacionEliminarAbierta,
@@ -614,7 +642,8 @@ export function ProjectsMap({
   }
 
   function colocarMarcadorEdicion(
-    punto: PuntoMapa,
+    punto:
+      PuntoMapa,
   ) {
     const mapaActual =
       map.current;
@@ -668,7 +697,8 @@ export function ProjectsMap({
   }
 
   function abrirDetalleIncidencia(
-    incidencia: IncidenciaMapa,
+    incidencia:
+      IncidenciaMapa,
   ) {
     cerrarPanelIncidencia();
 
@@ -694,7 +724,8 @@ export function ProjectsMap({
       return;
     }
 
-    const punto: PuntoMapa = {
+    const punto:
+      PuntoMapa = {
       latitud:
         incidenciaSeleccionada.latitud,
 
@@ -831,7 +862,6 @@ export function ProjectsMap({
    * MARCADORES DE PROYECTOS
    * ====================================================
    */
-
   useEffect(() => {
     const mapaActual =
       map.current;
@@ -868,9 +898,9 @@ export function ProjectsMap({
           proyecto,
         ) =>
           proyecto.latitud !==
-            null &&
+          null &&
           proyecto.longitud !==
-            null,
+          null,
       );
 
     if (
@@ -897,9 +927,9 @@ export function ProjectsMap({
       ) => {
         if (
           proyecto.latitud ===
-            null ||
+          null ||
           proyecto.longitud ===
-            null
+          null
         ) {
           return;
         }
@@ -952,14 +982,14 @@ export function ProjectsMap({
     ) {
       const proyecto =
         proyectosConCoordenadas[
-          0
+        0
         ];
 
       if (
         proyecto.latitud !==
-          null &&
+        null &&
         proyecto.longitud !==
-          null
+        null
       ) {
         mapaActual.flyTo({
           center: [
@@ -1025,9 +1055,9 @@ export function ProjectsMap({
     if (
       !proyectoSeleccionado ||
       proyectoSeleccionado.latitud ===
-        null ||
+      null ||
       proyectoSeleccionado.longitud ===
-        null
+      null
     ) {
       return;
     }
@@ -1135,6 +1165,9 @@ export function ProjectsMap({
     enfoqueInicialRealizadoRef.current =
       false;
 
+    navegacionExternaAplicadaRef.current =
+      null;
+
     tileJsonCache.current.clear();
   }, [
     proyectoSeleccionadoId,
@@ -1181,7 +1214,7 @@ export function ProjectsMap({
           respuesta.capas,
         );
       } catch (
-        error
+      error
       ) {
         console.error(
           'No fue posible cargar las capas del mapa del proyecto.',
@@ -1248,7 +1281,7 @@ export function ProjectsMap({
           pagina <=
           primeraPagina.total_paginas;
           pagina +=
-            1
+          1
         ) {
           const respuesta =
             await listarFotografiasProyecto(
@@ -1277,7 +1310,7 @@ export function ProjectsMap({
           fotografias,
         );
       } catch (
-        error
+      error
       ) {
         console.error(
           'No fue posible cargar las fotografías disponibles para incidencias.',
@@ -1344,7 +1377,7 @@ export function ProjectsMap({
           pagina <=
           primeraPagina.total_paginas;
           pagina +=
-            1
+          1
         ) {
           const respuesta =
             await listarPanoramicasProyecto(
@@ -1373,7 +1406,7 @@ export function ProjectsMap({
           panoramicas,
         );
       } catch (
-        error
+      error
       ) {
         console.error(
           'No fue posible cargar las panorámicas disponibles para incidencias.',
@@ -1440,7 +1473,7 @@ export function ProjectsMap({
           pagina <=
           primeraPagina.total_paginas;
           pagina +=
-            1
+          1
         ) {
           const respuesta =
             await listarIncidenciasMapa(
@@ -1469,7 +1502,7 @@ export function ProjectsMap({
           incidencias,
         );
       } catch (
-        error
+      error
       ) {
         console.error(
           'No fue posible cargar las incidencias del mapa.',
@@ -1487,6 +1520,91 @@ export function ProjectsMap({
   }, [
     proyectoSeleccionadoId,
     mostrarMarcadores,
+  ]);
+
+  /*
+   * ====================================================
+   * NAVEGACIÓN DESDE NOTIFICACIÓN
+   * ====================================================
+   */
+
+  useEffect(() => {
+    if (
+      mostrarMarcadores ||
+      !navegacionClave ||
+      navegacionExternaAplicadaRef.current ===
+      navegacionClave
+    ) {
+      return;
+    }
+
+    if (
+      abrirCapasInicialmente
+    ) {
+      navegacionExternaAplicadaRef.current =
+        navegacionClave;
+
+      cerrarPanelIncidencia();
+
+      cerrarDetalleIncidencia();
+
+      setPanelCapasAbierto(
+        true,
+      );
+
+      return;
+    }
+
+    if (
+      !incidenciaInicialId
+    ) {
+      return;
+    }
+
+    const incidencia =
+      incidenciasMapa.find(
+        (
+          item,
+        ) =>
+          item.id_incidencia ===
+          incidenciaInicialId,
+      );
+
+    const mapaActual =
+      map.current;
+
+    if (
+      !incidencia ||
+      !mapaActual
+    ) {
+      return;
+    }
+
+    navegacionExternaAplicadaRef.current =
+      navegacionClave;
+
+    abrirDetalleIncidencia(
+      incidencia,
+    );
+
+    mapaActual.flyTo({
+      center: [
+        incidencia.longitud,
+        incidencia.latitud,
+      ],
+
+      zoom:
+        18,
+
+      essential:
+        true,
+    });
+  }, [
+    abrirCapasInicialmente,
+    incidenciaInicialId,
+    incidenciasMapa,
+    mostrarMarcadores,
+    navegacionClave,
   ]);
 
   /*
@@ -1551,6 +1669,7 @@ export function ProjectsMap({
               <path
                 d="M4 7h4l1.5-2h5L16 7h4v12H4V7Z"
               ></path>
+
               <circle
                 cx="12"
                 cy="13"
@@ -1663,7 +1782,8 @@ export function ProjectsMap({
       evento:
         mapboxgl.MapMouseEvent,
     ) {
-      const punto: PuntoMapa = {
+      const punto:
+        PuntoMapa = {
         latitud:
           evento.lngLat.lat,
 
@@ -1716,12 +1836,11 @@ export function ProjectsMap({
     panelIncidenciaAbierto,
     mostrarMarcadores,
   ]);
-
   /*
-   * ====================================================
-   * CAMBIAR UBICACIÓN DURANTE EDICIÓN
-   * ====================================================
-   */
+ * ====================================================
+ * CAMBIAR UBICACIÓN DURANTE EDICIÓN
+ * ====================================================
+ */
 
   useEffect(() => {
     const mapaActual =
@@ -1743,7 +1862,8 @@ export function ProjectsMap({
       evento:
         mapboxgl.MapMouseEvent,
     ) {
-      const punto: PuntoMapa = {
+      const punto:
+        PuntoMapa = {
         latitud:
           evento.lngLat.lat,
 
@@ -1944,14 +2064,14 @@ export function ProjectsMap({
         (
           actuales,
         ) => [
-          nuevaIncidencia,
-          ...actuales,
-        ],
+            nuevaIncidencia,
+            ...actuales,
+          ],
       );
 
       cerrarPanelIncidencia();
     } catch (
-      error
+    error
     ) {
       console.error(
         'No fue posible crear la incidencia.',
@@ -2053,7 +2173,7 @@ export function ProjectsMap({
               incidencia,
             ) =>
               incidencia.id_incidencia ===
-              actualizada.id_incidencia
+                actualizada.id_incidencia
                 ? actualizada
                 : incidencia,
           ),
@@ -2076,7 +2196,7 @@ export function ProjectsMap({
       marcadorEdicionIncidencia.current =
         null;
     } catch (
-      error
+    error
     ) {
       console.error(
         'No fue posible actualizar la incidencia.',
@@ -2146,7 +2266,7 @@ export function ProjectsMap({
 
       cerrarDetalleIncidencia();
     } catch (
-      error
+    error
     ) {
       console.error(
         'No fue posible eliminar la incidencia.',
@@ -2206,9 +2326,9 @@ export function ProjectsMap({
               capa,
             ) =>
               capa.estado_procesamiento ===
-                'LISTA' &&
+              'LISTA' &&
               capa.teselas !==
-                null,
+              null,
           )
           .sort(
             (
@@ -2237,8 +2357,8 @@ export function ProjectsMap({
       const layersExistentes =
         estilo.layers
           ? [
-              ...estilo.layers,
-            ]
+            ...estilo.layers,
+          ]
           : [];
 
       layersExistentes.forEach(
@@ -2345,7 +2465,7 @@ export function ProjectsMap({
               tileJson,
             );
           } catch (
-            error
+          error
           ) {
             console.error(
               `No fue posible cargar el TileJSON de "${capa.nombre}".`,
@@ -2526,7 +2646,7 @@ export function ProjectsMap({
         !mostrarMarcadores &&
         !enfoqueInicialRealizadoRef.current &&
         capasListas.length >
-          0
+        0
       ) {
         const capaParaEnfocar =
           [
@@ -2540,15 +2660,15 @@ export function ProjectsMap({
                 capa.visible,
             ) ??
           capasListas[
-            capasListas.length -
-              1
+          capasListas.length -
+          1
           ];
 
         const tileJsonEnfoque =
           capaParaEnfocar.teselas
             ? tileJsonCache.current.get(
-                `${capaParaEnfocar.id_capa}:${capaParaEnfocar.teselas.version}`,
-              )
+              `${capaParaEnfocar.id_capa}:${capaParaEnfocar.teselas.version}`,
+            )
             : undefined;
 
         const limites =
@@ -2646,63 +2766,63 @@ export function ProjectsMap({
   const proyectoSeleccionado =
     proyectoSeleccionadoId
       ? proyectos.find(
-          (
-            proyecto,
-          ) =>
-            proyecto.id_proyecto ===
-            proyectoSeleccionadoId,
-        ) ??
-        null
+        (
+          proyecto,
+        ) =>
+          proyecto.id_proyecto ===
+          proyectoSeleccionadoId,
+      ) ??
+      null
       : null;
 
   const fotografiaSeleccionada =
     fotografiaSeleccionadaId
       ? fotografiasMapa.find(
-          (
-            fotografia,
-          ) =>
-            fotografia.id_fotografia ===
-            fotografiaSeleccionadaId,
-        ) ??
-        null
+        (
+          fotografia,
+        ) =>
+          fotografia.id_fotografia ===
+          fotografiaSeleccionadaId,
+      ) ??
+      null
       : null;
 
   const panoramicaSeleccionada =
     panoramicaSeleccionadaId
       ? panoramicasMapa.find(
-          (
-            panoramica,
-          ) =>
-            panoramica.id_panoramica ===
-            panoramicaSeleccionadaId,
-        ) ??
-        null
+        (
+          panoramica,
+        ) =>
+          panoramica.id_panoramica ===
+          panoramicaSeleccionadaId,
+      ) ??
+      null
       : null;
 
   const fotografiaDetalle =
     incidenciaSeleccionada
       ?.id_fotografia
       ? fotografiasMapa.find(
-          (
-            fotografia,
-          ) =>
-            fotografia.id_fotografia ===
-            incidenciaSeleccionada.id_fotografia,
-        ) ??
-        null
+        (
+          fotografia,
+        ) =>
+          fotografia.id_fotografia ===
+          incidenciaSeleccionada.id_fotografia,
+      ) ??
+      null
       : null;
 
   const panoramicaDetalle =
     incidenciaSeleccionada
       ?.id_panoramica
       ? panoramicasMapa.find(
-          (
-            panoramica,
-          ) =>
-            panoramica.id_panoramica ===
-            incidenciaSeleccionada.id_panoramica,
-        ) ??
-        null
+        (
+          panoramica,
+        ) =>
+          panoramica.id_panoramica ===
+          incidenciaSeleccionada.id_panoramica,
+      ) ??
+      null
       : null;
 
   /*
@@ -2710,7 +2830,6 @@ export function ProjectsMap({
    * RENDER
    * ====================================================
    */
-
   return (
     <div
       className={
@@ -2858,12 +2977,6 @@ export function ProjectsMap({
             }
           />
         )}
-
-      {/*
-       * ==================================================
-       * DETALLE / EDICIÓN
-       * ==================================================
-       */}
 
       {incidenciaSeleccionada &&
         proyectoSeleccionadoId && (
@@ -3320,7 +3433,7 @@ export function ProjectsMap({
                     ) => {
                       setPrioridadEdicion(
                         event.target.value as
-                          PrioridadIncidencia,
+                        PrioridadIncidencia,
                       );
                     }}
                   >
@@ -3356,7 +3469,7 @@ export function ProjectsMap({
                     ) => {
                       setEstadoEdicion(
                         event.target.value as
-                          EstadoIncidencia,
+                        EstadoIncidencia,
                       );
                     }}
                   >
@@ -3427,12 +3540,6 @@ export function ProjectsMap({
           </aside>
         )}
 
-      {/*
-       * ==================================================
-       * PANEL NUEVA INCIDENCIA
-       * ==================================================
-       */}
-
       {panelIncidenciaAbierto &&
         proyectoSeleccionadoId && (
           <aside
@@ -3483,7 +3590,7 @@ export function ProjectsMap({
                 type="button"
                 className={
                   tipoNuevaIncidencia ===
-                  'TEXTO'
+                    'TEXTO'
                     ? styles.incidentTypeActive
                     : styles.incidentTypeButton
                 }
@@ -3518,7 +3625,7 @@ export function ProjectsMap({
                 type="button"
                 className={
                   tipoNuevaIncidencia ===
-                  'FOTOGRAFIA'
+                    'FOTOGRAFIA'
                     ? styles.incidentTypeActive
                     : styles.incidentTypeButton
                 }
@@ -3549,7 +3656,7 @@ export function ProjectsMap({
                 type="button"
                 className={
                   tipoNuevaIncidencia ===
-                  'PANORAMICA'
+                    'PANORAMICA'
                     ? styles.incidentTypeActive
                     : styles.incidentTypeButton
                 }
@@ -3579,276 +3686,275 @@ export function ProjectsMap({
 
             {tipoNuevaIncidencia ===
               'FOTOGRAFIA' && (
-              <div
-                className={
-                  styles.incidentMediaSection
-                }
-              >
                 <div
                   className={
-                    styles.incidentMediaHeader
+                    styles.incidentMediaSection
                   }
                 >
-                  <strong>
-                    Selecciona una fotografía
-                  </strong>
-
-                  <span>
-                    {fotografiasMapa.length}{' '}
-                    disponibles
-                  </span>
-                </div>
-
-                {fotografiasMapa.length >
-                0 ? (
                   <div
                     className={
-                      styles.incidentMediaGrid
+                      styles.incidentMediaHeader
                     }
                   >
-                    {fotografiasMapa.map(
-                      (
-                        fotografia,
-                      ) => {
-                        const seleccionada =
-                          fotografia.id_fotografia ===
-                          fotografiaSeleccionadaId;
-
-                        return (
-                          <button
-                            key={
-                              fotografia.id_fotografia
-                            }
-                            type="button"
-                            className={
-                              seleccionada
-                                ? styles.incidentMediaCardActive
-                                : styles.incidentMediaCard
-                            }
-                            onClick={() => {
-                              setFotografiaSeleccionadaId(
-                                fotografia.id_fotografia,
-                              );
-
-                              setErrorIncidencia(
-                                null,
-                              );
-                            }}
-                            aria-pressed={
-                              seleccionada
-                            }
-                          >
-                            <div
-                              className={
-                                styles.incidentMediaPreview
-                              }
-                            >
-                              <img
-                                src={
-                                  fotografia.url
-                                }
-                                alt={
-                                  fotografia.titulo
-                                }
-                                loading="lazy"
-                              />
-
-                              {seleccionada && (
-                                <span
-                                  className={
-                                    styles.incidentMediaCheck
-                                  }
-                                  aria-hidden="true"
-                                >
-                                  ✓
-                                </span>
-                              )}
-                            </div>
-
-                            <span
-                              className={
-                                styles.incidentMediaTitle
-                              }
-                            >
-                              {
-                                fotografia.titulo
-                              }
-                            </span>
-                          </button>
-                        );
-                      },
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    className={
-                      styles.incidentMediaEmpty
-                    }
-                  >
-                    No hay fotografías disponibles en la galería.
-                  </div>
-                )}
-
-                {fotografiaSeleccionada && (
-                  <div
-                    className={
-                      styles.incidentSelectedMedia
-                    }
-                  >
-                    <span>
-                      Fotografía seleccionada
-                    </span>
-
                     <strong>
-                      {
-                        fotografiaSeleccionada.titulo
-                      }
+                      Selecciona una fotografía
                     </strong>
+
+                    <span>
+                      {fotografiasMapa.length}{' '}
+                      disponibles
+                    </span>
                   </div>
-                )}
-              </div>
-            )}
 
-            {tipoNuevaIncidencia ===
-              'PANORAMICA' && (
-              <div
-                className={
-                  styles.incidentMediaSection
-                }
-              >
-                <div
-                  className={
-                    styles.incidentMediaHeader
-                  }
-                >
-                  <strong>
-                    Selecciona una panorámica
-                  </strong>
+                  {fotografiasMapa.length >
+                    0 ? (
+                    <div
+                      className={
+                        styles.incidentMediaGrid
+                      }
+                    >
+                      {fotografiasMapa.map(
+                        (
+                          fotografia,
+                        ) => {
+                          const seleccionada =
+                            fotografia.id_fotografia ===
+                            fotografiaSeleccionadaId;
 
-                  <span>
-                    {panoramicasMapa.length}{' '}
-                    disponibles
-                  </span>
-                </div>
-
-                {panoramicasMapa.length >
-                0 ? (
-                  <div
-                    className={
-                      styles.incidentMediaGrid
-                    }
-                  >
-                    {panoramicasMapa.map(
-                      (
-                        panoramica,
-                      ) => {
-                        const seleccionada =
-                          panoramica.id_panoramica ===
-                          panoramicaSeleccionadaId;
-
-                        return (
-                          <button
-                            key={
-                              panoramica.id_panoramica
-                            }
-                            type="button"
-                            className={
-                              seleccionada
-                                ? styles.incidentMediaCardActive
-                                : styles.incidentMediaCard
-                            }
-                            onClick={() => {
-                              setPanoramicaSeleccionadaId(
-                                panoramica.id_panoramica,
-                              );
-
-                              setErrorIncidencia(
-                                null,
-                              );
-                            }}
-                            aria-pressed={
-                              seleccionada
-                            }
-                          >
-                            <div
+                          return (
+                            <button
+                              key={
+                                fotografia.id_fotografia
+                              }
+                              type="button"
                               className={
-                                styles.incidentMediaPreview
+                                seleccionada
+                                  ? styles.incidentMediaCardActive
+                                  : styles.incidentMediaCard
+                              }
+                              onClick={() => {
+                                setFotografiaSeleccionadaId(
+                                  fotografia.id_fotografia,
+                                );
+
+                                setErrorIncidencia(
+                                  null,
+                                );
+                              }}
+                              aria-pressed={
+                                seleccionada
                               }
                             >
-                              <img
-                                src={
-                                  panoramica.url
+                              <div
+                                className={
+                                  styles.incidentMediaPreview
                                 }
-                                alt={
-                                  panoramica.titulo
-                                }
-                                loading="lazy"
-                              />
+                              >
+                                <img
+                                  src={
+                                    fotografia.url
+                                  }
+                                  alt={
+                                    fotografia.titulo
+                                  }
+                                  loading="lazy"
+                                />
+
+                                {seleccionada && (
+                                  <span
+                                    className={
+                                      styles.incidentMediaCheck
+                                    }
+                                    aria-hidden="true"
+                                  >
+                                    ✓
+                                  </span>
+                                )}
+                              </div>
 
                               <span
                                 className={
-                                  styles.incidentMedia360Badge
+                                  styles.incidentMediaTitle
                                 }
                               >
-                                360°
+                                {
+                                  fotografia.titulo
+                                }
                               </span>
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={
+                        styles.incidentMediaEmpty
+                      }
+                    >
+                      No hay fotografías disponibles en la galería.
+                    </div>
+                  )}
 
-                              {seleccionada && (
-                                <span
-                                  className={
-                                    styles.incidentMediaCheck
-                                  }
-                                  aria-hidden="true"
-                                >
-                                  ✓
-                                </span>
-                              )}
-                            </div>
+                  {fotografiaSeleccionada && (
+                    <div
+                      className={
+                        styles.incidentSelectedMedia
+                      }
+                    >
+                      <span>
+                        Fotografía seleccionada
+                      </span>
 
-                            <span
+                      <strong>
+                        {
+                          fotografiaSeleccionada.titulo
+                        }
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            {tipoNuevaIncidencia ===
+              'PANORAMICA' && (
+                <div
+                  className={
+                    styles.incidentMediaSection
+                  }
+                >
+                  <div
+                    className={
+                      styles.incidentMediaHeader
+                    }
+                  >
+                    <strong>
+                      Selecciona una panorámica
+                    </strong>
+
+                    <span>
+                      {panoramicasMapa.length}{' '}
+                      disponibles
+                    </span>
+                  </div>
+
+                  {panoramicasMapa.length >
+                    0 ? (
+                    <div
+                      className={
+                        styles.incidentMediaGrid
+                      }
+                    >
+                      {panoramicasMapa.map(
+                        (
+                          panoramica,
+                        ) => {
+                          const seleccionada =
+                            panoramica.id_panoramica ===
+                            panoramicaSeleccionadaId;
+
+                          return (
+                            <button
+                              key={
+                                panoramica.id_panoramica
+                              }
+                              type="button"
                               className={
-                                styles.incidentMediaTitle
+                                seleccionada
+                                  ? styles.incidentMediaCardActive
+                                  : styles.incidentMediaCard
+                              }
+                              onClick={() => {
+                                setPanoramicaSeleccionadaId(
+                                  panoramica.id_panoramica,
+                                );
+
+                                setErrorIncidencia(
+                                  null,
+                                );
+                              }}
+                              aria-pressed={
+                                seleccionada
                               }
                             >
-                              {
-                                panoramica.titulo
-                              }
-                            </span>
-                          </button>
-                        );
-                      },
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    className={
-                      styles.incidentMediaEmpty
-                    }
-                  >
-                    No hay panorámicas 360° disponibles.
-                  </div>
-                )}
+                              <div
+                                className={
+                                  styles.incidentMediaPreview
+                                }
+                              >
+                                <img
+                                  src={
+                                    panoramica.url
+                                  }
+                                  alt={
+                                    panoramica.titulo
+                                  }
+                                  loading="lazy"
+                                />
 
-                {panoramicaSeleccionada && (
-                  <div
-                    className={
-                      styles.incidentSelectedMedia
-                    }
-                  >
-                    <span>
-                      Panorámica seleccionada
-                    </span>
+                                <span
+                                  className={
+                                    styles.incidentMedia360Badge
+                                  }
+                                >
+                                  360°
+                                </span>
 
-                    <strong>
-                      {
-                        panoramicaSeleccionada.titulo
+                                {seleccionada && (
+                                  <span
+                                    className={
+                                      styles.incidentMediaCheck
+                                    }
+                                    aria-hidden="true"
+                                  >
+                                    ✓
+                                  </span>
+                                )}
+                              </div>
+
+                              <span
+                                className={
+                                  styles.incidentMediaTitle
+                                }
+                              >
+                                {
+                                  panoramica.titulo
+                                }
+                              </span>
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={
+                        styles.incidentMediaEmpty
                       }
-                    </strong>
-                  </div>
-                )}
-              </div>
-            )}
+                    >
+                      No hay panorámicas 360° disponibles.
+                    </div>
+                  )}
 
+                  {panoramicaSeleccionada && (
+                    <div
+                      className={
+                        styles.incidentSelectedMedia
+                      }
+                    >
+                      <span>
+                        Panorámica seleccionada
+                      </span>
+
+                      <strong>
+                        {
+                          panoramicaSeleccionada.titulo
+                        }
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              )}
             <div
               className={
                 styles.incidentLocationBox
@@ -3890,17 +3996,17 @@ export function ProjectsMap({
 
                   {tipoNuevaIncidencia ===
                     'FOTOGRAFIA' && (
-                    <small>
-                      La ubicación se asignará a la incidencia, no a la fotografía.
-                    </small>
-                  )}
+                      <small>
+                        La ubicación se asignará a la incidencia, no a la fotografía.
+                      </small>
+                    )}
 
                   {tipoNuevaIncidencia ===
                     'PANORAMICA' && (
-                    <small>
-                      La ubicación se asignará a la incidencia, no a la panorámica.
-                    </small>
-                  )}
+                      <small>
+                        La ubicación se asignará a la incidencia, no a la panorámica.
+                      </small>
+                    )}
                 </>
               )}
             </div>
@@ -3986,7 +4092,7 @@ export function ProjectsMap({
                 ) => {
                   setPrioridadIncidencia(
                     event.target.value as
-                      PrioridadIncidencia,
+                    PrioridadIncidencia,
                   );
                 }}
               >
@@ -4055,12 +4161,6 @@ export function ProjectsMap({
           </aside>
         )}
 
-      {/*
-       * ==================================================
-       * MODAL DE CONFIRMACIÓN DE ELIMINACIÓN
-       * ==================================================
-       */}
-
       {confirmacionEliminarAbierta &&
         incidenciaSeleccionada && (
           <div
@@ -4073,7 +4173,7 @@ export function ProjectsMap({
             ) => {
               if (
                 event.target ===
-                  event.currentTarget &&
+                event.currentTarget &&
                 !eliminandoIncidencia
               ) {
                 setConfirmacionEliminarAbierta(

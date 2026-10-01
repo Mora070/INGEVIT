@@ -8,15 +8,43 @@ import { CorreosModule } from '../correos/correos.module';
 import {
   NotificacionesConsultaController,
 } from './notificaciones-consulta.controller';
+
+import {
+  NotificacionesLecturaController,
+} from './notificaciones-lectura.controller';
+
+import {
+  NotificacionesEventosController,
+} from './notificaciones-eventos.controller';
+
 import {
   NotificacionesConsultaService,
 } from './notificaciones-consulta.service';
+
+import {
+  NotificacionesLecturaService,
+} from './notificaciones-lectura.service';
+
+import {
+  NotificacionesEventosService,
+} from './notificaciones-eventos.service';
+
+import {
+  NotificacionesPostgresListenerService,
+} from './notificaciones-postgres-listener.service';
+
 import {
   NotificacionesConsultaRepository,
 } from './notificaciones-consulta.repository';
+
+import {
+  NotificacionesLecturaRepository,
+} from './notificaciones-lectura.repository';
+
 import {
   NotificacionesCorreoRepository,
 } from './correos/notificaciones-correo.repository';
+
 import {
   NotificacionesCorreoService,
 } from './correos/notificaciones-correo.service';
@@ -25,13 +53,6 @@ import {
   NotificacionesCorreoWorker,
 } from './correos/notificaciones-correo.worker';
 
-/**
- * Expone el historial y coordina el procesamiento de correo.
- *
- * El trigger de PostgreSQL crea las notificaciones de incidencias.
- * El trabajador solo programa envíos cuando su configuración
- * lo habilita explícitamente.
- */
 @Module({
   imports: [
     DatabaseModule,
@@ -39,10 +60,23 @@ import {
     UsuariosModule,
     CorreosModule,
   ],
-  controllers: [NotificacionesConsultaController],
+
+  controllers: [
+    NotificacionesConsultaController,
+    NotificacionesLecturaController,
+    NotificacionesEventosController,
+  ],
+
   providers: [
     NotificacionesConsultaRepository,
     NotificacionesConsultaService,
+
+    NotificacionesLecturaRepository,
+    NotificacionesLecturaService,
+
+    NotificacionesEventosService,
+    NotificacionesPostgresListenerService,
+
     NotificacionesCorreoRepository,
     NotificacionesCorreoService,
     NotificacionesCorreoWorker,
