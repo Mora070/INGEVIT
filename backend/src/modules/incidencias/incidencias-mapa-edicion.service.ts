@@ -16,6 +16,10 @@ import {
 } from '../actividades/actividades.repository';
 
 import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
   IncidenciasRepository,
 } from './incidencias.repository';
 
@@ -62,6 +66,9 @@ export class IncidenciasMapaEdicionService {
 
     private readonly actividades:
       ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
   async actualizarDatos(
@@ -116,7 +123,8 @@ export class IncidenciasMapaEdicionService {
           );
 
         if (
-          incidencia === null
+          incidencia ===
+          null
         ) {
           throw new NotFoundException(
             'La incidencia no está disponible.',
@@ -136,6 +144,35 @@ export class IncidenciasMapaEdicionService {
 
             mensaje:
               `Datos de la incidencia ${incidencia.id_incidencia} guardados.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              incidencia.id_incidencia,
+
+            tipo:
+              'INCIDENCIA_EDITADA',
+
+            titulo:
+              'Incidencia actualizada',
+
+            mensaje:
+              `Se actualizó la incidencia "${incidencia.titulo}".`,
+
+            destino:
+              'MAPA',
+
+            id_recurso:
+              incidencia.id_incidencia,
           },
         );
 

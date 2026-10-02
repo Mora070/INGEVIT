@@ -1,22 +1,51 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../../database/database.module';
+
 import {
   ProyectoAccesoRepository,
 } from '../../common/repositories/proyecto-acceso.repository';
 
-import { AuthModule } from '../auth/auth.module';
-import { UsuariosModule } from '../usuarios/usuarios.module';
-import { ActividadesModule } from '../actividades/actividades.module';
+import {
+  AuthModule,
+} from '../auth/auth.module';
+
+import {
+  UsuariosModule,
+} from '../usuarios/usuarios.module';
+
+import {
+  ActividadesModule,
+} from '../actividades/actividades.module';
+
 import {
   AlmacenamientoModule,
 } from '../almacenamiento/almacenamiento.module';
 
-import { PlanosController } from './planos.controller';
-import { PlanosConsultaRepository } from './planos-consulta.repository';
-import { PlanosRepository } from './planos.repository';
-import { PlanosService } from './planos.service';
-import { PlanosSubidaService } from './planos-subida.service';
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
+  PlanosController,
+} from './planos.controller';
+
+import {
+  PlanosConsultaRepository,
+} from './planos-consulta.repository';
+
+import {
+  PlanosRepository,
+} from './planos.repository';
+
+import {
+  PlanosService,
+} from './planos.service';
+
+import {
+  PlanosSubidaService,
+} from './planos-subida.service';
+
 import {
   PlanosPersistenciaService,
 } from './planos-persistencia.service';
@@ -53,10 +82,6 @@ import {
   PlanosEliminacionController,
 } from './planos-eliminacion.controller';
 
-/**
- * Agrupa la consulta y subida de planos.
- * Comparte el almacenamiento y la escritura de actividades.
- */
 @Module({
   imports: [
     DatabaseModule,
@@ -65,18 +90,37 @@ import {
     ActividadesModule,
     AlmacenamientoModule,
   ],
-  controllers: [PlanosController, PlanosSubidaController, PlanosDescargaController,PlanosEdicionController,PlanosEliminacionController],
+
+  controllers: [
+    PlanosController,
+    PlanosSubidaController,
+    PlanosDescargaController,
+    PlanosEdicionController,
+    PlanosEliminacionController,
+  ],
+
   providers: [
     ProyectoAccesoRepository,
+
     PlanosConsultaRepository,
+
     PlanosRepository,
+
     PlanosService,
+
     PlanosSubidaService,
+
     PlanosPersistenciaService,
+
     PlanosDescargaRepository,
+
     PlanosDescargaService,
+
     PlanosEdicionService,
-    PlanosEliminacionService
+
+    PlanosEliminacionService,
+
+    NotificacionesRepository,
   ],
 })
-export class PlanosModule { }
+export class PlanosModule {}

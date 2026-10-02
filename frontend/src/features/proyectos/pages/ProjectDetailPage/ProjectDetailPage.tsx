@@ -44,12 +44,20 @@ import {
 } from '../../components/PanoramaViewer/PanoramaViewer';
 
 import {
+  PhotoViewer,
+} from '../../components/PhotoViewer/PhotoViewer';
+
+import {
   PlanViewer,
 } from '../../components/PlanViewer/PlanViewer';
 
 import {
   EditPlanModal,
 } from '../../components/EditPlanModal/EditPlanModal';
+
+import {
+  EditProjectModal,
+} from '../../components/EditProjectModal/EditProjectModal';
 
 import {
   DeletePlanModal,
@@ -105,17 +113,17 @@ type SeccionProyecto =
 
 type ContenidoEliminando =
   | {
-    tipo: 'fotografia';
+      tipo: 'fotografia';
 
-    fotografia:
-    FotografiaProyecto;
-  }
+      fotografia:
+        FotografiaProyecto;
+    }
   | {
-    tipo: 'panoramica';
+      tipo: 'panoramica';
 
-    panoramica:
-    PanoramicaProyecto;
-  };
+      panoramica:
+        PanoramicaProyecto;
+    };
 
 interface ConfirmDeleteMediaModalProps {
   titulo: string;
@@ -143,7 +151,7 @@ function ConfirmDeleteMediaModal({
     ) {
       if (
         event.key ===
-        'Escape' &&
+          'Escape' &&
         !eliminando
       ) {
         onCerrar();
@@ -168,338 +176,116 @@ function ConfirmDeleteMediaModal({
 
   return (
     <div
+      className={
+        styles.confirmOverlay
+      }
       role="presentation"
       onMouseDown={(
         event,
       ) => {
         if (
           event.target ===
-          event.currentTarget &&
+            event.currentTarget &&
           !eliminando
         ) {
           onCerrar();
         }
       }}
-      style={{
-        position:
-          'fixed',
-
-        inset:
-          0,
-
-        zIndex:
-          10000,
-
-        display:
-          'flex',
-
-        alignItems:
-          'center',
-
-        justifyContent:
-          'center',
-
-        padding:
-          '24px',
-
-        background:
-          'rgb(20 20 18 / 52%)',
-
-        backdropFilter:
-          'blur(4px)',
-      }}
     >
       <section
-        role="alertdialog"
+        className={
+          styles.confirmDialog
+        }
+        role="dialog"
         aria-modal="true"
-        aria-labelledby="delete-media-title"
-        aria-describedby="delete-media-description"
-        style={{
-          width:
-            'min(100%, 440px)',
-
-          display:
-            'flex',
-
-          flexDirection:
-            'column',
-
-          alignItems:
-            'center',
-
-          padding:
-            '32px',
-
-          border:
-            '1px solid rgb(35 35 32 / 8%)',
-
-          borderRadius:
-            '22px',
-
-          background:
-            '#fffdf8',
-
-          boxShadow:
-            '0 24px 60px rgb(20 20 18 / 20%), 0 4px 14px rgb(20 20 18 / 8%)',
-
-          textAlign:
-            'center',
-        }}
+        aria-labelledby="confirm-delete-media-title"
       >
         <div
+          className={
+            styles.confirmIcon
+          }
           aria-hidden="true"
-          style={{
-            width:
-              '58px',
-
-            height:
-              '58px',
-
-            display:
-              'flex',
-
-            alignItems:
-              'center',
-
-            justifyContent:
-              'center',
-
-            marginBottom:
-              '18px',
-
-            borderRadius:
-              '18px',
-
-            background:
-              '#fff1eb',
-
-            color:
-              '#b8462f',
-          }}
         >
           <svg
             viewBox="0 0 24 24"
-            style={{
-              width:
-                '27px',
-
-              height:
-                '27px',
-
-              fill:
-                'none',
-
-              stroke:
-                'currentColor',
-
-              strokeWidth:
-                1.8,
-
-              strokeLinecap:
-                'round',
-
-              strokeLinejoin:
-                'round',
-            }}
           >
-            <path d="M4 7h16" />
+            <path
+              d="M4 7h16"
+            />
 
-            <path d="M10 11v6" />
+            <path
+              d="M9 7V4h6v3"
+            />
 
-            <path d="M14 11v6" />
+            <path
+              d="m7 7 1 13h8l1-13"
+            />
 
-            <path d="M6 7l1 13h10l1-13" />
+            <path
+              d="M10 11v5"
+            />
 
-            <path d="M9 7V4h6v3" />
+            <path
+              d="M14 11v5"
+            />
           </svg>
         </div>
 
-        <span
-          style={{
-            fontSize:
-              '0.74rem',
-
-            fontWeight:
-              700,
-
-            letterSpacing:
-              '0.08em',
-
-            textTransform:
-              'uppercase',
-
-            color:
-              '#b8462f',
-          }}
+        <div
+          className={
+            styles.confirmContent
+          }
         >
-          Eliminar contenido
-        </span>
-
-        <h3
-          id="delete-media-title"
-          style={{
-            margin:
-              '8px 0 0',
-
-            fontSize:
-              '1.3rem',
-
-            color:
-              '#272622',
-          }}
-        >
-          {titulo}
-        </h3>
-
-        <p
-          id="delete-media-description"
-          style={{
-            maxWidth:
-              '340px',
-
-            margin:
-              '12px 0 0',
-
-            fontSize:
-              '0.9rem',
-
-            lineHeight:
-              1.55,
-
-            color:
-              '#706d65',
-          }}
-        >
-          <strong
-            style={{
-              color:
-                '#3a3832',
-            }}
+          <h2
+            id="confirm-delete-media-title"
           >
-            “{nombre}”
-          </strong>{' '}
-          será eliminado permanentemente.
-          Esta acción no se puede deshacer.
-        </p>
+            {titulo}
+          </h2>
+
+          <p>
+            Se eliminará{' '}
+            <strong>
+              {nombre}
+            </strong>
+            . Esta acción no se puede deshacer.
+          </p>
+        </div>
 
         <div
-          style={{
-            width:
-              '100%',
-
-            display:
-              'grid',
-
-            gridTemplateColumns:
-              '1fr 1fr',
-
-            gap:
-              '12px',
-
-            marginTop:
-              '26px',
-          }}
+          className={
+            styles.confirmActions
+          }
         >
           <button
             type="button"
-            onClick={
-              onCerrar
+            className={
+              styles.confirmCancelButton
             }
             disabled={
               eliminando
             }
-            style={{
-              minHeight:
-                '44px',
-
-              padding:
-                '0 18px',
-
-              border:
-                '1px solid #d8d4ca',
-
-              borderRadius:
-                '12px',
-
-              background:
-                '#fffdf8',
-
-              color:
-                '#4b4943',
-
-              font:
-                'inherit',
-
-              fontSize:
-                '0.88rem',
-
-              fontWeight:
-                700,
-
-              cursor:
-                eliminando
-                  ? 'not-allowed'
-                  : 'pointer',
-
-              opacity:
-                eliminando
-                  ? 0.55
-                  : 1,
-            }}
+            onClick={
+              onCerrar
+            }
           >
             Cancelar
           </button>
 
           <button
             type="button"
-            onClick={
-              onConfirmar
+            className={
+              styles.confirmDeleteButton
             }
             disabled={
               eliminando
             }
-            style={{
-              minHeight:
-                '44px',
-
-              padding:
-                '0 18px',
-
-              border:
-                '1px solid #b8462f',
-
-              borderRadius:
-                '12px',
-
-              background:
-                '#b8462f',
-
-              color:
-                '#ffffff',
-
-              font:
-                'inherit',
-
-              fontSize:
-                '0.88rem',
-
-              fontWeight:
-                700,
-
-              cursor:
-                eliminando
-                  ? 'not-allowed'
-                  : 'pointer',
-
-              opacity:
-                eliminando
-                  ? 0.55
-                  : 1,
-            }}
+            onClick={
+              onConfirmar
+            }
           >
             {eliminando
               ? 'Eliminando...'
-              : 'Sí, eliminar'}
+              : 'Eliminar'}
           </button>
         </div>
       </section>
@@ -532,9 +318,7 @@ function formatearFecha(
   fecha:
     string | null,
 ): string {
-  if (
-    !fecha
-  ) {
+  if (!fecha) {
     return 'Sin definir';
   }
 
@@ -569,7 +353,8 @@ function formatearFecha(
 }
 
 function formatearFechaHora(
-  fecha: string,
+  fecha:
+    string,
 ): string {
   const valor =
     new Date(
@@ -611,9 +396,7 @@ export function ProjectDetailPage({
     proyecto,
     setProyecto,
   ] =
-    useState<
-      Proyecto | null
-    >(
+    useState<Proyecto | null>(
       null,
     );
 
@@ -718,6 +501,13 @@ export function ProjectDetailPage({
   );
 
   const [
+    editandoProyecto,
+    setEditandoProyecto,
+  ] = useState(
+    false,
+  );
+
+  const [
     mostrandoColaboradores,
     setMostrandoColaboradores,
   ] = useState(
@@ -754,6 +544,15 @@ export function ProjectDetailPage({
     setArchivoPlano,
   ] = useState<
     File | null
+  >(
+    null,
+  );
+
+  const [
+    fotografiaAbierta,
+    setFotografiaAbierta,
+  ] = useState<
+    FotografiaProyecto | null
   >(
     null,
   );
@@ -848,12 +647,16 @@ export function ProjectDetailPage({
     );
 
   const navegacionAplicadaRef =
-    useRef<string | null>(
+    useRef<
+      string | null
+    >(
       null,
     );
 
   const recursoAbiertoRef =
-    useRef<string | null>(
+    useRef<
+      string | null
+    >(
       null,
     );
 
@@ -877,6 +680,54 @@ export function ProjectDetailPage({
     >(
       null,
     );
+
+  useEffect(() => {
+    function cerrarMenusFuera(
+      event:
+        PointerEvent,
+    ) {
+      const elemento =
+        event.target;
+
+      if (
+        !(elemento instanceof Element)
+      ) {
+        return;
+      }
+
+      if (
+        elemento.closest(
+          `.${styles.planActions}`,
+        )
+      ) {
+        return;
+      }
+
+      setMenuFotografiaAbierto(
+        null,
+      );
+
+      setMenuPlanoAbierto(
+        null,
+      );
+
+      setMenuPanoramicaAbierto(
+        null,
+      );
+    }
+
+    document.addEventListener(
+      'pointerdown',
+      cerrarMenusFuera,
+    );
+
+    return () => {
+      document.removeEventListener(
+        'pointerdown',
+        cerrarMenusFuera,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     let activa =
@@ -907,7 +758,7 @@ export function ProjectDetailPage({
           respuesta,
         );
       } catch (
-      errorObtenido
+        errorObtenido
       ) {
         if (
           !activa
@@ -947,8 +798,7 @@ export function ProjectDetailPage({
   }, [
     idProyecto,
   ]);
-
-  useEffect(() => {
+    useEffect(() => {
     let activa =
       true;
 
@@ -984,7 +834,7 @@ export function ProjectDetailPage({
           respuesta.fotografias,
         );
       } catch (
-      errorObtenido
+        errorObtenido
       ) {
         if (
           !activa
@@ -1024,6 +874,7 @@ export function ProjectDetailPage({
   }, [
     idProyecto,
   ]);
+
   useEffect(() => {
     let activa =
       true;
@@ -1060,7 +911,7 @@ export function ProjectDetailPage({
           respuesta.panoramicas,
         );
       } catch (
-      errorObtenido
+        errorObtenido
       ) {
         if (
           !activa
@@ -1137,7 +988,7 @@ export function ProjectDetailPage({
           respuesta.planos,
         );
       } catch (
-      errorObtenido
+        errorObtenido
       ) {
         if (
           !activa
@@ -1188,7 +1039,7 @@ export function ProjectDetailPage({
     if (
       !navegacionInicial ||
       navegacionAplicadaRef.current ===
-      navegacionInicial.clave
+        navegacionInicial.clave
     ) {
       return;
     }
@@ -1200,6 +1051,10 @@ export function ProjectDetailPage({
       false,
     );
 
+    setFotografiaAbierta(
+      null,
+    );
+
     setPlanoAbierto(
       null,
     );
@@ -1209,7 +1064,7 @@ export function ProjectDetailPage({
     );
 
     switch (
-    navegacionInicial.destino
+      navegacionInicial.destino
     ) {
       case 'FOTOGRAFIAS':
         setSeccionActiva(
@@ -1262,7 +1117,7 @@ export function ProjectDetailPage({
       !navegacionInicial ||
       !navegacionInicial.idRecurso ||
       recursoAbiertoRef.current ===
-      navegacionInicial.clave
+        navegacionInicial.clave
     ) {
       return;
     }
@@ -1329,8 +1184,8 @@ export function ProjectDetailPage({
       navegacionInicial.destino ===
       'FOTOGRAFIAS'
     ) {
-      const existe =
-        fotografias.some(
+      const fotografia =
+        fotografias.find(
           (
             item,
           ) =>
@@ -1339,7 +1194,7 @@ export function ProjectDetailPage({
         );
 
       if (
-        !existe
+        !fotografia
       ) {
         return;
       }
@@ -1347,20 +1202,8 @@ export function ProjectDetailPage({
       recursoAbiertoRef.current =
         navegacionInicial.clave;
 
-      requestAnimationFrame(
-        () => {
-          document
-            .getElementById(
-              `fotografia-${navegacionInicial.idRecurso}`,
-            )
-            ?.scrollIntoView({
-              behavior:
-                'smooth',
-
-              block:
-                'center',
-            });
-        },
+      setFotografiaAbierta(
+        fotografia,
       );
     }
   }, [
@@ -1417,9 +1260,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-          nuevaFotografia,
-          ...actuales,
-        ],
+        nuevaFotografia,
+        ...actuales,
+      ],
     );
 
     setArchivoFotografia(
@@ -1443,9 +1286,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-          nuevaPanoramica,
-          ...actuales,
-        ],
+        nuevaPanoramica,
+        ...actuales,
+      ],
     );
 
     setArchivoPanoramica(
@@ -1469,9 +1312,9 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-          nuevoPlano,
-          ...actuales,
-        ],
+        nuevoPlano,
+        ...actuales,
+      ],
     );
 
     setArchivoPlano(
@@ -1520,7 +1363,7 @@ export function ProjectDetailPage({
 
     if (
       planoAbierto?.id_plano ===
-      planoActualizado.id_plano
+        planoActualizado.id_plano
     ) {
       setPlanoAbierto(
         planoActualizado,
@@ -1529,7 +1372,8 @@ export function ProjectDetailPage({
   }
 
   function planoEliminado(
-    idPlano: string,
+    idPlano:
+      string,
   ) {
     setPlanos(
       (
@@ -1627,7 +1471,7 @@ export function ProjectDetailPage({
           ),
       );
     } catch (
-    errorObtenido
+      errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1687,8 +1531,7 @@ export function ProjectDetailPage({
       null,
     );
   }
-
-  async function confirmarEliminacionContenido() {
+    async function confirmarEliminacionContenido() {
     if (
       !contenidoEliminando ||
       eliminandoContenido
@@ -1732,11 +1575,21 @@ export function ProjectDetailPage({
             ),
         );
 
+        if (
+          fotografiaAbierta
+            ?.id_fotografia ===
+          idFotografia
+        ) {
+          setFotografiaAbierta(
+            null,
+          );
+        }
+
         setContenidoEliminando(
           null,
         );
       } catch (
-      errorObtenido
+        errorObtenido
       ) {
         if (
           errorObtenido instanceof
@@ -1805,7 +1658,7 @@ export function ProjectDetailPage({
         null,
       );
     } catch (
-    errorObtenido
+      errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1917,6 +1770,7 @@ export function ProjectDetailPage({
       0,
       4,
     );
+
   return (
     <>
       <section
@@ -1972,14 +1826,15 @@ export function ProjectDetailPage({
               </h1>
 
               <span
-                className={`${styles.statusBadge} ${proyecto.estado_proyecto ===
+                className={`${styles.statusBadge} ${
+                  proyecto.estado_proyecto ===
                   'ACTIVA'
-                  ? styles.statusActive
-                  : proyecto.estado_proyecto ===
-                    'PAUSA'
-                    ? styles.statusPaused
-                    : styles.statusFinished
-                  }`}
+                    ? styles.statusActive
+                    : proyecto.estado_proyecto ===
+                        'PAUSA'
+                      ? styles.statusPaused
+                      : styles.statusFinished
+                }`}
               >
                 {formatearEstado(
                   proyecto.estado_proyecto,
@@ -2323,6 +2178,11 @@ export function ProjectDetailPage({
                     styles.secondaryButton
                   }
                   type="button"
+                  onClick={() => {
+                    setEditandoProyecto(
+                      true,
+                    );
+                  }}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -2567,14 +2427,24 @@ export function ProjectDetailPage({
                             styles.photoCard
                           }
                         >
-                          <img
-                            src={
-                              fotografia.url
-                            }
-                            alt={
-                              fotografia.titulo
-                            }
-                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFotografiaAbierta(
+                                fotografia,
+                              );
+                            }}
+                            aria-label={`Abrir fotografía ${fotografia.titulo}`}
+                          >
+                            <img
+                              src={
+                                fotografia.url
+                              }
+                              alt={
+                                fotografia.titulo
+                              }
+                            />
+                          </button>
 
                           <div>
                             <strong>
@@ -2661,8 +2531,7 @@ export function ProjectDetailPage({
               </section>
             </div>
           )}
-
-        {seccionActiva ===
+                  {seccionActiva ===
           'fotografias' && (
             <section
               className={
@@ -2817,14 +2686,43 @@ export function ProjectDetailPage({
                             )}
                         </div>
 
-                        <img
-                          src={
-                            fotografia.url
-                          }
-                          alt={
-                            fotografia.titulo
-                          }
-                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFotografiaAbierta(
+                              fotografia,
+                            );
+                          }}
+                          style={{
+                            display:
+                              'block',
+
+                            width:
+                              '100%',
+
+                            padding:
+                              0,
+
+                            border:
+                              0,
+
+                            background:
+                              'transparent',
+
+                            cursor:
+                              'zoom-in',
+                          }}
+                          aria-label={`Abrir fotografía ${fotografia.titulo}`}
+                        >
+                          <img
+                            src={
+                              fotografia.url
+                            }
+                            alt={
+                              fotografia.titulo
+                            }
+                          />
+                        </button>
 
                         <div
                           className={
@@ -2856,6 +2754,7 @@ export function ProjectDetailPage({
               )}
             </section>
           )}
+
         {seccionActiva ===
           'planos' && (
             <section
@@ -2935,9 +2834,9 @@ export function ProjectDetailPage({
                         ) => {
                           if (
                             event.key ===
-                            'Enter' ||
+                              'Enter' ||
                             event.key ===
-                            ' '
+                              ' '
                           ) {
                             event.preventDefault();
 
@@ -3168,8 +3067,7 @@ export function ProjectDetailPage({
               )}
             </section>
           )}
-
-        {seccionActiva ===
+                  {seccionActiva ===
           '360' && (
             <section
               className={
@@ -3250,9 +3148,9 @@ export function ProjectDetailPage({
                         ) => {
                           if (
                             event.key ===
-                            'Enter' ||
+                              'Enter' ||
                             event.key ===
-                            ' '
+                              ' '
                           ) {
                             event.preventDefault();
 
@@ -3473,6 +3371,29 @@ export function ProjectDetailPage({
             </section>
           )}
       </section>
+            {editandoProyecto && (
+        <EditProjectModal
+          proyecto={
+            proyecto
+          }
+          onCerrar={() => {
+            setEditandoProyecto(
+              false,
+            );
+          }}
+          onActualizado={(
+            proyectoActualizado,
+          ) => {
+            setProyecto(
+              proyectoActualizado,
+            );
+
+            setEditandoProyecto(
+              false,
+            );
+          }}
+        />
+      )}
 
       {mostrandoColaboradores && (
         <CollaboratorsModal
@@ -3547,6 +3468,19 @@ export function ProjectDetailPage({
           onSubidaCompleta={
             planoSubido
           }
+        />
+      )}
+
+      {fotografiaAbierta && (
+        <PhotoViewer
+          fotografia={
+            fotografiaAbierta
+          }
+          onCerrar={() => {
+            setFotografiaAbierta(
+              null,
+            );
+          }}
         />
       )}
 
@@ -3651,4 +3585,3 @@ export function ProjectDetailPage({
     </>
   );
 }
-

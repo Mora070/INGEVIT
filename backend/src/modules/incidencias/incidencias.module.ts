@@ -1,71 +1,83 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../../database/database.module';
+
 import {
-    ProyectoAccesoRepository,
+  ProyectoAccesoRepository,
 } from '../../common/repositories/proyecto-acceso.repository';
 
 import { AuthModule } from '../auth/auth.module';
+
 import { UsuariosModule } from '../usuarios/usuarios.module';
+
 import { ActividadesModule } from '../actividades/actividades.module';
 
 import {
-    IncidenciasCreacionController,
-} from './incidencias-creacion.controller';
-import {
-    IncidenciasCreacionService,
-} from './incidencias-creacion.service';
-import {
-    IncidenciasPlanoRepository,
-} from './incidencias-plano.repository';
-import { IncidenciasRepository } from './incidencias.repository';
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
 
 import {
-    IncidenciasConsultaController,
+  IncidenciasCreacionController,
+} from './incidencias-creacion.controller';
+
+import {
+  IncidenciasCreacionService,
+} from './incidencias-creacion.service';
+
+import {
+  IncidenciasPlanoRepository,
+} from './incidencias-plano.repository';
+
+import {
+  IncidenciasRepository,
+} from './incidencias.repository';
+
+import {
+  IncidenciasConsultaController,
 } from './incidencias-consulta.controller';
 
 import {
-    IncidenciasConsultaService,
+  IncidenciasConsultaService,
 } from './incidencias-consulta.service';
 
 import {
-    IncidenciasConsultaRepository,
+  IncidenciasConsultaRepository,
 } from './incidencias-consulta.repository';
 
 import {
-    IncidenciasEdicionService,
+  IncidenciasEdicionService,
 } from './incidencias-edicion.service';
 
 import {
-    IncidenciasEdicionController,
+  IncidenciasEdicionController,
 } from './incidencias-edicion.controller';
 
 import {
-    IncidenciasEliminacionService,
+  IncidenciasEliminacionService,
 } from './incidencias-eliminacion.service';
 
 import {
-    IncidenciasEliminacionController,
+  IncidenciasEliminacionController,
 } from './incidencias-eliminacion.controller';
 
 import {
-    IncidenciasMapaCreacionService,
+  IncidenciasMapaCreacionService,
 } from './incidencias-mapa-creacion.service';
 
 import {
-    IncidenciasMapaCreacionController,
+  IncidenciasMapaCreacionController,
 } from './incidencias-mapa-creacion.controller';
 
 import {
-    IncidenciasMapaConsultaRepository,
+  IncidenciasMapaConsultaRepository,
 } from './incidencias-mapa-consulta.repository';
 
 import {
-    IncidenciasMapaConsultaService,
+  IncidenciasMapaConsultaService,
 } from './incidencias-mapa-consulta.service';
 
 import {
-    IncidenciasMapaConsultaController,
+  IncidenciasMapaConsultaController,
 } from './incidencias-mapa-consulta.controller';
 
 import {
@@ -84,32 +96,53 @@ import {
   IncidenciasMapaEliminacionController,
 } from './incidencias-mapa-eliminacion.controller';
 
-/**
- * Agrupa las operaciones sobre incidencias.
- * Comparte la conexión a PostgreSQL y el registro de actividades.
- */
 @Module({
-    imports: [
-        DatabaseModule,
-        AuthModule,
-        UsuariosModule,
-        ActividadesModule,
-    ],
-    controllers: [IncidenciasCreacionController, IncidenciasConsultaController, IncidenciasEdicionController, IncidenciasEliminacionController, IncidenciasMapaCreacionController,IncidenciasMapaConsultaController,IncidenciasMapaEdicionController,IncidenciasMapaEliminacionController],
-    providers: [
-        ProyectoAccesoRepository,
-        IncidenciasPlanoRepository,
-        IncidenciasRepository,
-        IncidenciasCreacionService,
-        IncidenciasConsultaRepository,
-        IncidenciasConsultaService,
-        IncidenciasEdicionService,
-        IncidenciasEliminacionService,
-        IncidenciasMapaCreacionService,
-        IncidenciasMapaConsultaRepository,
-        IncidenciasMapaConsultaService,
-        IncidenciasMapaEdicionService,
-        IncidenciasMapaEliminacionService
-    ],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    UsuariosModule,
+    ActividadesModule,
+  ],
+
+  controllers: [
+    IncidenciasCreacionController,
+    IncidenciasConsultaController,
+    IncidenciasEdicionController,
+    IncidenciasEliminacionController,
+    IncidenciasMapaCreacionController,
+    IncidenciasMapaConsultaController,
+    IncidenciasMapaEdicionController,
+    IncidenciasMapaEliminacionController,
+  ],
+
+  providers: [
+    ProyectoAccesoRepository,
+
+    NotificacionesRepository,
+
+    IncidenciasPlanoRepository,
+
+    IncidenciasRepository,
+
+    IncidenciasCreacionService,
+
+    IncidenciasConsultaRepository,
+
+    IncidenciasConsultaService,
+
+    IncidenciasEdicionService,
+
+    IncidenciasEliminacionService,
+
+    IncidenciasMapaCreacionService,
+
+    IncidenciasMapaConsultaRepository,
+
+    IncidenciasMapaConsultaService,
+
+    IncidenciasMapaEdicionService,
+
+    IncidenciasMapaEliminacionService,
+  ],
 })
-export class IncidenciasModule { }
+export class IncidenciasModule {}

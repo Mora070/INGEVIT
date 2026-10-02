@@ -10,54 +10,59 @@ import {
 @Injectable()
 export class NotificacionesLecturaService {
   constructor(
-    private readonly repositorio:
+    private readonly repository:
       NotificacionesLecturaRepository,
   ) {}
 
   async contarNoLeidas(
     idUsuario: string,
-  ) {
-    const total =
-      await this.repositorio.contarNoLeidas(
-        idUsuario,
-      );
-
-    return {
-      total,
-    };
+  ): Promise<number> {
+    return this.repository.contarNoLeidas(
+      idUsuario,
+    );
   }
 
   async marcarLeida(
     idUsuario: string,
     idNotificacion: string,
-  ) {
+  ): Promise<void> {
     const actualizada =
-      await this.repositorio.marcarLeida(
+      await this.repository.marcarLeida(
         idUsuario,
         idNotificacion,
       );
 
-    if (!actualizada) {
-      throw new NotFoundException(
-        'La notificación no existe o ya fue marcada como leída.',
-      );
+    if (
+      !actualizada
+    ) {
+      return;
     }
-
-    return {
-      ok: true,
-    };
   }
 
   async marcarTodasLeidas(
     idUsuario: string,
-  ) {
-    const actualizadas =
-      await this.repositorio.marcarTodasLeidas(
+  ): Promise<number> {
+    return this.repository.marcarTodasLeidas(
+      idUsuario,
+    );
+  }
+
+  async eliminar(
+    idUsuario: string,
+    idNotificacion: string,
+  ): Promise<void> {
+    const eliminada =
+      await this.repository.eliminar(
         idUsuario,
+        idNotificacion,
       );
 
-    return {
-      actualizadas,
-    };
+    if (
+      !eliminada
+    ) {
+      throw new NotFoundException(
+        'La notificación no existe o ya fue eliminada.',
+      );
+    }
   }
 }

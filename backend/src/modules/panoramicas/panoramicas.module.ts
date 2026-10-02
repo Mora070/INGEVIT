@@ -1,22 +1,43 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../../database/database.module';
+
 import {
   ProyectoAccesoRepository,
 } from '../../common/repositories/proyecto-acceso.repository';
 
-import { AuthModule } from '../auth/auth.module';
-import { UsuariosModule } from '../usuarios/usuarios.module';
-import { ActividadesModule } from '../actividades/actividades.module';
+import {
+  AuthModule,
+} from '../auth/auth.module';
+
+import {
+  UsuariosModule,
+} from '../usuarios/usuarios.module';
+
+import {
+  ActividadesModule,
+} from '../actividades/actividades.module';
+
 import {
   AlmacenamientoModule,
 } from '../almacenamiento/almacenamiento.module';
 
-import { PanoramicasRepository } from './panoramicas.repository';
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
+  PanoramicasRepository,
+} from './panoramicas.repository';
+
 import {
   PanoramicasPersistenciaService,
 } from './panoramicas-persistencia.service';
-import { PanoramicasSubidaService } from './panoramicas-subida.service';
+
+import {
+  PanoramicasSubidaService,
+} from './panoramicas-subida.service';
+
 import {
   PanoramicasSubidaController,
 } from './panoramicas-subida.controller';
@@ -61,7 +82,6 @@ import {
   PanoramicasEliminacionController,
 } from './panoramicas-eliminacion.controller';
 
-/** Agrupa la recepción y persistencia de imágenes panorámicas. */
 @Module({
   imports: [
     DatabaseModule,
@@ -70,19 +90,37 @@ import {
     ActividadesModule,
     AlmacenamientoModule,
   ],
-  controllers: [PanoramicasSubidaController,PanoramicasDescargaController,PanoramicasConsultaController,
-    PanoramicasEdicionController,PanoramicasEliminacionController ],
+
+  controllers: [
+    PanoramicasSubidaController,
+    PanoramicasDescargaController,
+    PanoramicasConsultaController,
+    PanoramicasEdicionController,
+    PanoramicasEliminacionController,
+  ],
+
   providers: [
     ProyectoAccesoRepository,
+
     PanoramicasRepository,
+
     PanoramicasPersistenciaService,
+
     PanoramicasSubidaService,
+
     PanoramicasDescargaRepository,
+
     PanoramicasDescargaService,
+
     PanoramicasConsultaRepository,
+
     PanoramicasConsultaService,
+
     PanoramicasEdicionService,
-    PanoramicasEliminacionService
+
+    PanoramicasEliminacionService,
+
+    NotificacionesRepository,
   ],
 })
 export class PanoramicasModule {}

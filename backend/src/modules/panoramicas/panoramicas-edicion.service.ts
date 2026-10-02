@@ -1,28 +1,53 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
-import { DatabaseService } from '../../database/database.service';
+import {
+  DatabaseService,
+} from '../../database/database.service';
+
 import {
   ProyectoAccesoRepository,
 } from '../../common/repositories/proyecto-acceso.repository';
+
 import {
   ActividadesRepository,
 } from '../actividades/actividades.repository';
 
-import { PanoramicasRepository } from './panoramicas.repository';
-import { mapearPanoramica } from './mappers/panoramica.mapper';
-import type { PanoramicaResponse } from './types/panoramica.types';
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
 
-/**
- * Guarda el título y su actividad en una misma transacción.
- * Permite la operación al propietario y a colaboradores con acceso.
- */
+import {
+  PanoramicasRepository,
+} from './panoramicas.repository';
+
+import {
+  mapearPanoramica,
+} from './mappers/panoramica.mapper';
+
+import type {
+  PanoramicaResponse,
+} from './types/panoramica.types';
+
 @Injectable()
 export class PanoramicasEdicionService {
   constructor(
-    private readonly database: DatabaseService,
-    private readonly acceso: ProyectoAccesoRepository,
-    private readonly panoramicas: PanoramicasRepository,
-    private readonly actividades: ActividadesRepository,
+    private readonly database:
+      DatabaseService,
+
+    private readonly acceso:
+      ProyectoAccesoRepository,
+
+    private readonly panoramicas:
+      PanoramicasRepository,
+
+    private readonly actividades:
+      ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
   async actualizarTitulo(
@@ -31,37 +56,91 @@ export class PanoramicasEdicionService {
     idUsuario: string,
     titulo: string,
   ): Promise<PanoramicaResponse> {
-    return this.database.withTransaction(async (client) => {
-      const disponible = await this.acceso.bloquearDisponible(
+    return this.database.withTransaction(
+      async (
         client,
-        idProyecto,
-        idUsuario,
-      );
+      ) => {
+        const disponible =
+          await this.acceso.bloquearDisponible(
+            client,
+            idProyecto,
+            idUsuario,
+          );
 
-      if (!disponible) {
-        throw new NotFoundException('El proyecto no está disponible.');
-      }
+        if (
+          !disponible
+        ) {
+          throw new NotFoundException(
+            'El proyecto no está disponible.',
+          );
+        }
 
-      const panoramica = await this.panoramicas.actualizarTitulo(
-        client,
-        idProyecto,
-        idPanoramica,
-        titulo,
-      );
+        const panoramica =
+          await this.panoramicas.actualizarTitulo(
+            client,
+            idProyecto,
+            idPanoramica,
+            titulo,
+          );
 
-      if (panoramica === null) {
-        throw new NotFoundException('La panorámica no está disponible.');
-      }
+        if (
+          panoramica ===
+          null
+        ) {
+          throw new NotFoundException(
+            'La panorámica no está disponible.',
+          );
+        }
 
-      // Registra cada guardado correcto, incluso si el título no cambió.
-      await this.actividades.crear(client, {
-        idProyecto,
-        idActor: idUsuario,
-        tipoAccion: 'PANORAMICA_TITULO_GUARDADO',
-        mensaje: `Título de la panorámica ${panoramica.id_panoramica} guardado.`,
-      });
+        await this.actividades.crear(
+          client,
+          {
+            idProyecto,
 
-      return mapearPanoramica(panoramica);
-    });
+            idActor:
+              idUsuario,
+
+            tipoAccion:
+              'PANORAMICA_TITULO_GUARDADO',
+
+            mensaje:
+              `Título de la panorámica ${panoramica.id_panoramica} guardado.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'PANORAMICA_EDITADA',
+
+            titulo:
+              'Panorámica 360° actualizada',
+
+            mensaje:
+              `Se actualizó la panorámica "${panoramica.titulo}".`,
+
+            destino:
+              'PANORAMICAS',
+
+            id_recurso:
+              panoramica.id_panoramica,
+          },
+        );
+
+        return mapearPanoramica(
+          panoramica,
+        );
+      },
+    );
   }
 }

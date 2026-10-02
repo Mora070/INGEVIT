@@ -1545,3 +1545,105 @@
     animation: none;
   }
 }
+.notificationRow {
+  position: relative;
+
+  display: flex;
+
+  width: 100%;
+
+  border-bottom:
+    1px solid
+    rgb(57 59 62 / 7%);
+
+  background: #ffffff;
+}
+
+.notificationRow:last-child {
+  border-bottom: 0;
+}
+
+.notificationRow .notificationItem {
+  flex: 1;
+
+  min-width: 0;
+
+  border-bottom: 0;
+}
+
+.notificationDeleteButton {
+  flex: 0 0 auto;
+
+  width: 42px;
+
+  min-height: 100%;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 0;
+
+  color:
+    var(--color-text-secondary);
+
+  background:
+    transparent;
+
+  border: 0;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.notificationDeleteButton:hover {
+  color: #b8462f;
+
+  background:
+    #fff1eb;
+}
+
+.notificationDeleteButton:focus-visible {
+  outline:
+    2px solid
+    var(--color-brand-orange);
+
+  outline-offset: -2px;
+}
+
+.notificationDeleteButton:disabled {
+  cursor: wait;
+
+  opacity: 0.45;
+}
+
+.notificationDeleteButton svg {
+  width: 18px;
+
+  height: 18px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  stroke-linecap: round;
+
+  stroke-linejoin: round;
+}
+
+@media (max-width: 420px) {
+  .notificationDeleteButton {
+    width: 38px;
+  }
+
+  .notificationDeleteButton svg {
+    width: 17px;
+
+    height: 17px;
+  }
+}

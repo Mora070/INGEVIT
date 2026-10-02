@@ -16,6 +16,10 @@ import {
 } from '../actividades/actividades.repository';
 
 import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
   PanoramicasPersistenciaService,
 } from './panoramicas-persistencia.service';
 
@@ -56,6 +60,9 @@ export class PanoramicasSubidaService {
 
     private readonly actividades:
       ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
   async subir(
@@ -76,7 +83,9 @@ export class PanoramicasSubidaService {
           ),
       );
 
-    if (!disponible) {
+    if (
+      !disponible
+    ) {
       throw new NotFoundException(
         'El proyecto no está disponible.',
       );
@@ -101,7 +110,9 @@ export class PanoramicasSubidaService {
             idUsuario,
           );
 
-        if (!sigueDisponible) {
+        if (
+          !sigueDisponible
+        ) {
           throw new NotFoundException(
             'El proyecto no está disponible.',
           );
@@ -149,6 +160,35 @@ export class PanoramicasSubidaService {
 
             mensaje:
               `Panorámica ${panoramica.id_panoramica} subida.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'PANORAMICA_CREADA',
+
+            titulo:
+              'Nueva panorámica 360°',
+
+            mensaje:
+              `Se agregó la panorámica "${panoramica.titulo}".`,
+
+            destino:
+              'PANORAMICAS',
+
+            id_recurso:
+              panoramica.id_panoramica,
           },
         );
 

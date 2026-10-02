@@ -66,10 +66,21 @@ def preparar(src, minzoom, maxzoom, max_tiles):
     if not (all(math.isfinite(v) for v in bounds)
             and -180 <= west < east <= 180 and -LIMIT <= south < north <= LIMIT):
         raise Rechazo('EXTENSION', 'La extensión no es compatible con esta generación Web Mercator.')
-    ranges = [(z, rango(bounds, z)) for z in range(minzoom, maxzoom + 1)]
-    total = sum((x1 - x0 + 1) * (y1 - y0 + 1) for _, (x0, y0, x1, y1) in ranges)
-    if total <= 0 or total > max_tiles:
-        raise Rechazo('LIMITE_TESELAS', f'Se requieren {total} teselas; el límite configurado es {max_tiles}.')
+    ranges = []
+    total = 0
+    for z in range(minzoom, maxzoom + 1):
+        limites = rango(bounds, z)
+        x0, y0, x1, y1 = limites
+        cantidad = (x1 - x0 + 1) * (y1 - y0 + 1)
+        if cantidad <= 0:
+            raise Rechazo('EXTENSION', 'La extensión no produce teselas válidas.')
+        if total + cantidad > max_tiles:
+            break
+        ranges.append((z, limites))
+        total += cantidad
+    if not ranges:
+        raise Rechazo('LIMITE_TESELAS',
+                      'Incluso el zoom mínimo supera el presupuesto de teselas.')
     return bands, alpha, bounds, ranges, total
 
 
@@ -93,8 +104,11 @@ def procesar(source, output, minzoom=12, maxzoom=22, max_tiles=10000,
                       GDAL_DISABLE_READDIR_ON_OPEN='EMPTY_DIR', GDAL_NUM_THREADS='1'):
         with rasterio.open(source, driver='GTiff', GEOREF_SOURCES='INTERNAL') as src:
             bands, alpha_index, bounds, ranges, total = preparar(src, minzoom, maxzoom, max_tiles)
+            zoom_solicitado = maxzoom
+            maxzoom = ranges[-1][0]
             plan = dict(evento='plan', ancho=src.width, alto=src.height,
                         bbox=list(bounds), zoom_min=minzoom, zoom_max=maxzoom,
+                        zoom_max_solicitado=zoom_solicitado,
                         total=total, bandas=list(bands), gdal=rasterio.__gdal_version__)
             print(json.dumps(plan), flush=True)
             if inspect_only:
@@ -141,8 +155,8 @@ def main():
     parser.add_argument('--maxzoom', type=int, default=22)
     parser.add_argument('--max-tiles', type=int, default=10000)
     parser.add_argument('--max-bytes', type=int, default=10737418240)
-    parser.add_argument('--cache-mb', type=int, default=256)
-    parser.add_argument('--warp-mb', type=int, default=64)
+    parser.add_argument('--cache-mb', type=int, default=3072)
+    parser.add_argument('--warp-mb', type=int, default=1024)
     parser.add_argument('--inspect-only', action='store_true')
     args = parser.parse_args()
     try:

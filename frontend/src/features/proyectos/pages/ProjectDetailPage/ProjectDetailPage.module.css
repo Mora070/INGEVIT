@@ -59,9 +59,7 @@
   display: grid;
 
   grid-template-columns:
-    minmax(0, 1.1fr)
-    minmax(320px, 0.9fr)
-    auto;
+    minmax(0, 1.1fr) minmax(320px, 0.9fr) auto;
 
   align-items: start;
 
@@ -72,14 +70,12 @@
   background: #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 
   border-radius: 16px;
 
   box-shadow:
-    0 10px 28px
-    rgb(40 42 44 / 5%);
+    0 10px 28px rgb(40 42 44 / 5%);
 }
 
 .heroInfo {
@@ -111,11 +107,9 @@
     var(--color-text-strong);
 
   font-size:
-    clamp(
-      1.8rem,
+    clamp(1.8rem,
       2.5vw,
-      2.4rem
-    );
+      2.4rem);
 
   font-weight: 800;
 
@@ -130,8 +124,7 @@
   min-height: 27px;
 
   padding:
-    0.3rem
-    0.65rem;
+    0.3rem 0.65rem;
 
   border-radius: 999px;
 
@@ -205,17 +198,15 @@
   display: grid;
 
   grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
+    repeat(3,
+      minmax(0, 1fr));
 
   gap: 1.2rem;
 
   margin-top: 0.55rem;
 }
 
-.projectMeta > div {
+.projectMeta>div {
   min-width: 0;
 
   display: grid;
@@ -294,11 +285,9 @@
   text-align: center;
 
   background:
-    linear-gradient(
-      135deg,
+    linear-gradient(135deg,
       rgb(57 59 62 / 3%),
-      rgb(234 117 26 / 5%)
-    );
+      rgb(234 117 26 / 5%));
 }
 
 .emptyCover svg {
@@ -363,8 +352,7 @@
   gap: 0.48rem;
 
   padding:
-    0.55rem
-    0.75rem;
+    0.55rem 0.75rem;
 
   border-radius: 9px;
 
@@ -391,25 +379,20 @@
     var(--color-brand-charcoal-dark);
 
   background:
-    linear-gradient(
-      135deg,
+    linear-gradient(135deg,
       #f5a02a,
-      var(--color-brand-orange)
-    );
+      var(--color-brand-orange));
 
   border:
-    1px solid
-    rgb(234 117 26 / 20%);
+    1px solid rgb(234 117 26 / 20%);
 
   box-shadow:
-    0 6px 16px
-    rgb(234 117 26 / 15%);
+    0 6px 16px rgb(234 117 26 / 15%);
 }
 
 .primaryButton:hover {
   box-shadow:
-    0 8px 20px
-    rgb(234 117 26 / 22%);
+    0 8px 20px rgb(234 117 26 / 22%);
 }
 
 .secondaryButton {
@@ -420,8 +403,7 @@
     #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 12%);
+    1px solid rgb(57 59 62 / 12%);
 }
 
 .secondaryButton:hover {
@@ -478,14 +460,12 @@
     #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 10%);
+    1px solid rgb(57 59 62 / 10%);
 
   border-radius: 10px;
 
   box-shadow:
-    0 18px 38px
-    rgb(40 42 44 / 13%);
+    0 18px 38px rgb(40 42 44 / 13%);
 }
 
 .uploadMenu button {
@@ -496,8 +476,7 @@
   gap: 0.12rem;
 
   padding:
-    0.65rem
-    0.7rem;
+    0.65rem 0.7rem;
 
   text-align: left;
 
@@ -559,15 +538,13 @@
   overflow-x: auto;
 
   padding:
-    0
-    0.25rem;
+    0 0.25rem;
 
   background:
     #ffffff;
 
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 9%);
+    1px solid rgb(57 59 62 / 9%);
 }
 
 .tabs button {
@@ -576,8 +553,7 @@
   flex: 0 0 auto;
 
   padding:
-    0.8rem
-    0.9rem;
+    0.8rem 0.9rem;
 
   color:
     var(--color-text-secondary);
@@ -619,10 +595,7 @@
     transparent;
 
   border-radius:
-    2px
-    2px
-    0
-    0;
+    2px 2px 0 0;
 }
 
 .tabs .tabActive {
@@ -641,8 +614,7 @@
 
 .inlineError {
   padding:
-    0.7rem
-    0.85rem;
+    0.7rem 0.85rem;
 
   color: #8e2f28;
 
@@ -650,8 +622,7 @@
     rgb(166 55 46 / 7%);
 
   border:
-    1px solid
-    rgb(166 55 46 / 13%);
+    1px solid rgb(166 55 46 / 13%);
 
   border-radius: 9px;
 
@@ -667,8 +638,7 @@
   display: grid;
 
   grid-template-columns:
-    minmax(0, 1.4fr)
-    minmax(280px, 0.6fr);
+    minmax(0, 1.4fr) minmax(280px, 0.6fr);
 
   gap: 1rem;
 }
@@ -679,14 +649,12 @@
   background: #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 
   border-radius: 14px;
 
   box-shadow:
-    0 8px 24px
-    rgb(40 42 44 / 4%);
+    0 8px 24px rgb(40 42 44 / 4%);
 }
 
 .cardHeader {
@@ -697,15 +665,13 @@
   gap: 1rem;
 
   padding:
-    1rem
-    1.1rem;
+    1rem 1.1rem;
 
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 7%);
+    1px solid rgb(57 59 62 / 7%);
 }
 
-.cardHeader > div {
+.cardHeader>div {
   min-width: 0;
 
   display: grid;
@@ -732,7 +698,7 @@
   font-size: 0.65rem;
 }
 
-.cardHeader > button {
+.cardHeader>button {
   flex: 0 0 auto;
 
   padding: 0;
@@ -758,10 +724,8 @@
   display: grid;
 
   grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    repeat(2,
+      minmax(0, 1fr));
 
   gap: 0.7rem;
 
@@ -777,8 +741,7 @@
     #f7f7f5;
 
   border:
-    1px solid
-    rgb(57 59 62 / 7%);
+    1px solid rgb(57 59 62 / 7%);
 
   border-radius: 10px;
 }
@@ -793,7 +756,7 @@
   object-fit: cover;
 }
 
-.photoCard > div {
+.photoCard>div {
   min-width: 0;
 
   display: flex;
@@ -803,8 +766,7 @@
   gap: 0.5rem;
 
   padding:
-    0.55rem
-    0.65rem;
+    0.55rem 0.65rem;
 }
 
 .photoCard strong {
@@ -824,8 +786,7 @@
   flex: 0 0 auto;
 
   padding:
-    0.2rem
-    0.4rem;
+    0.2rem 0.4rem;
 
   color:
     var(--color-brand-orange);
@@ -847,26 +808,22 @@
   margin: 0;
 
   padding:
-    0.25rem
-    1rem
-    1rem;
+    0.25rem 1rem 1rem;
 }
 
-.infoList > div {
+.infoList>div {
   display: grid;
 
   gap: 0.2rem;
 
   padding:
-    0.8rem
-    0;
+    0.8rem 0;
 
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 7%);
+    1px solid rgb(57 59 62 / 7%);
 }
 
-.infoList > div:last-child {
+.infoList>div:last-child {
   border-bottom: 0;
 }
 
@@ -900,10 +857,8 @@
   display: grid;
 
   grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
+    repeat(3,
+      minmax(0, 1fr));
 
   gap: 0.85rem;
 
@@ -919,13 +874,12 @@
     #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 
   border-radius: 11px;
 }
 
-.galleryCard > img {
+.galleryCard>img {
   width: 100%;
 
   aspect-ratio: 4 / 3;
@@ -943,7 +897,7 @@
   padding: 0.7rem;
 }
 
-.galleryInfo > div {
+.galleryInfo>div {
   min-width: 0;
 
   display: flex;
@@ -980,8 +934,7 @@
     #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 12%);
+    1px solid rgb(57 59 62 / 12%);
 
   border-radius: 7px;
 
@@ -1016,8 +969,7 @@
   flex: 0 0 auto;
 
   padding:
-    0.22rem
-    0.48rem;
+    0.22rem 0.48rem;
 
   color:
     var(--color-brand-orange);
@@ -1062,8 +1014,7 @@
   background: #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 
   border-radius: 14px;
 }
@@ -1106,8 +1057,7 @@
   background: #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 
   border-radius: 14px;
 
@@ -1133,8 +1083,7 @@
   height: 32px;
 
   border:
-    3px solid
-    rgb(57 59 62 / 10%);
+    3px solid rgb(57 59 62 / 10%);
 
   border-top-color:
     var(--color-brand-orange);
@@ -1142,16 +1091,14 @@
   border-radius: 50%;
 
   animation:
-    project-spin
-    700ms linear infinite;
+    project-spin 700ms linear infinite;
 }
 
 .backButton {
   width: fit-content;
 
   padding:
-    0.45rem
-    0.65rem;
+    0.45rem 0.65rem;
 
   color:
     var(--color-brand-charcoal);
@@ -1187,8 +1134,7 @@
 @media (max-width: 1100px) {
   .hero {
     grid-template-columns:
-      minmax(0, 1fr)
-      minmax(280px, 0.8fr);
+      minmax(0, 1fr) minmax(280px, 0.8fr);
   }
 
   .heroActions {
@@ -1198,10 +1144,8 @@
     display: grid;
 
     grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
+      repeat(3,
+        minmax(0, 1fr));
 
     min-width: 0;
   }
@@ -1239,18 +1183,14 @@
 
   .projectMeta {
     grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+      repeat(2,
+        minmax(0, 1fr));
   }
 
   .galleryGrid {
     grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+      repeat(2,
+        minmax(0, 1fr));
   }
 }
 
@@ -1298,8 +1238,7 @@
 
   .tabs button {
     padding:
-      0.75rem
-      0.7rem;
+      0.75rem 0.7rem;
 
     font-size: 0.68rem;
   }
@@ -1325,6 +1264,7 @@
    ========================= */
 
 @media (prefers-reduced-motion: reduce) {
+
   .primaryButton,
   .secondaryButton,
   .tabs button {
@@ -1370,8 +1310,7 @@
   cursor: pointer;
 
   box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.08);
+    0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .planMenuButton:hover {
@@ -1399,8 +1338,7 @@
   background: #ffffff;
 
   box-shadow:
-    0 12px 30px
-    rgba(0, 0, 0, 0.14);
+    0 12px 30px rgba(0, 0, 0, 0.14);
 }
 
 .planMenu button {
@@ -1469,9 +1407,7 @@
 
 .mapHeader p {
   margin:
-    0.3rem
-    0
-    0;
+    0.3rem 0 0;
 
   color:
     var(--color-text-secondary);
@@ -1484,18 +1420,15 @@
   position: relative;
 
   width: 100%;
-  height: min(
-    68vh,
-    720px
-  );
+  height: min(68vh,
+      720px);
 
   min-height: 520px;
 
   overflow: hidden;
 
   border:
-    1px solid
-    rgb(57 59 62 / 10%);
+    1px solid rgb(57 59 62 / 10%);
 
   border-radius: 12px;
 
@@ -1559,14 +1492,12 @@
     rgb(255 255 255 / 94%);
 
   border:
-    1px solid
-    rgb(57 59 62 / 12%);
+    1px solid rgb(57 59 62 / 12%);
 
   border-radius: 9px;
 
   box-shadow:
-    0 4px 14px
-    rgb(25 25 22 / 12%);
+    0 4px 14px rgb(25 25 22 / 12%);
 
   font-family:
     "Inter",
@@ -1599,8 +1530,7 @@
     rgb(234 117 26 / 28%);
 
   box-shadow:
-    0 6px 18px
-    rgb(25 25 22 / 16%);
+    0 6px 18px rgb(25 25 22 / 16%);
 
   transform:
     translateY(-1px);
@@ -1624,14 +1554,12 @@
     #ffffff;
 
   border:
-    1px solid
-    rgb(57 59 62 / 10%);
+    1px solid rgb(57 59 62 / 10%);
 
   border-radius: 10px;
 
   box-shadow:
-    0 16px 38px
-    rgb(25 25 22 / 16%);
+    0 16px 38px rgb(25 25 22 / 16%);
 }
 
 .planMenu button {
@@ -1643,8 +1571,7 @@
   min-height: 36px;
 
   padding:
-    0.55rem
-    0.7rem;
+    0.55rem 0.7rem;
 
   color:
     var(--color-text-strong);
@@ -1714,12 +1641,9 @@
  * Conservamos el recorte visual
  * de la imagen.
  */
-.galleryCard > img {
+.galleryCard>img {
   border-radius:
-    11px
-    11px
-    0
-    0;
+    11px 11px 0 0;
 }
 
 /* ======================================================
@@ -1734,5 +1658,290 @@
 
   .planMenu {
     width: 175px;
+  }
+}
+
+/* ======================================================
+   GALERÍA DE FOTOGRAFÍAS - VISOR
+   ====================================================== */
+
+.galleryGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3,
+      minmax(0, 1fr));
+
+  align-items: stretch;
+
+  gap: 0.85rem;
+
+  padding: 1rem;
+}
+
+.galleryCard {
+  position: relative;
+
+  min-width: 0;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    #ffffff;
+
+  border:
+    1px solid rgb(57 59 62 / 8%);
+
+  border-radius: 11px;
+
+  box-shadow:
+    0 3px 12px rgb(30 32 34 / 4%);
+}
+
+/*
+ * Las fotografías ahora están dentro
+ * de un botón para abrir PhotoViewer.
+ */
+.galleryCard>button {
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+
+  display: block;
+
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  padding: 0;
+
+  background:
+    #f3f4f3;
+
+  border: 0;
+
+  border-radius:
+    11px 11px 0 0;
+
+  cursor: zoom-in;
+}
+
+.galleryCard>button>img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+
+  transition:
+    transform 180ms ease;
+}
+
+.galleryCard>button:hover>img {
+  transform:
+    scale(1.025);
+}
+
+/*
+ * Sigue aplicando a panorámicas,
+ * que todavía tienen el img directamente
+ * dentro de galleryCard.
+ */
+.galleryCard>img {
+  width: 100%;
+
+  aspect-ratio: 4 / 3;
+
+  display: block;
+
+  flex: 0 0 auto;
+
+  object-fit: cover;
+  object-position: center;
+
+  border-radius:
+    11px 11px 0 0;
+}
+
+.galleryInfo {
+  min-width: 0;
+
+  min-height: 52px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  flex: 1;
+
+  gap: 0.45rem;
+
+  padding:
+    0.72rem 0.8rem;
+}
+
+.galleryInfo>div {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.55rem;
+}
+
+.galleryInfo strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color:
+    var(--color-text-strong);
+
+  font-size: 0.68rem;
+  font-weight: 750;
+
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/*
+ * Menú de tres puntos.
+ */
+.planActions {
+  position: absolute;
+
+  top: 0.65rem;
+  right: 0.65rem;
+
+  z-index: 20;
+}
+
+/* ======================================================
+   FOTOGRAFÍAS RECIENTES
+   ====================================================== */
+
+.photoCard {
+  min-width: 0;
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    #f7f7f5;
+
+  border:
+    1px solid rgb(57 59 62 / 7%);
+
+  border-radius: 10px;
+}
+
+.photoCard>button {
+  width: 100%;
+
+  aspect-ratio: 16 / 10;
+
+  display: block;
+
+  overflow: hidden;
+
+  padding: 0;
+
+  background:
+    #f3f4f3;
+
+  border: 0;
+
+  cursor: zoom-in;
+}
+
+.photoCard>button>img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+
+  transition:
+    transform 180ms ease;
+}
+
+.photoCard>button:hover>img {
+  transform:
+    scale(1.025);
+}
+
+.photoCard>div {
+  min-width: 0;
+
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.5rem;
+
+  padding:
+    0.55rem 0.65rem;
+}
+
+/* ======================================================
+   RESPONSIVE DE GALERÍA
+   ====================================================== */
+
+@media (max-width: 1100px) {
+  .galleryGrid {
+    grid-template-columns:
+      repeat(2,
+        minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .galleryGrid {
+    gap: 0.7rem;
+
+    padding: 0.85rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .galleryGrid {
+    grid-template-columns:
+      1fr;
+
+    padding: 0.8rem;
+  }
+
+  .galleryCard>button,
+  .galleryCard>img {
+    aspect-ratio:
+      16 / 10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .galleryCard>button>img,
+  .photoCard>button>img {
+    transition: none;
+  }
+
+  .galleryCard>button:hover>img,
+  .photoCard>button:hover>img {
+    transform: none;
   }
 }

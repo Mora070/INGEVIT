@@ -31,6 +31,21 @@ export interface DatosCrearProyecto {
   longitud?: number | null;
 }
 
+export interface DatosActualizarProyecto {
+  nombre: string;
+  descripcion: string;
+  direccion: string;
+  contratante: string;
+
+  fecha_inicio: string;
+  fecha_finalizacion?: string | null;
+
+  estado_proyecto: EstadoProyecto;
+
+  latitud?: number | null;
+  longitud?: number | null;
+}
+
 interface DatosAgregarColaborador {
   id_usuario: string;
 }
@@ -82,6 +97,21 @@ export function crearProyecto(
     '/api/proyectos',
     {
       method: 'POST',
+      ...cuerpoJson(datos),
+    },
+  );
+}
+
+export function actualizarProyecto(
+  idProyecto: string,
+  datos: DatosActualizarProyecto,
+): Promise<Proyecto> {
+  return http<Proyecto>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}`,
+    {
+      method: 'PUT',
       ...cuerpoJson(datos),
     },
   );

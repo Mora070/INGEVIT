@@ -1,7 +1,7 @@
 import {
   Controller,
+  Delete,
   Get,
-  Header,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -26,31 +26,36 @@ import {
 @UseGuards(AuthGuard)
 export class NotificacionesLecturaController {
   constructor(
-    private readonly lectura:
+    private readonly service:
       NotificacionesLecturaService,
   ) {}
 
   @Get('no-leidas/conteo')
-  @Header(
-    'Cache-Control',
-    'no-store',
-  )
   async contarNoLeidas(
     @Req()
     request: AuthRequest,
-  ) {
+  ): Promise<{
+    total: number;
+  }> {
     const usuario =
       request.usuario;
 
-    if (!usuario) {
+    if (
+      !usuario
+    ) {
       throw new UnauthorizedException(
         'La sesión no es válida o ha expirado.',
       );
     }
 
-    return this.lectura.contarNoLeidas(
-      usuario.id_usuario,
-    );
+    const total =
+      await this.service.contarNoLeidas(
+        usuario.id_usuario,
+      );
+
+    return {
+      total,
+    };
   }
 
   @Patch(':idNotificacion/leida')
@@ -60,41 +65,100 @@ export class NotificacionesLecturaController {
 
     @Param(
       'idNotificacion',
-      new ParseUUIDPipe(),
+      new ParseUUIDPipe({
+        version:
+          '4',
+      }),
     )
     idNotificacion: string,
-  ) {
+  ): Promise<{
+    ok: true;
+  }> {
     const usuario =
       request.usuario;
 
-    if (!usuario) {
+    if (
+      !usuario
+    ) {
       throw new UnauthorizedException(
         'La sesión no es válida o ha expirado.',
       );
     }
 
-    return this.lectura.marcarLeida(
+    await this.service.marcarLeida(
       usuario.id_usuario,
       idNotificacion,
     );
+
+    return {
+      ok:
+        true,
+    };
   }
 
   @Patch('leidas')
   async marcarTodasLeidas(
     @Req()
     request: AuthRequest,
-  ) {
+  ): Promise<{
+    actualizadas: number;
+  }> {
     const usuario =
       request.usuario;
 
-    if (!usuario) {
+    if (
+      !usuario
+    ) {
       throw new UnauthorizedException(
         'La sesión no es válida o ha expirado.',
       );
     }
 
-    return this.lectura.marcarTodasLeidas(
+    const actualizadas =
+      await this.service.marcarTodasLeidas(
+        usuario.id_usuario,
+      );
+
+    return {
+      actualizadas,
+    };
+  }
+
+  @Delete(':idNotificacion')
+  async eliminar(
+    @Req()
+    request: AuthRequest,
+
+    @Param(
+      'idNotificacion',
+      new ParseUUIDPipe({
+        version:
+          '4',
+      }),
+    )
+    idNotificacion: string,
+  ): Promise<{
+    ok: true;
+  }> {
+    const usuario =
+      request.usuario;
+
+    if (
+      !usuario
+    ) {
+      throw new UnauthorizedException(
+        'La sesión no es válida o ha expirado.',
+      );
+    }
+
+    await this.service.eliminar(
       usuario.id_usuario,
+      idNotificacion,
     );
+
+    return {
+      ok:
+        true,
+    };
   }
 }

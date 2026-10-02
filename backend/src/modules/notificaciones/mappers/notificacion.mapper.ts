@@ -16,6 +16,9 @@ export function mapearNotificacion(
     id_proyecto:
       notificacion.id_proyecto,
 
+    nombre_proyecto:
+      notificacion.nombre_proyecto,
+
     id_incidencia:
       notificacion.id_incidencia,
 

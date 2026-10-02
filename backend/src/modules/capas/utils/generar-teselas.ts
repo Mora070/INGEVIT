@@ -1,3 +1,4 @@
+import { Logger, UnprocessableEntityException } from '@nestjs/common';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { rm } from 'node:fs/promises';
@@ -14,6 +15,7 @@ import type { TeselaVerificada } from './verificar-teselas';
 import { ejecutarRasterio, getRasterioConfig } from './ejecutar-rasterio';
 
 const ejecutar = promisify(execFile);
+const logger = new Logger('GeneracionTeselas');
 
 export interface GeneracionTeselas {
   teselas: TeselaVerificada[];
@@ -48,7 +50,9 @@ export async function conTeselasGeneradas<T>(
 ): Promise<T> {
   const motor = validarMotorTeselas();
   // Python calcula su propia extensión densificada y el número de teselas.
-  if (motor === 'gdal') estimarTeselas(bbox, config);
+  let configEfectiva = motor === 'gdal'
+    ? seleccionarZoomGdal(bbox, config)
+    : { ...config };
   const temporal = await crearTemporalCapa(
   'teselas',
   raizTemporal,
@@ -56,9 +60,10 @@ export async function conTeselasGeneradas<T>(
   try {
     const salida = join(temporal, 'resultado');
     if (motor === 'python') {
-      await ejecutarRasterio(rutaOriginal, salida, config);
+      const zoomMax = await ejecutarRasterio(rutaOriginal, salida, config);
+      configEfectiva = { ...config, zoomMax };
     } else {
-      const argumentos = construirArgumentosTeselas(rutaOriginal, salida, config);
+      const argumentos = construirArgumentosTeselas(rutaOriginal, salida, configEfectiva);
       try {
         await ejecutar(config.ejecutable, argumentos, {
           encoding: 'utf8', shell: false, windowsHide: true,
@@ -75,12 +80,40 @@ export async function conTeselasGeneradas<T>(
         throw new Error('GDAL no pudo completar la generación de teselas.', { cause });
       }
     }
-    const teselas = await verificarTeselas(salida, config);
+    if (configEfectiva.zoomMax < config.zoomMax) {
+      logger.log(`Zoom ajustado de ${config.zoomMax} a ${configEfectiva.zoomMax} para respetar el límite de ${config.maxArchivos} teselas.`);
+    }
+    const teselas = await verificarTeselas(salida, configEfectiva);
     return await operacion({
       teselas, total: teselas.length,
-      zoomMin: config.zoomMin, zoomMax: config.zoomMax, tamano: 256,
+      zoomMin: configEfectiva.zoomMin, zoomMax: configEfectiva.zoomMax, tamano: 256,
     });
   } finally {
     await rm(temporal, { recursive: true, force: true });
   }
+}
+
+/** Solo reduce el zoom por exceso de teselas; otros errores se conservan. */
+export function seleccionarZoomGdal(
+  bbox: readonly [number, number, number, number],
+  config: TeselasConfig,
+): TeselasConfig {
+  for (let zoomMax = config.zoomMax; zoomMax >= config.zoomMin; zoomMax -= 1) {
+    const candidata = { ...config, zoomMax };
+    try {
+      estimarTeselas(bbox, candidata);
+      return candidata;
+    } catch (error: unknown) {
+      if (!(error instanceof UnprocessableEntityException)
+          || error.message !== 'El área y los niveles de zoom superan el máximo de teselas configurado.') {
+        throw error;
+      }
+      if (zoomMax === config.zoomMin) {
+        throw new UnprocessableEntityException(
+          'Incluso el zoom mínimo supera el presupuesto de teselas.',
+        );
+      }
+    }
+  }
+  throw new Error('La configuración de zoom no es válida.');
 }

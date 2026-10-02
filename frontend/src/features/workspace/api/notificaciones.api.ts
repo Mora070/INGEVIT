@@ -13,12 +13,20 @@ export type DestinoNotificacion =
 
 export interface Notificacion {
   id_notificacion: string;
+
   id_actor: string;
+
   id_proyecto: string;
-  id_incidencia: string | null;
+
+  nombre_proyecto: string;
+
+  id_incidencia:
+    string | null;
 
   tipo: string;
+
   titulo: string;
+
   mensaje: string;
 
   destino:
@@ -41,15 +49,20 @@ export interface ListaNotificacionesResponse {
     Notificacion[];
 
   pagina: number;
+
   limite: number;
+
   total: number;
 
-  total_paginas:
-    number;
+  total_paginas: number;
 }
 
 export interface ConteoNoLeidasResponse {
   total: number;
+}
+
+export interface VigenciaNotificacionResponse {
+  vigente: boolean;
 }
 
 export function listarNotificaciones(
@@ -92,5 +105,31 @@ export function marcarTodasNotificacionesLeidas() {
       method:
         'PATCH',
     },
+  );
+}
+
+export function eliminarNotificacion(
+  idNotificacion: string,
+) {
+  return http<{
+    ok: boolean;
+  }>(
+    `/api/notificaciones/${encodeURIComponent(
+      idNotificacion,
+    )}`,
+    {
+      method:
+        'DELETE',
+    },
+  );
+}
+
+export function comprobarVigenciaNotificacion(
+  idNotificacion: string,
+) {
+  return http<VigenciaNotificacionResponse>(
+    `/api/notificaciones/${encodeURIComponent(
+      idNotificacion,
+    )}/vigencia`,
   );
 }

@@ -1,6 +1,4 @@
-import {
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import {
   DatabaseService,
@@ -24,7 +22,8 @@ export interface NotificacionesConsultadas {
   notificaciones:
     NotificacionRow[];
 
-  total: number;
+  total:
+    number;
 }
 
 @Injectable()
@@ -44,7 +43,22 @@ export class NotificacionesConsultaRepository {
         `
           WITH disponibles AS (
             SELECT
-              notificacion.*
+              notificacion.id_notificacion,
+              notificacion.id_receptor,
+              notificacion.id_actor,
+              notificacion.id_proyecto,
+              proyecto.nombre AS nombre_proyecto,
+              notificacion.id_incidencia,
+              notificacion.tipo,
+              notificacion.titulo,
+              notificacion.mensaje,
+              notificacion.destino,
+              notificacion.id_recurso,
+              notificacion.estado_envio_correo,
+              notificacion.leida,
+              notificacion.fecha_leida,
+              notificacion.fecha_creacion
+
             FROM obra.notificaciones
               AS notificacion
 
@@ -70,27 +84,58 @@ export class NotificacionesConsultaRepository {
               AND receptor.estado =
                 'ACTIVO'
 
-              AND proyecto.activo =
-                TRUE
-
               AND propietario.estado =
                 'ACTIVO'
 
               AND (
-                proyecto.id_propietario =
-                  $1::uuid
+                /*
+                 * Notificaciones normales:
+                 * el proyecto sigue activo y el receptor
+                 * todavía tiene acceso.
+                 */
+                (
+                  proyecto.activo =
+                    TRUE
 
-                OR EXISTS (
-                  SELECT 1
-                  FROM obra.usuario_proyecto
-                    AS colaboracion
-
-                  WHERE
-                    colaboracion.id_proyecto =
-                      proyecto.id_proyecto
-
-                    AND colaboracion.id_usuario =
+                  AND (
+                    proyecto.id_propietario =
                       $1::uuid
+
+                    OR EXISTS (
+                      SELECT 1
+
+                      FROM obra.usuario_proyecto
+                        AS colaboracion
+
+                      WHERE
+                        colaboracion.id_proyecto =
+                          proyecto.id_proyecto
+
+                        AND colaboracion.id_usuario =
+                          $1::uuid
+                    )
+                  )
+                )
+
+                OR
+
+                /*
+                 * Notificación personal al colaborador retirado.
+                 *
+                 * En este momento ya no existe la relación
+                 * usuario_proyecto, por lo que debe conservarse
+                 * visible expresamente.
+                 *
+                 * destino NULL distingue este aviso personal
+                 * de la notificación COLABORADOR_RETIRADO que
+                 * reciben quienes continúan en el proyecto.
+                 */
+                (
+                  notificacion.tipo =
+                    'COLABORADOR_RETIRADO'
+
+                  AND notificacion.destino
+                    IS NULL
                 )
               )
           ),
@@ -99,19 +144,25 @@ export class NotificacionesConsultaRepository {
             SELECT
               COUNT(*)::text
                 AS total
+
             FROM disponibles
           ),
 
           seleccion AS (
-            SELECT *
+            SELECT
+              *
+
             FROM disponibles
 
             ORDER BY
               fecha_creacion DESC,
               id_notificacion DESC
 
-            LIMIT $2::integer
-            OFFSET $3::bigint
+            LIMIT
+              $2::integer
+
+            OFFSET
+              $3::bigint
           )
 
           SELECT
@@ -119,21 +170,17 @@ export class NotificacionesConsultaRepository {
             seleccion.id_receptor,
             seleccion.id_actor,
             seleccion.id_proyecto,
+            seleccion.nombre_proyecto,
             seleccion.id_incidencia,
-
             seleccion.tipo,
             seleccion.titulo,
             seleccion.mensaje,
-
             seleccion.destino,
             seleccion.id_recurso,
-
             seleccion.estado_envio_correo,
-
             seleccion.leida,
             seleccion.fecha_leida,
             seleccion.fecha_creacion,
-
             conteo.total
 
           FROM conteo
@@ -148,7 +195,11 @@ export class NotificacionesConsultaRepository {
         [
           idUsuario,
           limite,
-          (pagina - 1) * limite,
+          (
+            pagina -
+            1
+          ) *
+            limite,
         ],
       );
 
@@ -183,7 +234,8 @@ export class NotificacionesConsultaRepository {
       !Number.isSafeInteger(
         total,
       ) ||
-      total < 0
+      total <
+        0
     ) {
       throw new Error(
         'El total de notificaciones no puede representarse correctamente.',
@@ -191,11 +243,12 @@ export class NotificacionesConsultaRepository {
     }
 
     const notificaciones:
-      NotificacionRow[] = [];
+      NotificacionRow[] =
+        [];
 
     for (
-      const fila
-      of resultado.rows
+      const fila of
+      resultado.rows
     ) {
       if (
         fila.id_notificacion ===
@@ -216,6 +269,9 @@ export class NotificacionesConsultaRepository {
 
         id_proyecto:
           fila.id_proyecto,
+
+        nombre_proyecto:
+          fila.nombre_proyecto,
 
         id_incidencia:
           fila.id_incidencia,
@@ -253,5 +309,149 @@ export class NotificacionesConsultaRepository {
       notificaciones,
       total,
     };
+  }
+
+  /**
+   * Comprueba si una notificación continúa apuntando
+   * a un recurso existente.
+   *
+   * Las notificaciones informativas sin id_recurso
+   * permanecen vigentes.
+   */
+  async estaVigente(
+    idUsuario: string,
+    idNotificacion: string,
+  ): Promise<boolean> {
+    const resultado =
+      await this.database.query<{
+        vigente: boolean;
+      }>(
+        `
+          SELECT
+            CASE
+              WHEN notificacion.id_notificacion
+                IS NULL
+              THEN FALSE
+
+              WHEN notificacion.id_recurso
+                IS NULL
+              THEN TRUE
+
+              WHEN notificacion.destino =
+                'MAPA'
+              THEN EXISTS (
+                SELECT 1
+
+                FROM obra.incidencias
+                  AS incidencia
+
+                WHERE
+                  incidencia.id_incidencia =
+                    notificacion.id_recurso
+
+                  AND incidencia.id_proyecto =
+                    notificacion.id_proyecto
+              )
+
+              WHEN notificacion.destino =
+                'FOTOGRAFIAS'
+              THEN EXISTS (
+                SELECT 1
+
+                FROM obra.fotografias
+                  AS fotografia
+
+                WHERE
+                  fotografia.id_fotografia =
+                    notificacion.id_recurso
+
+                  AND fotografia.id_proyecto =
+                    notificacion.id_proyecto
+              )
+
+              WHEN notificacion.destino =
+                'PLANOS'
+              THEN EXISTS (
+                SELECT 1
+
+                FROM obra.planos
+                  AS plano
+
+                WHERE
+                  plano.id_plano =
+                    notificacion.id_recurso
+
+                  AND plano.id_proyecto =
+                    notificacion.id_proyecto
+              )
+
+              WHEN notificacion.destino =
+                'PANORAMICAS'
+              THEN EXISTS (
+                SELECT 1
+
+                FROM obra.panoramicas
+                  AS panoramica
+
+                WHERE
+                  panoramica.id_panoramica =
+                    notificacion.id_recurso
+
+                  AND panoramica.id_proyecto =
+                    notificacion.id_proyecto
+              )
+
+              WHEN notificacion.destino =
+                'CAPAS'
+              THEN EXISTS (
+                SELECT 1
+
+                FROM obra.capas
+                  AS capa
+
+                WHERE
+                  capa.id_capa =
+                    notificacion.id_recurso
+
+                  AND capa.id_proyecto =
+                    notificacion.id_proyecto
+              )
+
+              ELSE TRUE
+            END AS vigente
+
+          FROM (
+            SELECT
+              notificacion.*
+
+            FROM obra.notificaciones
+              AS notificacion
+
+            WHERE
+              notificacion.id_notificacion =
+                $1::uuid
+
+              AND notificacion.id_receptor =
+                $2::uuid
+
+            LIMIT 1
+          ) AS notificacion
+
+          RIGHT JOIN (
+            SELECT 1
+          ) AS siempre
+            ON TRUE
+        `,
+        [
+          idNotificacion,
+          idUsuario,
+        ],
+      );
+
+    return (
+      resultado.rows[0]
+        ?.vigente ===
+      true
+    );
   }
 }

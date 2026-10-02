@@ -3,11 +3,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { DatabaseService } from '../../database/database.service';
+import {
+  DatabaseService,
+} from '../../database/database.service';
 
 import {
   ActividadesRepository,
 } from '../actividades/actividades.repository';
+
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
 
 import {
   FotografiasAccesoRepository,
@@ -29,32 +35,25 @@ import type {
   FotografiaResponse,
 } from './types/fotografia.types';
 
-/**
- * Coordina la edición de metadatos de fotografías.
- *
- * La autorización, la actualización y la actividad utilizan
- * la misma conexión y transacción.
- *
- * No abre ni modifica archivos de almacenamiento.
- */
 @Injectable()
 export class FotografiasEdicionService {
   constructor(
-    private readonly database: DatabaseService,
-    private readonly acceso: FotografiasAccesoRepository,
-    private readonly fotografias: FotografiasRepository,
-    private readonly actividades: ActividadesRepository,
+    private readonly database:
+      DatabaseService,
+
+    private readonly acceso:
+      FotografiasAccesoRepository,
+
+    private readonly fotografias:
+      FotografiasRepository,
+
+    private readonly actividades:
+      ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
-  /**
-   * Guarda el título de una fotografía del proyecto.
-   *
-   * idUsuario debe proceder de la sesión autenticada.
-   * datos debe haber pasado la validación del DTO.
-   *
-   * El autor original de la fotografía se conserva.
-   * La actividad identifica al usuario que realiza este guardado.
-   */
   async actualizarTitulo(
     idProyecto: string,
     idFotografia: string,
@@ -62,11 +61,9 @@ export class FotografiasEdicionService {
     datos: ActualizarTituloFotografiaDto,
   ): Promise<FotografiaResponse> {
     return this.database.withTransaction(
-      async (client) => {
-        /*
-         * Reutilizamos la autorización con bloqueo para coordinar
-         * la operación con cambios de disponibilidad o colaboradores.
-         */
+      async (
+        client,
+      ) => {
         const disponible =
           await this.acceso.bloquearDisponible(
             client,
@@ -74,7 +71,9 @@ export class FotografiasEdicionService {
             idUsuario,
           );
 
-        if (!disponible) {
+        if (
+          !disponible
+        ) {
           throw new NotFoundException(
             'El proyecto no está disponible.',
           );
@@ -88,27 +87,56 @@ export class FotografiasEdicionService {
             datos.titulo,
           );
 
-        if (fotografia === null) {
+        if (
+          fotografia ===
+          null
+        ) {
           throw new NotFoundException(
             'La fotografía no está disponible.',
           );
         }
 
-        /*
-         * Si este registro falla, DatabaseService intenta revertir
-         * también la actualización del título.
-         *
-         * No incluimos el título enviado por el usuario en el mensaje.
-         */
         await this.actividades.crear(
           client,
           {
             idProyecto,
-            idActor: idUsuario,
+            idActor:
+              idUsuario,
+
             tipoAccion:
               'FOTOGRAFIA_TITULO_GUARDADO',
+
             mensaje:
               `Título de la fotografía ${fotografia.id_fotografia} guardado.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'FOTOGRAFIA_EDITADA',
+
+            titulo:
+              'Fotografía actualizada',
+
+            mensaje:
+              `Se actualizó la fotografía "${fotografia.titulo}".`,
+
+            destino:
+              'FOTOGRAFIAS',
+
+            id_recurso:
+              fotografia.id_fotografia,
           },
         );
 
@@ -119,29 +147,15 @@ export class FotografiasEdicionService {
     );
   }
 
-  /**
-   * Selecciona una fotografía como portada del proyecto.
-   *
-   * Solo el propietario activo del proyecto puede realizar
-   * esta operación.
-   *
-   * La fotografía debe pertenecer al mismo proyecto.
-   * El cambio de portada y el registro de actividad se ejecutan
-   * dentro de la misma transacción.
-   */
   async establecerPortada(
     idProyecto: string,
     idFotografia: string,
     idUsuario: string,
   ): Promise<FotografiaResponse> {
     return this.database.withTransaction(
-      async (client) => {
-        /*
-         * Esta operación es exclusiva del propietario.
-         *
-         * bloquearPropietario() también bloquea la fila del proyecto
-         * durante la transacción.
-         */
+      async (
+        client,
+      ) => {
         const esPropietario =
           await this.acceso.bloquearPropietario(
             client,
@@ -149,7 +163,9 @@ export class FotografiasEdicionService {
             idUsuario,
           );
 
-        if (!esPropietario) {
+        if (
+          !esPropietario
+        ) {
           throw new NotFoundException(
             'El proyecto no está disponible.',
           );
@@ -162,7 +178,10 @@ export class FotografiasEdicionService {
             idFotografia,
           );
 
-        if (fotografia === null) {
+        if (
+          fotografia ===
+          null
+        ) {
           throw new NotFoundException(
             'La fotografía no está disponible.',
           );
@@ -172,11 +191,43 @@ export class FotografiasEdicionService {
           client,
           {
             idProyecto,
-            idActor: idUsuario,
+            idActor:
+              idUsuario,
+
             tipoAccion:
               'FOTOGRAFIA_PORTADA_ESTABLECIDA',
+
             mensaje:
               `La fotografía ${fotografia.id_fotografia} fue establecida como portada del proyecto.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'FOTOGRAFIA_PORTADA_ESTABLECIDA',
+
+            titulo:
+              'Portada del proyecto actualizada',
+
+            mensaje:
+              'Se cambió la fotografía de portada del proyecto.',
+
+            destino:
+              'FOTOGRAFIAS',
+
+            id_recurso:
+              fotografia.id_fotografia,
           },
         );
 

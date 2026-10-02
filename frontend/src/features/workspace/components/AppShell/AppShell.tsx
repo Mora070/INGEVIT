@@ -14,6 +14,8 @@ import type {
 } from '../../../auth/types/usuario';
 
 import {
+  comprobarVigenciaNotificacion,
+  eliminarNotificacion,
   listarNotificaciones,
   marcarNotificacionLeida,
   marcarTodasNotificacionesLeidas,
@@ -37,30 +39,29 @@ interface AppShellProps {
   usuario: Usuario;
 
   seccionActiva:
-    SeccionWorkspace;
+  SeccionWorkspace;
 
   children:
-    ReactNode;
+  ReactNode;
 
   onIrInicio:
-    () => void;
+  () => void;
 
   onIrProyectos:
-    () => void;
+  () => void;
 
   onIrPerfil:
-    () => void;
+  () => void;
 
   onAbrirNotificacion: (
-    notificacion:
-      Notificacion,
+    notificacion: Notificacion,
   ) => void;
 
   onCerrarSesion:
-    () => void;
+  () => void;
 
   cerrandoSesion?:
-    boolean;
+  boolean;
 }
 
 function obtenerIniciales(
@@ -78,13 +79,7 @@ function obtenerIniciales(
     nombre ||
     apellidos
   ) {
-    const primera =
-      nombre.charAt(0);
-
-    const segunda =
-      apellidos.charAt(0);
-
-    return `${primera}${segunda}`
+    return `${nombre.charAt(0)}${apellidos.charAt(0)}`
       .toUpperCase()
       .slice(
         0,
@@ -143,7 +138,7 @@ function formatearFechaNotificacion(
   const minutos =
     Math.floor(
       diferenciaMs /
-        60_000,
+      60_000,
     );
 
   if (
@@ -163,7 +158,7 @@ function formatearFechaNotificacion(
   const horas =
     Math.floor(
       minutos /
-        60,
+      60,
     );
 
   if (
@@ -176,7 +171,7 @@ function formatearFechaNotificacion(
   const dias =
     Math.floor(
       horas /
-        24,
+      24,
     );
 
   if (
@@ -270,6 +265,16 @@ export function AppShell({
       false,
     );
 
+  const [
+    eliminandoNotificacionId,
+    setEliminandoNotificacionId,
+  ] =
+    useState<
+      string | null
+    >(
+      null,
+    );
+
   const menuUsuarioRef =
     useRef<
       HTMLDivElement | null
@@ -361,7 +366,7 @@ export function AppShell({
 
       eventos.onerror =
         () => {
-          // EventSource se reconecta automáticamente.
+          // EventSource intenta reconectarse automáticamente.
         };
 
       function actualizarAlVolver() {
@@ -539,14 +544,146 @@ export function AppShell({
     }
   }
 
-  async function abrirNotificacion(
+  async function borrarNotificacion(
     notificacion:
       Notificacion,
   ) {
     if (
-      !notificacion.leida
+      eliminandoNotificacionId
     ) {
-      try {
+      return;
+    }
+
+    setEliminandoNotificacionId(
+      notificacion.id_notificacion,
+    );
+
+    setErrorNotificaciones(
+      '',
+    );
+
+    try {
+      await eliminarNotificacion(
+        notificacion.id_notificacion,
+      );
+
+      setNotificaciones(
+        (
+          actuales,
+        ) =>
+          actuales.filter(
+            (
+              item,
+            ) =>
+              item.id_notificacion !==
+              notificacion.id_notificacion,
+          ),
+      );
+
+      if (
+        !notificacion.leida
+      ) {
+        setTotalNoLeidas(
+          (
+            actual,
+          ) =>
+            Math.max(
+              0,
+              actual -
+              1,
+            ),
+        );
+      }
+    } catch {
+      setErrorNotificaciones(
+        'No fue posible eliminar la notificación.',
+      );
+    } finally {
+      setEliminandoNotificacionId(
+        null,
+      );
+    }
+  }
+
+  async function abrirNotificacion(
+    notificacion: Notificacion,
+  ) {
+    setErrorNotificaciones(
+      '',
+    );
+
+    try {
+      /*
+       * Si el usuario fue retirado del proyecto,
+       * esta notificación es solamente informativa.
+       *
+       * Se marca como leída, pero no intentamos
+       * abrir un proyecto al que ya no tiene acceso.
+       */
+      if (
+        notificacion.tipo ===
+        'COLABORADOR_RETIRADO' &&
+        notificacion.destino ===
+        null
+      ) {
+        if (
+          !notificacion.leida
+        ) {
+          await marcarNotificacionLeida(
+            notificacion.id_notificacion,
+          );
+
+          setNotificaciones(
+            (
+              actuales,
+            ) =>
+              actuales.map(
+                (
+                  item,
+                ) =>
+                  item.id_notificacion ===
+                    notificacion.id_notificacion
+                    ? {
+                      ...item,
+
+                      leida:
+                        true,
+
+                      fecha_leida:
+                        new Date().toISOString(),
+                    }
+                    : item,
+              ),
+          );
+
+          setTotalNoLeidas(
+            (
+              actual,
+            ) =>
+              Math.max(
+                0,
+                actual - 1,
+              ),
+          );
+        }
+
+        setNotificacionesAbiertas(
+          false,
+        );
+
+        return;
+      }
+
+      const {
+        vigente,
+      } =
+        await comprobarVigenciaNotificacion(
+          notificacion.id_notificacion,
+        );
+
+      if (
+        !notificacion.leida
+      ) {
         await marcarNotificacionLeida(
           notificacion.id_notificacion,
         );
@@ -560,16 +697,16 @@ export function AppShell({
                 item,
               ) =>
                 item.id_notificacion ===
-                notificacion.id_notificacion
+                  notificacion.id_notificacion
                   ? {
-                      ...item,
+                    ...item,
 
-                      leida:
-                        true,
+                    leida:
+                      true,
 
-                      fecha_leida:
-                        new Date().toISOString(),
-                    }
+                    fecha_leida:
+                      new Date().toISOString(),
+                  }
                   : item,
             ),
         );
@@ -580,33 +717,40 @@ export function AppShell({
           ) =>
             Math.max(
               0,
-              actual -
-                1,
+              actual - 1,
             ),
         );
-      } catch {
-        setErrorNotificaciones(
-          'No fue posible marcar la notificación como leída.',
+      }
+
+      if (
+        !vigente
+      ) {
+        window.alert(
+          'Esta notificación expiró porque el recurso ya no existe.',
         );
 
         return;
       }
+
+      setNotificacionesAbiertas(
+        false,
+      );
+
+      onAbrirNotificacion(
+        notificacion,
+      );
+    } catch {
+      setErrorNotificaciones(
+        'No fue posible abrir la notificación.',
+      );
     }
-
-    setNotificacionesAbiertas(
-      false,
-    );
-
-    onAbrirNotificacion(
-      notificacion,
-    );
   }
 
   async function marcarTodas() {
     if (
       marcandoTodas ||
       totalNoLeidas ===
-        0
+      0
     ) {
       return;
     }
@@ -716,15 +860,14 @@ export function AppShell({
             }
           >
             <button
-              className={`${styles.notificationButton} ${
-                notificacionesAbiertas
+              className={`${styles.notificationButton} ${notificacionesAbiertas
                   ? styles.notificationButtonActive
                   : ''
-              }`}
+                }`}
               type="button"
               aria-label={
                 totalNoLeidas >
-                0
+                  0
                   ? `Notificaciones, ${totalNoLeidas} sin leer`
                   : 'Notificaciones'
               }
@@ -751,17 +894,17 @@ export function AppShell({
 
               {totalNoLeidas >
                 0 && (
-                <span
-                  className={
-                    styles.notificationBadge
-                  }
-                >
-                  {totalNoLeidas >
-                  99
-                    ? '99+'
-                    : totalNoLeidas}
-                </span>
-              )}
+                  <span
+                    className={
+                      styles.notificationBadge
+                    }
+                  >
+                    {totalNoLeidas >
+                      99
+                      ? '99+'
+                      : totalNoLeidas}
+                  </span>
+                )}
             </button>
 
             {notificacionesAbiertas && (
@@ -783,7 +926,7 @@ export function AppShell({
 
                     <span>
                       {totalNoLeidas >
-                      0
+                        0
                         ? `${totalNoLeidas} sin leer`
                         : 'Actividad reciente'}
                     </span>
@@ -791,23 +934,23 @@ export function AppShell({
 
                   {totalNoLeidas >
                     0 && (
-                    <button
-                      className={
-                        styles.notificationsMarkAll
-                      }
-                      type="button"
-                      disabled={
-                        marcandoTodas
-                      }
-                      onClick={() => {
-                        void marcarTodas();
-                      }}
-                    >
-                      {marcandoTodas
-                        ? 'Marcando...'
-                        : 'Marcar todas como leídas'}
-                    </button>
-                  )}
+                      <button
+                        className={
+                          styles.notificationsMarkAll
+                        }
+                        type="button"
+                        disabled={
+                          marcandoTodas
+                        }
+                        onClick={() => {
+                          void marcarTodas();
+                        }}
+                      >
+                        {marcandoTodas
+                          ? 'Marcando...'
+                          : 'Marcar todas como leídas'}
+                      </button>
+                    )}
                 </header>
 
                 {cargandoNotificaciones ? (
@@ -892,64 +1035,103 @@ export function AppShell({
                       (
                         notificacion,
                       ) => (
-                        <button
+                        <div
                           key={
                             notificacion.id_notificacion
                           }
-                          className={`${styles.notificationItem} ${
-                            !notificacion.leida
-                              ? styles.notificationItemUnread
-                              : ''
-                          }`}
-                          type="button"
-                          onClick={() => {
-                            void abrirNotificacion(
-                              notificacion,
-                            );
-                          }}
+                          className={
+                            styles.notificationRow
+                          }
                         >
-                          <span
-                            className={
-                              styles.notificationItemIcon
-                            }
-                            aria-hidden="true"
+                          <button
+                            className={`${styles.notificationItem} ${!notificacion.leida
+                                ? styles.notificationItemUnread
+                                : ''
+                              }`}
+                            type="button"
+                            onClick={() => {
+                              void abrirNotificacion(
+                                notificacion,
+                              );
+                            }}
                           >
-                            !
-                          </span>
-
-                          <span
-                            className={
-                              styles.notificationItemContent
-                            }
-                          >
-                            <strong>
-                              {
-                                notificacion.titulo
-                              }
-                            </strong>
-
-                            <span>
-                              {
-                                notificacion.mensaje
-                              }
-                            </span>
-
-                            <small>
-                              {formatearFechaNotificacion(
-                                notificacion.fecha_creacion,
-                              )}
-                            </small>
-                          </span>
-
-                          {!notificacion.leida && (
                             <span
                               className={
-                                styles.notificationUnreadDot
+                                styles.notificationItemIcon
                               }
-                              aria-label="Sin leer"
-                            />
-                          )}
-                        </button>
+                              aria-hidden="true"
+                            >
+                              !
+                            </span>
+
+                            <span
+                              className={
+                                styles.notificationItemContent
+                              }
+                            >
+                              <strong>
+                                {
+                                  notificacion.titulo
+                                }
+                              </strong>
+
+                              <span>
+                                {
+                                  notificacion.mensaje
+                                }
+                              </span>
+
+                              <small>
+                                Proyecto:{' '}
+                                {
+                                  notificacion.nombre_proyecto
+                                }
+                                {' · '}
+                                {formatearFechaNotificacion(
+                                  notificacion.fecha_creacion,
+                                )}
+                              </small>
+                            </span>
+
+                            {!notificacion.leida && (
+                              <span
+                                className={
+                                  styles.notificationUnreadDot
+                                }
+                                aria-label="Sin leer"
+                              />
+                            )}
+                          </button>
+
+                          <button
+                            className={
+                              styles.notificationDeleteButton
+                            }
+                            type="button"
+                            aria-label="Eliminar notificación"
+                            title="Eliminar notificación"
+                            disabled={
+                              eliminandoNotificacionId ===
+                              notificacion.id_notificacion
+                            }
+                            onClick={() => {
+                              void borrarNotificacion(
+                                notificacion,
+                              );
+                            }}
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M4 7h16" />
+                              <path d="M10 11v6" />
+                              <path d="M14 11v6" />
+                              <path d="M6 7l1 13h10l1-13" />
+                              <path d="M9 7V4h6v3" />
+                            </svg>
+                          </button>
+                        </div>
                       ),
                     )}
                   </div>
@@ -1022,18 +1204,17 @@ export function AppShell({
 
                 <span>
                   {usuario.rol ===
-                  'ADMINISTRADOR'
+                    'ADMINISTRADOR'
                     ? 'Administrador'
                     : 'Usuario'}
                 </span>
               </div>
 
               <span
-                className={`${styles.userMenuButton} ${
-                  menuUsuarioAbierto
+                className={`${styles.userMenuButton} ${menuUsuarioAbierto
                     ? styles.userMenuButtonOpen
                     : ''
-                }`}
+                  }`}
                 aria-hidden="true"
               >
                 <svg
@@ -1183,19 +1364,18 @@ export function AppShell({
           aria-label="Navegación principal"
         >
           <button
-            className={`${styles.navItem} ${
-              seccionActiva ===
-              'inicio'
+            className={`${styles.navItem} ${seccionActiva ===
+                'inicio'
                 ? styles.navItemActive
                 : ''
-            }`}
+              }`}
             type="button"
             onClick={
               onIrInicio
             }
             aria-current={
               seccionActiva ===
-              'inicio'
+                'inicio'
                 ? 'page'
                 : undefined
             }
@@ -1223,19 +1403,18 @@ export function AppShell({
           </button>
 
           <button
-            className={`${styles.navItem} ${
-              seccionActiva ===
-              'proyectos'
+            className={`${styles.navItem} ${seccionActiva ===
+                'proyectos'
                 ? styles.navItemActive
                 : ''
-            }`}
+              }`}
             type="button"
             onClick={
               onIrProyectos
             }
             aria-current={
               seccionActiva ===
-              'proyectos'
+                'proyectos'
                 ? 'page'
                 : undefined
             }
@@ -1259,19 +1438,18 @@ export function AppShell({
           </button>
 
           <button
-            className={`${styles.navItem} ${
-              seccionActiva ===
-              'perfil'
+            className={`${styles.navItem} ${seccionActiva ===
+                'perfil'
                 ? styles.navItemActive
                 : ''
-            }`}
+              }`}
             type="button"
             onClick={
               onIrPerfil
             }
             aria-current={
               seccionActiva ===
-              'perfil'
+                'perfil'
                 ? 'page'
                 : undefined
             }

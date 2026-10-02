@@ -14,13 +14,22 @@ export type DestinoNotificacion =
 
 export interface NotificacionRow {
   id_notificacion: string;
+
   id_receptor: string;
+
   id_actor: string;
+
   id_proyecto: string;
-  id_incidencia: string | null;
+
+  nombre_proyecto: string;
+
+  id_incidencia:
+    string | null;
 
   tipo: string;
+
   titulo: string;
+
   mensaje: string;
 
   destino:
@@ -43,12 +52,20 @@ export interface NotificacionRow {
 
 export interface NotificacionResponse {
   id_notificacion: string;
+
   id_actor: string;
+
   id_proyecto: string;
-  id_incidencia: string | null;
+
+  nombre_proyecto: string;
+
+  id_incidencia:
+    string | null;
 
   tipo: string;
+
   titulo: string;
+
   mensaje: string;
 
   destino:

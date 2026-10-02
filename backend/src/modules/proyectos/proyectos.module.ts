@@ -1,24 +1,41 @@
 import { Module } from '@nestjs/common';
 
-import { DatabaseModule } from '../../database/database.module';
-import { AuthModule } from '../auth/auth.module';
-import { UsuariosModule } from '../usuarios/usuarios.module';
-import { ProyectosController } from './proyectos.controller';
-import { ProyectosRepository } from './proyectos.repository';
-import { ProyectosService } from './proyectos.service';
-import { ActividadesModule } from '../actividades/actividades.module';
+import {
+  DatabaseModule,
+} from '../../database/database.module';
+
+import {
+  AuthModule,
+} from '../auth/auth.module';
+
+import {
+  UsuariosModule,
+} from '../usuarios/usuarios.module';
+
+import {
+  ActividadesModule,
+} from '../actividades/actividades.module';
+
 import {
   FotografiasModule,
 } from '../fotografias/fotografias.module';
 
-/**
- * Agrupa las rutas y los casos de uso de proyectos.
- *
- * AuthModule y UsuariosModule proporcionan las dependencias
- * que necesita AuthGuard.
- *
- * DatabaseModule mantiene el pool compartido.
- */
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
+  ProyectosController,
+} from './proyectos.controller';
+
+import {
+  ProyectosRepository,
+} from './proyectos.repository';
+
+import {
+  ProyectosService,
+} from './proyectos.service';
+
 @Module({
   imports: [
     DatabaseModule,
@@ -27,12 +44,15 @@ import {
     ActividadesModule,
     FotografiasModule,
   ],
+
   controllers: [
     ProyectosController,
   ],
+
   providers: [
     ProyectosRepository,
     ProyectosService,
+    NotificacionesRepository,
   ],
 })
 export class ProyectosModule {}

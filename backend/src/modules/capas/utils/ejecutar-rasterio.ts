@@ -38,7 +38,7 @@ export async function ejecutarRasterio(
   original: string,
   salida: string,
   config: TeselasConfig,
-): Promise<void> {
+): Promise<number> {
   const rasterio = getRasterioConfig();
   if (config.zoomMax > 24) {
     throw new Error('El procesador Rasterio admite hasta zoom 24.');
@@ -48,7 +48,7 @@ export async function ejecutarRasterio(
     if (/^(GDAL_|PROJ_|PYTHON)/i.test(nombre)) delete env[nombre];
   }
   try {
-    await ejecutar(rasterio.python, [
+    const { stdout } = await ejecutar(rasterio.python, [
       '-I', '-u', rasterio.script,
       '--input', original, '--output', salida,
       '--minzoom', String(config.zoomMin), '--maxzoom', String(config.zoomMax),
@@ -59,9 +59,11 @@ export async function ejecutarRasterio(
       env, encoding: 'utf8', shell: false, windowsHide: true,
       timeout: config.timeoutMs, maxBuffer: 4 * 1024 * 1024,
     });
+    return leerZoomRasterio(stdout, config);
+
   } catch (cause: unknown) {
     const mensajes: Record<string, string> = {
-      LIMITE_TESELAS: 'El área y los zoom superan el presupuesto de teselas.',
+      LIMITE_TESELAS: 'Incluso el zoom mínimo supera el presupuesto de teselas.',
       LIMITE_DISCO: 'Las teselas superan el presupuesto de almacenamiento.',
       TIPO_DATO: 'El GeoTIFF necesita una política de conversión a Byte.',
       BANDAS: 'No se identificaron bandas RGB o grises.',
@@ -87,4 +89,31 @@ export async function ejecutarRasterio(
     logger.warn(mensaje);
     throw new Error(mensaje, { cause });
   }
+}
+
+/** Acepta únicamente un plan válido dentro del presupuesto solicitado. */
+export function leerZoomRasterio(
+  stdout: string,
+  config: Pick<TeselasConfig, 'zoomMin' | 'zoomMax' | 'maxArchivos'>,
+): number {
+  let zoom: number | undefined;
+  for (const linea of stdout.split(/\r?\n/)) {
+    if (!linea.trim()) continue;
+    const evento: unknown = JSON.parse(linea);
+    if (!evento || typeof evento !== 'object'
+        || !('evento' in evento) || evento.evento !== 'plan') continue;
+    if (zoom !== undefined || !('zoom_min' in evento)
+        || evento.zoom_min !== config.zoomMin
+        || !('zoom_max' in evento) || typeof evento.zoom_max !== 'number'
+        || !Number.isInteger(evento.zoom_max)
+        || evento.zoom_max < config.zoomMin || evento.zoom_max > config.zoomMax
+        || !('total' in evento) || typeof evento.total !== 'number'
+        || !Number.isSafeInteger(evento.total)
+        || evento.total < 1 || evento.total > config.maxArchivos) {
+      throw new Error('Python devolvió un plan de teselas inválido.');
+    }
+    zoom = evento.zoom_max;
+  }
+  if (zoom === undefined) throw new Error('Python no devolvió el plan de teselas.');
+  return zoom;
 }

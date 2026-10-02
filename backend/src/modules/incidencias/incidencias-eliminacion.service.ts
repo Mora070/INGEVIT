@@ -1,18 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
-import { DatabaseService } from '../../database/database.service';
+import {
+  DatabaseService,
+} from '../../database/database.service';
+
 import {
   ProyectoAccesoRepository,
 } from '../../common/repositories/proyecto-acceso.repository';
+
 import {
   ActividadesRepository,
 } from '../actividades/actividades.repository';
 
-import { IncidenciasPlanoRepository } from './incidencias-plano.repository';
-import { IncidenciasRepository } from './incidencias.repository';
+import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
+  IncidenciasPlanoRepository,
+} from './incidencias-plano.repository';
+
+import {
+  IncidenciasRepository,
+} from './incidencias.repository';
 
 /**
- * Elimina una incidencia propia y registra la actividad.
+ * Elimina una incidencia propia, registra la actividad
+ * y notifica a los demás participantes del proyecto.
  *
  * Ser propietario del proyecto o administrador global no permite
  * eliminar directamente una incidencia creada por otro usuario.
@@ -20,11 +37,23 @@ import { IncidenciasRepository } from './incidencias.repository';
 @Injectable()
 export class IncidenciasEliminacionService {
   constructor(
-    private readonly database: DatabaseService,
-    private readonly acceso: ProyectoAccesoRepository,
-    private readonly planos: IncidenciasPlanoRepository,
-    private readonly incidencias: IncidenciasRepository,
-    private readonly actividades: ActividadesRepository,
+    private readonly database:
+      DatabaseService,
+
+    private readonly acceso:
+      ProyectoAccesoRepository,
+
+    private readonly planos:
+      IncidenciasPlanoRepository,
+
+    private readonly incidencias:
+      IncidenciasRepository,
+
+    private readonly actividades:
+      ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
   async eliminar(
@@ -33,46 +62,103 @@ export class IncidenciasEliminacionService {
     idIncidencia: string,
     idUsuario: string,
   ): Promise<void> {
-    await this.database.withTransaction(async (client) => {
-      const disponible = await this.acceso.bloquearDisponible(
+    await this.database.withTransaction(
+      async (
         client,
-        idProyecto,
-        idUsuario,
-      );
+      ) => {
+        const disponible =
+          await this.acceso.bloquearDisponible(
+            client,
+            idProyecto,
+            idUsuario,
+          );
 
-      if (!disponible) {
-        throw new NotFoundException('El proyecto no está disponible.');
-      }
+        if (
+          !disponible
+        ) {
+          throw new NotFoundException(
+            'El proyecto no está disponible.',
+          );
+        }
 
-      const paginas = await this.planos.bloquearDisponible(
-        client,
-        idProyecto,
-        idPlano,
-      );
+        const paginas =
+          await this.planos.bloquearDisponible(
+            client,
+            idProyecto,
+            idPlano,
+          );
 
-      if (paginas === null) {
-        throw new NotFoundException('El plano no está disponible.');
-      }
+        if (
+          paginas ===
+          null
+        ) {
+          throw new NotFoundException(
+            'El plano no está disponible.',
+          );
+        }
 
-      const eliminada = await this.incidencias.eliminarPropia(
-        client,
-        idProyecto,
-        idPlano,
-        idIncidencia,
-        idUsuario,
-      );
+        const eliminada =
+          await this.incidencias.eliminarPropia(
+            client,
+            idProyecto,
+            idPlano,
+            idIncidencia,
+            idUsuario,
+          );
 
-      if (!eliminada) {
-        // La misma respuesta cubre inexistencia y autoría ajena.
-        throw new NotFoundException('La incidencia no está disponible.');
-      }
+        if (
+          !eliminada
+        ) {
+          throw new NotFoundException(
+            'La incidencia no está disponible.',
+          );
+        }
 
-      await this.actividades.crear(client, {
-        idProyecto,
-        idActor: idUsuario,
-        tipoAccion: 'INCIDENCIA_ELIMINADA',
-        mensaje: `Incidencia ${idIncidencia} eliminada.`,
-      });
-    });
+        await this.actividades.crear(
+          client,
+          {
+            idProyecto,
+
+            idActor:
+              idUsuario,
+
+            tipoAccion:
+              'INCIDENCIA_ELIMINADA',
+
+            mensaje:
+              `Incidencia ${idIncidencia} eliminada.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'INCIDENCIA_ELIMINADA',
+
+            titulo:
+              'Incidencia eliminada',
+
+            mensaje:
+              'Se eliminó una incidencia del proyecto.',
+
+            destino:
+              'MAPA',
+
+            id_recurso:
+              null,
+          },
+        );
+      },
+    );
   }
 }

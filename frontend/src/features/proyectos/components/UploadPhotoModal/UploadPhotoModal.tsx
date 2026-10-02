@@ -3,6 +3,10 @@ import {
   useState,
 } from 'react';
 
+import type {
+  MouseEvent,
+} from 'react';
+
 import {
   subirFotografiaProyecto,
 } from '../../api/fotografias.api';
@@ -22,12 +26,6 @@ interface UploadPhotoModalProps {
 
   archivo: File;
 
-  /*
-   * Se mantienen temporalmente por compatibilidad
-   * con los componentes que todavía puedan enviarlas.
-   *
-   * Ya no se utilizan para subir la fotografía.
-   */
   latitudProyecto?:
     number | null;
 
@@ -41,6 +39,34 @@ interface UploadPhotoModalProps {
       FotografiaProyecto,
   ) => void;
 }
+
+interface ValidacionFotografia {
+  valida: boolean;
+
+  esPanoramica360:
+    boolean;
+
+  ancho:
+    number | null;
+
+  alto:
+    number | null;
+
+  mensaje:
+    string | null;
+}
+
+const ANCHO_MINIMO_PANORAMICA =
+  2048;
+
+const ALTO_MINIMO_PANORAMICA =
+  1024;
+
+const PROPORCION_MINIMA_PANORAMICA =
+  1.98;
+
+const PROPORCION_MAXIMA_PANORAMICA =
+  2.02;
 
 function obtenerTituloInicial(
   archivo: File,
@@ -71,7 +97,8 @@ function formatearTamanoArchivo(
   }
 
   const kilobytes =
-    bytes / 1024;
+    bytes /
+    1024;
 
   if (
     kilobytes <
@@ -83,11 +110,169 @@ function formatearTamanoArchivo(
   }
 
   const megabytes =
-    kilobytes / 1024;
+    kilobytes /
+    1024;
 
   return `${megabytes.toFixed(
     1,
   )} MB`;
+}
+
+async function validarFotografia(
+  archivo: File,
+): Promise<ValidacionFotografia> {
+  const urlTemporal =
+    URL.createObjectURL(
+      archivo,
+    );
+
+  try {
+    const dimensiones =
+      await new Promise<{
+        ancho: number;
+        alto: number;
+      }>(
+        (
+          resolve,
+          reject,
+        ) => {
+          const imagen =
+            new Image();
+
+          imagen.onload =
+            () => {
+              resolve({
+                ancho:
+                  imagen.naturalWidth,
+
+                alto:
+                  imagen.naturalHeight,
+              });
+            };
+
+          imagen.onerror =
+            () => {
+              reject(
+                new Error(
+                  'No se pudo interpretar la imagen.',
+                ),
+              );
+            };
+
+          imagen.src =
+            urlTemporal;
+        },
+      );
+
+    const {
+      ancho,
+      alto,
+    } =
+      dimensiones;
+
+    if (
+      !Number.isFinite(
+        ancho,
+      ) ||
+      !Number.isFinite(
+        alto,
+      ) ||
+      ancho <
+        1 ||
+      alto <
+        1
+    ) {
+      return {
+        valida:
+          false,
+
+        esPanoramica360:
+          false,
+
+        ancho,
+
+        alto,
+
+        mensaje:
+          'La imagen seleccionada no contiene dimensiones válidas.',
+      };
+    }
+
+    const proporcion =
+      ancho /
+      alto;
+
+    const cumpleTamano360 =
+      ancho >=
+        ANCHO_MINIMO_PANORAMICA &&
+      alto >=
+        ALTO_MINIMO_PANORAMICA;
+
+    const cumpleProporcion360 =
+      proporcion >=
+        PROPORCION_MINIMA_PANORAMICA &&
+      proporcion <=
+        PROPORCION_MAXIMA_PANORAMICA;
+
+    const esPanoramica360 =
+      cumpleTamano360 &&
+      cumpleProporcion360;
+
+    if (
+      esPanoramica360
+    ) {
+      return {
+        valida:
+          false,
+
+        esPanoramica360:
+          true,
+
+        ancho,
+
+        alto,
+
+        mensaje:
+          'Esta imagen corresponde a una panorámica 360°. Debes cargarla desde la sección 360°.',
+      };
+    }
+
+    return {
+      valida:
+        true,
+
+      esPanoramica360:
+        false,
+
+      ancho,
+
+      alto,
+
+      mensaje:
+        null,
+    };
+  } catch {
+    return {
+      valida:
+        false,
+
+      esPanoramica360:
+        false,
+
+      ancho:
+        null,
+
+      alto:
+        null,
+
+      mensaje:
+        'No se pudo interpretar la imagen seleccionada.',
+    };
+  } finally {
+    URL.revokeObjectURL(
+      urlTemporal,
+    );
+  }
 }
 
 export function UploadPhotoModal({
@@ -112,6 +297,34 @@ export function UploadPhotoModal({
   ] = useState(
     false,
   );
+
+  const [
+    validando,
+    setValidando,
+  ] = useState(
+    true,
+  );
+
+  const [
+    validacion,
+    setValidacion,
+  ] =
+    useState<ValidacionFotografia>({
+      valida:
+        false,
+
+      esPanoramica360:
+        false,
+
+      ancho:
+        null,
+
+      alto:
+        null,
+
+      mensaje:
+        null,
+    });
 
   const [
     error,
@@ -145,6 +358,49 @@ export function UploadPhotoModal({
       URL.revokeObjectURL(
         nuevaUrl,
       );
+    };
+  }, [
+    archivo,
+  ]);
+
+  useEffect(() => {
+    let activo =
+      true;
+
+    async function comprobarArchivo() {
+      setValidando(
+        true,
+      );
+
+      setError(
+        null,
+      );
+
+      const resultado =
+        await validarFotografia(
+          archivo,
+        );
+
+      if (
+        !activo
+      ) {
+        return;
+      }
+
+      setValidacion(
+        resultado,
+      );
+
+      setValidando(
+        false,
+      );
+    }
+
+    void comprobarArchivo();
+
+    return () => {
+      activo =
+        false;
     };
   }, [
     archivo,
@@ -200,6 +456,8 @@ export function UploadPhotoModal({
 
   const puedeSubir =
     tituloValido &&
+    validacion.valida &&
+    !validando &&
     !subiendo;
 
   async function subir() {
@@ -256,7 +514,7 @@ export function UploadPhotoModal({
 
   function cerrarDesdeFondo(
     event:
-      React.MouseEvent<
+      MouseEvent<
         HTMLDivElement
       >,
   ) {
@@ -424,7 +682,9 @@ export function UploadPhotoModal({
                     );
                   }}
                   disabled={
-                    subiendo
+                    subiendo ||
+                    validando ||
+                    validacion.esPanoramica360
                   }
                   maxLength={
                     200
@@ -448,10 +708,37 @@ export function UploadPhotoModal({
                   {formatearTamanoArchivo(
                     archivo.size,
                   )}
+
+                  {validacion.ancho !==
+                    null &&
+                    validacion.alto !==
+                      null &&
+                    ` · ${validacion.ancho} × ${validacion.alto}px`}
                 </small>
               </div>
             </div>
           </div>
+
+          {validando && (
+            <p>
+              Verificando imagen...
+            </p>
+          )}
+
+          {!validando &&
+            !validacion.valida &&
+            validacion.mensaje && (
+              <p
+                className={
+                  styles.error
+                }
+                role="alert"
+              >
+                {
+                  validacion.mensaje
+                }
+              </p>
+            )}
 
           {error && (
             <p
@@ -497,9 +784,13 @@ export function UploadPhotoModal({
               !puedeSubir
             }
           >
-            {subiendo
-              ? 'Subiendo...'
-              : 'Subir fotografía'}
+            {validando
+              ? 'Validando...'
+              : subiendo
+                ? 'Subiendo...'
+                : validacion.esPanoramica360
+                  ? 'Usar sección 360°'
+                  : 'Subir fotografía'}
           </button>
         </footer>
       </section>

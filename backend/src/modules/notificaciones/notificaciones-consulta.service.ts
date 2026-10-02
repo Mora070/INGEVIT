@@ -53,8 +53,25 @@ export class NotificacionesConsultaService {
       total_paginas:
         Math.ceil(
           resultado.total /
-          consulta.limite,
+            consulta.limite,
         ),
+    };
+  }
+
+  async estaVigente(
+    idUsuario: string,
+    idNotificacion: string,
+  ): Promise<{
+    vigente: boolean;
+  }> {
+    const vigente =
+      await this.repositorio.estaVigente(
+        idUsuario,
+        idNotificacion,
+      );
+
+    return {
+      vigente,
     };
   }
 }

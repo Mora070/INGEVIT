@@ -12,6 +12,10 @@ import {
 } from '../actividades/actividades.repository';
 
 import {
+  NotificacionesRepository,
+} from '../notificaciones/notificaciones.repository';
+
+import {
   FotografiasAccesoRepository,
 } from './fotografias-acceso.repository';
 
@@ -43,15 +47,6 @@ import type {
   FotografiaResponse,
 } from './types/fotografia.types';
 
-/**
- * Coordina la subida de una fotografía y sus dos versiones.
- *
- * La identidad del solicitante procede de la sesión autenticada.
- *
- * La fotografía se registra sin ubicación geográfica.
- * La ubicación se establecerá únicamente al crear una incidencia
- * relacionada dentro del mapa.
- */
 @Injectable()
 export class FotografiasSubidaService {
   constructor(
@@ -69,6 +64,9 @@ export class FotografiasSubidaService {
 
     private readonly actividades:
       ActividadesRepository,
+
+    private readonly notificaciones:
+      NotificacionesRepository,
   ) {}
 
   async subir(
@@ -162,6 +160,35 @@ export class FotografiasSubidaService {
 
             mensaje:
               `Fotografía ${fotografia.id_fotografia} subida.`,
+          },
+        );
+
+        await this.notificaciones.crearParaParticipantesProyecto(
+          client,
+          {
+            id_actor:
+              idUsuario,
+
+            id_proyecto:
+              idProyecto,
+
+            id_incidencia:
+              null,
+
+            tipo:
+              'FOTOGRAFIA_CREADA',
+
+            titulo:
+              'Nueva fotografía',
+
+            mensaje:
+              `Se agregó la fotografía "${fotografia.titulo}".`,
+
+            destino:
+              'FOTOGRAFIAS',
+
+            id_recurso:
+              fotografia.id_fotografia,
           },
         );
 

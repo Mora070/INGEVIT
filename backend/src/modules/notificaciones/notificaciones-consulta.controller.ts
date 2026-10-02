@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Header,
+  Param,
+  ParseUUIDPipe,
   Query,
   Req,
   UnauthorizedException,
@@ -67,6 +69,45 @@ export class NotificacionesConsultaController {
     return this.consulta.listar(
       usuario.id_usuario,
       parametros,
+    );
+  }
+
+  @Get(':idNotificacion/vigencia')
+  @Header(
+    'Cache-Control',
+    'no-store',
+  )
+  async comprobarVigencia(
+    @Req()
+    request:
+      AuthRequest,
+
+    @Param(
+      'idNotificacion',
+      new ParseUUIDPipe({
+        version:
+          '4',
+      }),
+    )
+    idNotificacion:
+      string,
+  ): Promise<{
+    vigente: boolean;
+  }> {
+    const usuario =
+      request.usuario;
+
+    if (
+      !usuario
+    ) {
+      throw new UnauthorizedException(
+        'La sesión no es válida o ha expirado.',
+      );
+    }
+
+    return this.consulta.estaVigente(
+      usuario.id_usuario,
+      idNotificacion,
     );
   }
 }

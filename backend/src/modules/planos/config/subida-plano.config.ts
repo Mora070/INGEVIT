@@ -3,7 +3,7 @@ import type {
 } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 
 /** Límite funcional acordado para el archivo PDF original. */
-export const MAX_BYTES_PLANO = 35 * 1024 * 1024;
+export const MAX_BYTES_PLANO = 100 * 1024 * 1024;
 
 /**
  * Recibe un plano por petición, en memoria.
