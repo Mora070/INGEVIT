@@ -28,7 +28,7 @@ export interface CrearIncidenciaInput {
   descripcion: string;
 
   prioridad:
-    PrioridadIncidencia;
+  PrioridadIncidencia;
 
   numero_pagina: number;
 
@@ -46,42 +46,42 @@ export interface CrearIncidenciaInput {
  */
 export interface IncidenciaRow {
   id_incidencia:
-    string;
+  string;
 
   id_proyecto:
-    string;
+  string;
 
   id_plano:
-    string;
+  string;
 
   id_creador:
-    string;
+  string;
 
   titulo:
-    string;
+  string;
 
   descripcion:
-    string;
+  string;
 
   estado:
-    | 'PENDIENTE'
-    | 'EN_PROCESO'
-    | 'SOLUCIONADA';
+  | 'PENDIENTE'
+  | 'EN_PROCESO'
+  | 'SOLUCIONADA';
 
   prioridad:
-    PrioridadIncidencia;
+  PrioridadIncidencia;
 
   numero_pagina:
-    number;
+  number;
 
   coordenada_x:
-    string;
+  string;
 
   coordenada_y:
-    string;
+  string;
 
   fecha_creacion:
-    Date;
+  Date;
 }
 
 /**
@@ -109,31 +109,31 @@ export interface IncidenciaRow {
  */
 export interface CrearIncidenciaMapaInput {
   id_proyecto:
-    string;
+  string;
 
   id_creador:
-    string;
+  string;
 
   titulo:
-    string;
+  string;
 
   descripcion:
-    string;
+  string;
 
   prioridad:
-    PrioridadIncidencia;
+  PrioridadIncidencia;
 
   latitud:
-    number;
+  number;
 
   longitud:
-    number;
+  number;
 
   id_fotografia:
-    string | null;
+  string | null;
 
   id_panoramica:
-    string | null;
+  string | null;
 }
 
 /**
@@ -149,10 +149,10 @@ export interface CrearIncidenciaMapaInput {
  */
 export interface RecursoMultimediaUbicacionRow {
   latitud:
-    string | null;
+  string | null;
 
   longitud:
-    string | null;
+  string | null;
 }
 
 /**
@@ -175,28 +175,28 @@ export interface IncidenciaMapaRow
     | 'coordenada_y'
   > {
   id_plano:
-    null;
+  null;
 
   numero_pagina:
-    null;
+  null;
 
   coordenada_x:
-    null;
+  null;
 
   coordenada_y:
-    null;
+  null;
 
   latitud:
-    string;
+  string;
 
   longitud:
-    string;
+  string;
 
   id_fotografia:
-    string | null;
+  string | null;
 
   id_panoramica:
-    string | null;
+  string | null;
 }
 
 /**
@@ -209,16 +209,16 @@ export interface IncidenciaMapaRow
  */
 export interface ActualizarIncidenciaInput {
   titulo:
-    string;
+  string;
 
   descripcion:
-    string;
+  string;
 
   prioridad:
-    IncidenciaRow['prioridad'];
+  IncidenciaRow['prioridad'];
 
   estado:
-    IncidenciaRow['estado'];
+  IncidenciaRow['estado'];
 }
 
 /**
@@ -226,22 +226,32 @@ export interface ActualizarIncidenciaInput {
  * incidencia ubicada sobre el mapa.
  *
  * Extiende los datos descriptivos
- * permitiendo además mover
- * la incidencia geográficamente.
+ * permitiendo además modificar:
+ * - ubicación geográfica;
+ * - fotografía asociada;
+ * - panorámica asociada.
+ *
+ * Una incidencia puede relacionarse
+ * con una fotografía, una panorámica
+ * o con ninguno de los dos recursos.
  *
  * No modifica:
  * - creador;
- * - fotografía;
- * - panorámica;
  * - fecha de creación.
  */
 export interface ActualizarIncidenciaMapaInput
   extends ActualizarIncidenciaInput {
   latitud:
-    number;
+  number;
 
   longitud:
-    number;
+  number;
+
+  id_fotografia:
+  string | null;
+
+  id_panoramica:
+  string | null;
 }
 
 @Injectable()
@@ -321,9 +331,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !incidencia
     ) {
       throw new Error(
@@ -379,9 +389,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return null;
     }
@@ -391,9 +401,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !fotografia
     ) {
       throw new Error(
@@ -448,9 +458,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return null;
     }
@@ -460,9 +470,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !panoramica
     ) {
       throw new Error(
@@ -568,9 +578,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !incidencia
     ) {
       throw new Error(
@@ -650,9 +660,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return null;
     }
@@ -662,9 +672,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !incidencia
     ) {
       throw new Error(
@@ -699,7 +709,7 @@ export class IncidenciasRepository {
     const resultado =
       await client.query<{
         id_incidencia:
-          string;
+        string;
       }>(
         `
           DELETE FROM obra.incidencias
@@ -719,21 +729,21 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return false;
     }
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       resultado.rows[0]
         ?.id_incidencia !==
-        idIncidencia
+      idIncidencia
     ) {
       throw new Error(
         'La eliminación de la incidencia devolvió un resultado inesperado.',
@@ -741,6 +751,90 @@ export class IncidenciasRepository {
     }
 
     return true;
+  }
+
+
+  /**
+   * Obtiene una incidencia ubicada
+   * directamente sobre el mapa.
+   *
+   * Se utiliza durante la edición
+   * para conservar las relaciones
+   * multimedia cuando el cliente
+   * no las modifica.
+   *
+   * Devuelve null cuando la incidencia
+   * no existe dentro del proyecto
+   * o pertenece a un plano.
+   */
+  async obtenerEnMapa(
+    client:
+      PoolClient,
+
+    idProyecto:
+      string,
+
+    idIncidencia:
+      string,
+  ): Promise<
+    IncidenciaMapaRow |
+    null
+  > {
+    const resultado =
+      await client.query<
+        IncidenciaMapaRow
+      >(
+        `
+          SELECT
+            id_incidencia,
+            id_proyecto,
+            id_plano,
+            id_creador,
+            titulo,
+            descripcion,
+            estado,
+            prioridad,
+            numero_pagina,
+            coordenada_x,
+            coordenada_y,
+            latitud,
+            longitud,
+            id_fotografia,
+            id_panoramica,
+            fecha_creacion
+          FROM obra.incidencias
+          WHERE id_proyecto = $1::uuid
+            AND id_incidencia = $2::uuid
+            AND id_plano IS NULL
+          FOR UPDATE
+        `,
+        [
+          idProyecto,
+          idIncidencia,
+        ],
+      );
+
+    if (
+      resultado.rowCount === 0 &&
+      resultado.rows.length === 0
+    ) {
+      return null;
+    }
+
+    const incidencia =
+      resultado.rows[0];
+
+    if (
+      resultado.rowCount !== 1 ||
+      resultado.rows.length !== 1 ||
+      !incidencia
+    ) {
+      throw new Error(
+        'La consulta de la incidencia de mapa devolvió un resultado inesperado.',
+      );
+    }
+
+    return incidencia;
   }
 
   /**
@@ -753,12 +847,12 @@ export class IncidenciasRepository {
    * - prioridad;
    * - estado;
    * - latitud;
-   * - longitud.
+   * - longitud;
+   * - fotografía;
+   * - panorámica.
    *
    * Conserva:
    * - creador;
-   * - fotografía;
-   * - panorámica;
    * - fecha.
    */
   async actualizarDatosEnMapa(
@@ -789,7 +883,9 @@ export class IncidenciasRepository {
             prioridad = $5,
             estado = $6,
             latitud = $7::numeric,
-            longitud = $8::numeric
+            longitud = $8::numeric,
+            id_fotografia = $9::uuid,
+            id_panoramica = $10::uuid
           WHERE id_proyecto = $1::uuid
             AND id_incidencia = $2::uuid
             AND id_plano IS NULL
@@ -820,14 +916,16 @@ export class IncidenciasRepository {
           datos.estado,
           datos.latitud,
           datos.longitud,
+          datos.id_fotografia,
+          datos.id_panoramica,
         ],
       );
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return null;
     }
@@ -837,9 +935,9 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       !incidencia
     ) {
       throw new Error(
@@ -871,7 +969,7 @@ export class IncidenciasRepository {
     const resultado =
       await client.query<{
         id_incidencia:
-          string;
+        string;
       }>(
         `
           DELETE FROM obra.incidencias
@@ -890,21 +988,21 @@ export class IncidenciasRepository {
 
     if (
       resultado.rowCount ===
-        0 &&
+      0 &&
       resultado.rows.length ===
-        0
+      0
     ) {
       return false;
     }
 
     if (
       resultado.rowCount !==
-        1 ||
+      1 ||
       resultado.rows.length !==
-        1 ||
+      1 ||
       resultado.rows[0]
         ?.id_incidencia !==
-        idIncidencia
+      idIncidencia
     ) {
       throw new Error(
         'La eliminación de la incidencia de mapa devolvió un resultado inesperado.',

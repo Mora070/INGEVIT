@@ -356,6 +356,35 @@ export function ProjectsMap({
   );
 
   const [
+    fotografiaAbierta,
+    setFotografiaAbierta,
+  ] = useState<
+    FotografiaProyecto | null
+  >(
+    null,
+  );
+
+  const fotografiaDialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = fotografiaDialogRef.current;
+
+    if (!fotografiaAbierta || !dialog) {
+      return;
+    }
+
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+
+    return () => {
+      if (dialog.open) {
+        dialog.close();
+      }
+    };
+  }, [fotografiaAbierta]);
+
+  const [
     panoramicaAbierta,
     setPanoramicaAbierta,
   ] = useState<
@@ -512,6 +541,24 @@ export function ProjectsMap({
   );
 
   const [
+    fotografiaEdicionId,
+    setFotografiaEdicionId,
+  ] = useState<
+    string | null
+  >(
+    null,
+  );
+
+  const [
+    panoramicaEdicionId,
+    setPanoramicaEdicionId,
+  ] = useState<
+    string | null
+  >(
+    null,
+  );
+
+  const [
     guardandoEdicion,
     setGuardandoEdicion,
   ] = useState(
@@ -619,6 +666,14 @@ export function ProjectsMap({
       null,
     );
 
+    setFotografiaEdicionId(
+      null,
+    );
+
+    setPanoramicaEdicionId(
+      null,
+    );
+
     setErrorEdicion(
       null,
     );
@@ -630,6 +685,9 @@ export function ProjectsMap({
   }
 
   function cerrarDetalleIncidencia() {
+    setFotografiaAbierta(null);
+    setPanoramicaAbierta(null);
+
     setConfirmacionEliminarAbierta(
       false,
     );
@@ -700,6 +758,9 @@ export function ProjectsMap({
     incidencia:
       IncidenciaMapa,
   ) {
+    setFotografiaAbierta(null);
+    setPanoramicaAbierta(null);
+
     cerrarPanelIncidencia();
 
     setPanelCapasAbierto(
@@ -718,6 +779,9 @@ export function ProjectsMap({
   }
 
   function iniciarEdicionIncidencia() {
+    setFotografiaAbierta(null);
+    setPanoramicaAbierta(null);
+
     if (
       !incidenciaSeleccionada
     ) {
@@ -751,6 +815,16 @@ export function ProjectsMap({
 
     setPuntoEdicion(
       punto,
+    );
+
+    setFotografiaEdicionId(
+      incidenciaSeleccionada.id_fotografia ??
+      null,
+    );
+
+    setPanoramicaEdicionId(
+      incidenciaSeleccionada.id_panoramica ??
+      null,
     );
 
     setErrorEdicion(
@@ -1119,6 +1193,8 @@ export function ProjectsMap({
     setIncidenciasMapa(
       [],
     );
+
+    setFotografiaAbierta(null);
 
     setPanoramicaAbierta(
       null,
@@ -2352,6 +2428,27 @@ export function ProjectsMap({
       return;
     }
 
+    if (
+      incidenciaSeleccionada.id_fotografia &&
+      !fotografiaEdicionId
+    ) {
+      setErrorEdicion(
+        'Selecciona una fotografía para la incidencia.',
+      );
+
+      return;
+    }
+
+    if (
+      incidenciaSeleccionada.id_panoramica &&
+      !panoramicaEdicionId
+    ) {
+      setErrorEdicion(
+        'Selecciona una panorámica 360° para la incidencia.',
+      );
+
+      return;
+    }
     try {
       setGuardandoEdicion(
         true,
@@ -2381,6 +2478,16 @@ export function ProjectsMap({
 
             longitud:
               puntoEdicion.longitud,
+
+            id_fotografia:
+              incidenciaSeleccionada.id_fotografia
+                ? fotografiaEdicionId
+                : undefined,
+
+            id_panoramica:
+              incidenciaSeleccionada.id_panoramica
+                ? panoramicaEdicionId
+                : undefined,
           },
         );
 
@@ -3287,6 +3394,17 @@ export function ProjectsMap({
                         }
                       </strong>
                     </div>
+
+                    <button
+                      type="button"
+                      className={styles.incidentCancelButton}
+                      onClick={() => {
+                        setPanoramicaAbierta(null);
+                        setFotografiaAbierta(fotografiaDetalle);
+                      }}
+                    >
+                      Abrir fotografía
+                    </button>
                   </div>
                 )}
 
@@ -3341,6 +3459,7 @@ export function ProjectsMap({
                         styles.incidentCancelButton
                       }
                       onClick={() => {
+                        setFotografiaAbierta(null);
                         setPanoramicaAbierta(
                           panoramicaDetalle,
                         );
@@ -3506,40 +3625,112 @@ export function ProjectsMap({
 
             {editandoIncidencia && (
               <>
-                {fotografiaDetalle && (
-                  <div
+                {incidenciaSeleccionada.id_fotografia && (
+                  <label
                     className={
-                      styles.incidentSelectedMedia
+                      styles.incidentField
                     }
                   >
                     <span>
                       Fotografía vinculada
                     </span>
 
-                    <strong>
-                      {
-                        fotografiaDetalle.titulo
+                    <select
+                      value={
+                        fotografiaEdicionId ??
+                        ''
                       }
-                    </strong>
-                  </div>
+                      onChange={(
+                        event,
+                      ) => {
+                        setFotografiaEdicionId(
+                          event.target.value ||
+                          null,
+                        );
+
+                        setErrorEdicion(
+                          null,
+                        );
+                      }}
+                    >
+                      <option value="">
+                        Selecciona una fotografía
+                      </option>
+
+                      {fotografiasMapa.map(
+                        (
+                          fotografia,
+                        ) => (
+                          <option
+                            key={
+                              fotografia.id_fotografia
+                            }
+                            value={
+                              fotografia.id_fotografia
+                            }
+                          >
+                            {
+                              fotografia.titulo
+                            }
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </label>
                 )}
 
-                {panoramicaDetalle && (
-                  <div
+                {incidenciaSeleccionada.id_panoramica && (
+                  <label
                     className={
-                      styles.incidentSelectedMedia
+                      styles.incidentField
                     }
                   >
                     <span>
                       Panorámica vinculada
                     </span>
 
-                    <strong>
-                      {
-                        panoramicaDetalle.titulo
+                    <select
+                      value={
+                        panoramicaEdicionId ??
+                        ''
                       }
-                    </strong>
-                  </div>
+                      onChange={(
+                        event,
+                      ) => {
+                        setPanoramicaEdicionId(
+                          event.target.value ||
+                          null,
+                        );
+
+                        setErrorEdicion(
+                          null,
+                        );
+                      }}
+                    >
+                      <option value="">
+                        Selecciona una panorámica 360°
+                      </option>
+
+                      {panoramicasMapa.map(
+                        (
+                          panoramica,
+                        ) => (
+                          <option
+                            key={
+                              panoramica.id_panoramica
+                            }
+                            value={
+                              panoramica.id_panoramica
+                            }
+                          >
+                            {
+                              panoramica.titulo
+                            }
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </label>
                 )}
 
                 <div
@@ -4543,6 +4734,80 @@ export function ProjectsMap({
             }}
           />
         )}
+
+      {fotografiaAbierta && (
+        <dialog
+          ref={fotografiaDialogRef}
+          aria-labelledby="projects-map-fotografia-titulo"
+          aria-modal="true"
+          onCancel={() => setFotografiaAbierta(null)}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              const bounds = event.currentTarget.getBoundingClientRect();
+              if (
+                event.clientX < bounds.left ||
+                event.clientX > bounds.right ||
+                event.clientY < bounds.top ||
+                event.clientY > bounds.bottom
+              ) {
+                setFotografiaAbierta(null);
+              }
+            }
+          }}
+          style={{
+            boxSizing: 'border-box',
+            width: 'min(1200px, calc(100vw - 24px))',
+            maxWidth: 'calc(100vw - 24px)',
+            maxHeight: 'calc(100dvh - 24px)',
+            margin: 'auto',
+            padding: 'clamp(12px, 3vw, 24px)',
+            border: 'none',
+            borderRadius: 12,
+            background: '#fff',
+            color: '#182230',
+            boxShadow: '0 20px 80px rgba(0, 0, 0, 0.4)',
+            overflow: 'auto',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 12,
+            }}
+          >
+            <h2
+              id="projects-map-fotografia-titulo"
+              style={{ margin: 0, fontSize: '1.125rem', overflowWrap: 'anywhere' }}
+            >
+              {fotografiaAbierta.titulo || 'Fotografía'}
+            </h2>
+            <button
+              type="button"
+              className={styles.incidentCancelButton}
+              onClick={() => setFotografiaAbierta(null)}
+              style={{ flexShrink: 0 }}
+            >
+              Cerrar
+            </button>
+          </div>
+          <img
+            src={fotografiaAbierta.url}
+            alt={fotografiaAbierta.titulo || 'Fotografía de la incidencia'}
+            style={{
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              maxHeight: 'calc(100dvh - 140px)',
+              objectFit: 'contain',
+              borderRadius: 8,
+              background: '#f1f3f5',
+            }}
+          />
+        </dialog>
+      )}
 
       {panoramicaAbierta && (
         <PanoramaViewer

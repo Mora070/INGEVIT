@@ -1,5 +1,7 @@
 import {
   IsNumber,
+  IsOptional,
+  IsUUID,
   Max,
   Min,
 } from 'class-validator';
@@ -13,12 +15,17 @@ import {
  * directamente sobre el mapa.
  *
  * Además de los datos descriptivos,
- * permite modificar su ubicación.
+ * permite modificar:
+ * - ubicación;
+ * - fotografía asociada;
+ * - panorámica asociada.
+ *
+ * La validación de que el recurso multimedia
+ * pertenece realmente al proyecto se realiza
+ * en el servicio de edición.
  *
  * No permite cambiar:
  * - creador;
- * - fotografía asociada;
- * - panorámica asociada;
  * - fecha de creación.
  */
 export class ActualizarIncidenciaMapaDto
@@ -74,4 +81,26 @@ export class ActualizarIncidenciaMapaDto
     },
   )
   longitud!: number;
+
+  @IsOptional()
+  @IsUUID(
+    '4',
+    {
+      message:
+        'La fotografía asociada no es válida.',
+    },
+  )
+  id_fotografia?:
+    string | null;
+
+  @IsOptional()
+  @IsUUID(
+    '4',
+    {
+      message:
+        'La panorámica asociada no es válida.',
+    },
+  )
+  id_panoramica?:
+    string | null;
 }

@@ -58,14 +58,25 @@ interface DatosActualizarIncidencia {
  * Datos editables exclusivos
  * de una incidencia de mapa.
  *
- * La fotografía o panorámica asociada
- * no se modifica durante esta edición.
+ * Además de la ubicación,
+ * permite modificar la fotografía
+ * o panorámica asociada.
+ *
+ * Los campos multimedia son opcionales
+ * para mantener compatibilidad con
+ * ediciones que no los modifiquen.
  */
 interface DatosActualizarIncidenciaMapa
   extends DatosActualizarIncidencia {
   latitud: number;
 
   longitud: number;
+
+  id_fotografia?:
+    string | null;
+
+  id_panoramica?:
+    string | null;
 }
 
 /**
@@ -306,11 +317,11 @@ export function crearIncidenciaMapa(
  * - estado
  * - latitud
  * - longitud
+ * - fotografía relacionada
+ * - panorámica relacionada
  *
  * Conserva:
  * - creador
- * - fotografía relacionada
- * - panorámica relacionada
  * - fecha de creación
  */
 export function actualizarIncidenciaMapa(
@@ -353,6 +364,12 @@ export function actualizarIncidenciaMapa(
 
           longitud:
             datos.longitud,
+
+          id_fotografia:
+            datos.id_fotografia,
+
+          id_panoramica:
+            datos.id_panoramica,
         }),
     },
   );
