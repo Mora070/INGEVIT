@@ -1234,6 +1234,220 @@ export function ProjectsMap({
     mostrarMarcadores,
   ]);
 
+  useEffect(() => {
+    if (
+      mostrarMarcadores ||
+      !proyectoSeleccionadoId
+    ) {
+      return;
+    }
+
+    let activo =
+      true;
+
+    const eventos =
+      new EventSource(
+        '/api/notificaciones/eventos',
+      );
+
+    async function actualizarOrtofotos() {
+      try {
+        const respuesta =
+          await listarCapasProyecto(
+            proyectoSeleccionadoId!,
+            {
+              pagina:
+                1,
+
+              limite:
+                100,
+            },
+          );
+
+        if (
+          !activo
+        ) {
+          return;
+        }
+
+        setCapasMapa(
+          respuesta.capas,
+        );
+
+        setVersionPanelCapas(
+          (
+            actual,
+          ) =>
+            actual +
+            1,
+        );
+      } catch {
+        // Conservamos las ortofotos actuales.
+      }
+    }
+
+    async function actualizarIncidencias() {
+      try {
+        const primeraPagina =
+          await listarIncidenciasMapa(
+            proyectoSeleccionadoId!,
+            {
+              pagina:
+                1,
+
+              limite:
+                100,
+            },
+          );
+
+        if (
+          !activo
+        ) {
+          return;
+        }
+
+        let incidencias = [
+          ...primeraPagina.incidencias,
+        ];
+
+        for (
+          let pagina =
+            2;
+          pagina <=
+          primeraPagina.total_paginas;
+          pagina +=
+          1
+        ) {
+          const respuesta =
+            await listarIncidenciasMapa(
+              proyectoSeleccionadoId!,
+              {
+                pagina,
+
+                limite:
+                  100,
+              },
+            );
+
+          if (
+            !activo
+          ) {
+            return;
+          }
+
+          incidencias = [
+            ...incidencias,
+            ...respuesta.incidencias,
+          ];
+        }
+
+        setIncidenciasMapa(
+          incidencias,
+        );
+
+        setIncidenciaSeleccionada(
+          (
+            actual,
+          ) => {
+            if (
+              !actual
+            ) {
+              return null;
+            }
+
+            return (
+              incidencias.find(
+                (
+                  incidencia,
+                ) =>
+                  incidencia.id_incidencia ===
+                  actual.id_incidencia,
+              ) ??
+              null
+            );
+          },
+        );
+      } catch {
+        // Conservamos las incidencias actuales.
+      }
+    }
+
+    function manejarCambioProyecto(
+      event: Event,
+    ) {
+      if (
+        !(event instanceof MessageEvent)
+      ) {
+        return;
+      }
+
+      let datos: {
+        id_proyecto?: unknown;
+        recurso?: unknown;
+      };
+
+      try {
+        datos =
+          JSON.parse(
+            event.data,
+          ) as {
+            id_proyecto?: unknown;
+            recurso?: unknown;
+          };
+      } catch {
+        return;
+      }
+
+      if (
+        datos.id_proyecto !==
+        proyectoSeleccionadoId
+      ) {
+        return;
+      }
+
+      if (
+        datos.recurso ===
+        'ORTOFOTOS'
+      ) {
+        void actualizarOrtofotos();
+
+        return;
+      }
+
+      if (
+        datos.recurso ===
+        'INCIDENCIAS'
+      ) {
+        void actualizarIncidencias();
+      }
+    }
+
+    eventos.addEventListener(
+      'proyecto',
+      manejarCambioProyecto,
+    );
+
+    eventos.onerror =
+      () => {
+        // EventSource se reconecta automáticamente.
+      };
+
+    return () => {
+      activo =
+        false;
+
+      eventos.removeEventListener(
+        'proyecto',
+        manejarCambioProyecto,
+      );
+
+      eventos.close();
+    };
+  }, [
+    proyectoSeleccionadoId,
+    mostrarMarcadores,
+  ]);
+
   /*
    * ====================================================
    * CARGAR FOTOGRAFÍAS
@@ -2065,7 +2279,13 @@ export function ProjectsMap({
           actuales,
         ) => [
             nuevaIncidencia,
-            ...actuales,
+            ...actuales.filter(
+              (
+                incidencia,
+              ) =>
+                incidencia.id_incidencia !==
+                nuevaIncidencia.id_incidencia,
+            ),
           ],
       );
 

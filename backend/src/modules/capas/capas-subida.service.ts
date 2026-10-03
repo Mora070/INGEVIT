@@ -18,7 +18,7 @@ type ArchivoTemporalCapa = Pick<
 /**
  * Coordina la inspección y persistencia del original.
  *
- * Los guards comprueban sesión y propiedad antes de recibir el archivo.
+ * Los guards comprueban sesión y acceso al proyecto antes de recibir el archivo.
  * El interceptor mantiene el temporal y lo limpia al finalizar.
  * La persistencia vuelve a comprobar permisos dentro de la transacción.
  */

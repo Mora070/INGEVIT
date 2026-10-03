@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  UnauthorizedException,
+  //UnauthorizedException,
 } from '@nestjs/common';
 
 import {
@@ -24,9 +24,15 @@ import {
   AlmacenamientoService,
 } from '../almacenamiento/almacenamiento.service';
 
+/*
 import {
   ProyectosRepository,
 } from '../proyectos/proyectos.repository';
+*/
+
+import {
+  ProyectoAccesoRepository,
+} from '../../common/repositories/proyecto-acceso.repository';
 
 import {
   ActividadesRepository,
@@ -64,7 +70,7 @@ export interface OriginalCapaInspeccionado {
   tamanoBytes: number;
 
   metadatos:
-    MetadatosGeoTiff;
+  MetadatosGeoTiff;
 }
 
 /**
@@ -78,9 +84,13 @@ export class CapasPersistenciaService {
 
     private readonly almacenamiento:
       AlmacenamientoService,
+    /*
+        private readonly proyectos:
+          ProyectosRepository,
+    */
 
-    private readonly proyectos:
-      ProyectosRepository,
+    private readonly acceso:
+      ProyectoAccesoRepository,
 
     private readonly capas:
       CapasRepository,
@@ -90,7 +100,7 @@ export class CapasPersistenciaService {
 
     private readonly notificaciones:
       NotificacionesRepository,
-  ) {}
+  ) { }
 
   async guardarYRegistrar(
     idProyecto: string,
@@ -120,6 +130,23 @@ export class CapasPersistenciaService {
         async (
           client,
         ) => {
+
+          const disponible =
+            await this.acceso.bloquearDisponible(
+              client,
+              idProyecto,
+              idUsuario,
+            );
+
+          if (
+            !disponible
+          ) {
+            throw new NotFoundException(
+              'El proyecto no está disponible para gestionar capas.',
+            );
+          }
+
+          /*
           const activo =
             await this.proyectos.bloquearPropietarioActivo(
               client,
@@ -148,7 +175,7 @@ export class CapasPersistenciaService {
               'El proyecto no está disponible para gestionar capas.',
             );
           }
-
+*/
           const capa =
             await this.capas.crearPendiente(
               client,
@@ -232,8 +259,8 @@ export class CapasPersistenciaService {
         },
       );
     } catch (
-      errorRegistro:
-        unknown
+    errorRegistro:
+      unknown
     ) {
       if (
         errorRegistro instanceof
@@ -247,8 +274,8 @@ export class CapasPersistenciaService {
           clave,
         );
       } catch (
-        errorLimpieza:
-          unknown
+      errorLimpieza:
+        unknown
       ) {
         throw new AggregateError(
           [

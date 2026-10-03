@@ -2,16 +2,22 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
+  //UnauthorizedException,
 } from '@nestjs/common';
 
 import {
   DatabaseService,
 } from '../../database/database.service';
 
+/*
 import {
   ProyectosRepository,
 } from '../proyectos/proyectos.repository';
+*/
+
+import {
+  ProyectoAccesoRepository,
+} from '../../common/repositories/proyecto-acceso.repository';
 
 import {
   ActividadesRepository,
@@ -27,7 +33,8 @@ import {
 
 /**
  * Retira una capa y registra su limpieza en la misma transacción.
- * Solo permite la operación al propietario activo.
+  * Permite la operación al propietario o a un colaborador
+ * activo con acceso al proyecto.
  */
 @Injectable()
 export class CapasEliminacionService {
@@ -35,8 +42,13 @@ export class CapasEliminacionService {
     private readonly database:
       DatabaseService,
 
-    private readonly proyectos:
-      ProyectosRepository,
+    /*
+        private readonly proyectos:
+          ProyectosRepository,
+    */
+
+    private readonly acceso:
+      ProyectoAccesoRepository,
 
     private readonly capas:
       CapasEliminacionRepository,
@@ -46,7 +58,7 @@ export class CapasEliminacionService {
 
     private readonly notificaciones:
       NotificacionesRepository,
-  ) {}
+  ) { }
 
   async eliminar(
     proyecto: string,
@@ -57,23 +69,15 @@ export class CapasEliminacionService {
       async (
         client,
       ) => {
-        if (
-          !await this.proyectos.bloquearPropietarioActivo(
-            client,
-            usuario,
-          )
-        ) {
-          throw new UnauthorizedException(
-            'La sesión no es válida o la cuenta no está activa.',
-          );
-        }
-
-        if (
-          !await this.proyectos.bloquearEditablePorPropietario(
+        const disponible =
+          await this.acceso.bloquearDisponible(
             client,
             proyecto,
             usuario,
-          )
+          );
+
+        if (
+          !disponible
         ) {
           throw new NotFoundException(
             'El proyecto no está disponible para gestionar capas.',
@@ -106,12 +110,12 @@ export class CapasEliminacionService {
 
         if (
           fila.almacenamiento_proveedor !==
-            'LOCAL' ||
+          'LOCAL' ||
           (
             fila.teselas_version !==
-              null &&
+            null &&
             fila.teselas_proveedor !==
-              'LOCAL'
+            'LOCAL'
           )
         ) {
           throw new ConflictException(

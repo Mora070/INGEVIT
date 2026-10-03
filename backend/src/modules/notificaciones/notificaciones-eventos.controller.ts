@@ -51,12 +51,39 @@ export class NotificacionesEventosController {
         usuario.id_usuario,
       )
       .pipe(
-        map(() => ({
-          type: 'notificacion',
-          data: {
-            actualizar: true,
+        map(
+          (
+            evento,
+          ) => {
+            if (
+              evento.tipo ===
+              'PROYECTO'
+            ) {
+              return {
+                type:
+                  'proyecto',
+
+                data: {
+                  id_proyecto:
+                    evento.id_proyecto,
+
+                  recurso:
+                    evento.recurso,
+                },
+              };
+            }
+
+            return {
+              type:
+                'notificacion',
+
+              data: {
+                actualizar:
+                  true,
+              },
+            };
           },
-        })),
+        ),
       );
   }
 }

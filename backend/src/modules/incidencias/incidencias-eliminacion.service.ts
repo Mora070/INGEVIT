@@ -54,7 +54,7 @@ export class IncidenciasEliminacionService {
 
     private readonly notificaciones:
       NotificacionesRepository,
-  ) {}
+  ) { }
 
   async eliminar(
     idProyecto: string,
@@ -130,34 +130,34 @@ export class IncidenciasEliminacionService {
           },
         );
 
-        await this.notificaciones.crearParaParticipantesProyecto(
-          client,
-          {
-            id_actor:
-              idUsuario,
+await this.notificaciones.crearParaParticipantesProyecto(
+  client,
+  {
+    id_actor:
+      idUsuario,
 
-            id_proyecto:
-              idProyecto,
+    id_proyecto:
+      idProyecto,
 
-            id_incidencia:
-              null,
+    id_incidencia:
+      null,
 
-            tipo:
-              'INCIDENCIA_ELIMINADA',
+    tipo:
+      'INCIDENCIA_ELIMINADA',
 
-            titulo:
-              'Incidencia eliminada',
+    titulo:
+      'Incidencia eliminada',
 
-            mensaje:
-              'Se eliminó una incidencia del proyecto.',
+    mensaje:
+      'Se eliminó una incidencia del proyecto.',
 
-            destino:
-              'MAPA',
+    destino:
+      null,
 
-            id_recurso:
-              null,
-          },
-        );
+    id_recurso:
+      null,
+  },
+);
       },
     );
   }

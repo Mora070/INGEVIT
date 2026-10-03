@@ -142,6 +142,10 @@ import {
   CapasEliminacionController,
 } from './capas-eliminacion.controller';
 
+import {
+  ProyectoAccesoRepository,
+} from '../../common/repositories/proyecto-acceso.repository';
+
 @Module({
   imports: [
     DatabaseModule,
@@ -211,6 +215,7 @@ import {
     CapasLimpiezaService,
 
     NotificacionesRepository,
+    ProyectoAccesoRepository,
   ],
 })
 export class CapasModule {}

@@ -34,6 +34,10 @@ import {
 
 import { CapasModule } from './modules/capas/capas.module';
 
+import {
+  CarpetasModule,
+} from './modules/carpetas/carpetas.module';
+
 /**
  * Módulo principal del backend.
  *
@@ -41,7 +45,20 @@ import { CapasModule } from './modules/capas/capas.module';
  * de negocio que componen la aplicación.
  */
 @Module({
-  imports: [DatabaseModule, UsuariosModule, AuthModule, AdministracionModule, ProyectosModule, PlanosModule,IncidenciasModule,PanoramicasModule,NotificacionesModule,UsuariosPerfilModule,CapasModule],
+  imports: [
+  DatabaseModule,
+  UsuariosModule,
+  AuthModule,
+  AdministracionModule,
+  ProyectosModule,
+  PlanosModule,
+  IncidenciasModule,
+  PanoramicasModule,
+  NotificacionesModule,
+  UsuariosPerfilModule,
+  CapasModule,
+  CarpetasModule,
+],
   controllers: [AppController],
   providers: [
   AppService,

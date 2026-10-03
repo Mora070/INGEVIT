@@ -43,7 +43,7 @@ export interface CrearNotificacionProyectoInput {
   mensaje: string;
 
   destino:
-    DestinoNotificacion;
+    DestinoNotificacion | null;
 
   id_recurso:
     string | null;

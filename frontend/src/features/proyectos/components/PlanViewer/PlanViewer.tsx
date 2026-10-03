@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -48,6 +49,9 @@ pdfjs.GlobalWorkerOptions.workerSrc =
 interface PlanViewerProps {
   plano: PlanoProyecto;
 
+  incidenciaInicialId?:
+  string | null;
+
   onCerrar: () => void;
 }
 
@@ -59,6 +63,7 @@ interface PosicionNuevaIncidencia {
 
 export function PlanViewer({
   plano,
+  incidenciaInicialId = null,
   onCerrar,
 }: PlanViewerProps) {
   const [
@@ -111,6 +116,11 @@ export function PlanViewer({
   ] = useState<
     IncidenciaPlano | null
   >(null);
+
+  const incidenciaInicialAplicadaRef =
+    useRef<string | null>(
+      null,
+    );
 
   const [
     error,
@@ -258,7 +268,7 @@ export function PlanViewer({
           respuesta.incidencias,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -328,6 +338,106 @@ export function PlanViewer({
     );
   }, [
     paginaActual,
+  ]);
+
+  useEffect(() => {
+    if (
+      !incidenciaInicialId ||
+      numeroPaginas <= 0 ||
+      incidenciaInicialAplicadaRef.current ===
+      incidenciaInicialId
+    ) {
+      return;
+    }
+
+    let activa =
+      true;
+
+    async function buscarIncidenciaInicial() {
+      try {
+        for (
+          let numeroPagina = 1;
+          numeroPagina <= numeroPaginas;
+          numeroPagina += 1
+        ) {
+          const respuesta =
+            await listarIncidenciasPlano(
+              plano.id_proyecto,
+              plano.id_plano,
+              {
+                numeroPagina,
+
+                pagina:
+                  1,
+
+                limite:
+                  100,
+              },
+            );
+
+          if (
+            !activa
+          ) {
+            return;
+          }
+
+          const incidencia =
+            respuesta.incidencias.find(
+              (
+                item,
+              ) =>
+                item.id_incidencia ===
+                incidenciaInicialId,
+            );
+
+          if (
+            !incidencia
+          ) {
+            continue;
+          }
+
+          if (
+            paginaActual !==
+            incidencia.numero_pagina
+          ) {
+            setPaginaActual(
+              incidencia.numero_pagina,
+            );
+
+            return;
+          }
+
+          incidenciaInicialAplicadaRef.current =
+            incidenciaInicialId;
+
+          setIncidenciaSeleccionada(
+            incidencia,
+          );
+
+          return;
+        }
+      } catch (
+      errorObtenido
+      ) {
+        console.error(
+          'No fue posible localizar la incidencia de la notificación.',
+          errorObtenido,
+        );
+      }
+    }
+
+    void buscarIncidenciaInicial();
+
+    return () => {
+      activa =
+        false;
+    };
+  }, [
+    incidenciaInicialId,
+    numeroPaginas,
+    paginaActual,
+    plano.id_plano,
+    plano.id_proyecto,
   ]);
 
   function cerrarDesdeFondo(
@@ -504,9 +614,9 @@ export function PlanViewer({
         (
           actuales,
         ) => [
-          ...actuales,
-          nuevaIncidencia,
-        ],
+            ...actuales,
+            nuevaIncidencia,
+          ],
       );
     }
 
@@ -532,7 +642,7 @@ export function PlanViewer({
             incidencia,
           ) =>
             incidencia.id_incidencia ===
-            incidenciaActualizada.id_incidencia
+              incidenciaActualizada.id_incidencia
               ? incidenciaActualizada
               : incidencia,
         ),
@@ -633,11 +743,10 @@ export function PlanViewer({
               }
             >
               <button
-                className={`${styles.incidentModeButton} ${
-                  modoCrearIncidencia
-                    ? styles.incidentModeButtonActive
-                    : ''
-                }`}
+                className={`${styles.incidentModeButton} ${modoCrearIncidencia
+                  ? styles.incidentModeButtonActive
+                  : ''
+                  }`}
                 type="button"
                 onClick={() => {
                   setModoCrearIncidencia(
@@ -912,11 +1021,10 @@ export function PlanViewer({
                 }}
               >
                 <div
-                  className={`${styles.pageStage} ${
-                    modoCrearIncidencia
-                      ? styles.pageStageSelecting
-                      : ''
-                  }`}
+                  className={`${styles.pageStage} ${modoCrearIncidencia
+                    ? styles.pageStageSelecting
+                    : ''
+                    }`}
                   onClick={
                     seleccionarPuntoIncidencia
                   }

@@ -150,9 +150,9 @@ export default function App() {
     } catch (error) {
       if (
         error instanceof
-          ApiError &&
+        ApiError &&
         error.status ===
-          401
+        401
       ) {
         actualizarUsuario(
           null,
@@ -285,6 +285,9 @@ export default function App() {
 
       idRecurso:
         notificacion.id_recurso ??
+        notificacion.id_incidencia,
+
+      idIncidencia:
         notificacion.id_incidencia,
     });
   }
@@ -439,13 +442,13 @@ export default function App() {
 
       {seccionWorkspace ===
         'inicio' && (
-        <HomePage />
-      )}
+          <HomePage />
+        )}
 
       {seccionWorkspace ===
         'proyectos' &&
         proyectoSeleccionadoId ===
-          null && (
+        null && (
           <ProjectsPage
             onAbrirProyecto={
               abrirProyecto
@@ -456,7 +459,7 @@ export default function App() {
       {seccionWorkspace ===
         'proyectos' &&
         proyectoSeleccionadoId !==
-          null && (
+        null && (
           <ProjectDetailPage
             idProyecto={
               proyectoSeleccionadoId
@@ -475,15 +478,15 @@ export default function App() {
 
       {seccionWorkspace ===
         'perfil' && (
-        <ProfilePage
-          usuario={
-            estado.usuario
-          }
-          onUsuarioActualizado={
-            actualizarUsuario
-          }
-        />
-      )}
+          <ProfilePage
+            usuario={
+              estado.usuario
+            }
+            onUsuarioActualizado={
+              actualizarUsuario
+            }
+          />
+        )}
     </AppShell>
   );
 }

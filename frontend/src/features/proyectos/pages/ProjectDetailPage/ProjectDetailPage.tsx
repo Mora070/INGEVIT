@@ -67,6 +67,10 @@ import {
   ProjectsMap,
 } from '../../components/ProjectsMap/ProjectsMap';
 
+import {
+  ProjectFolders,
+} from '../../components/ProjectFolders/ProjectFolders';
+
 import type {
   FotografiaProyecto,
 } from '../../types/fotografia';
@@ -113,17 +117,17 @@ type SeccionProyecto =
 
 type ContenidoEliminando =
   | {
-      tipo: 'fotografia';
+    tipo: 'fotografia';
 
-      fotografia:
-        FotografiaProyecto;
-    }
+    fotografia:
+    FotografiaProyecto;
+  }
   | {
-      tipo: 'panoramica';
+    tipo: 'panoramica';
 
-      panoramica:
-        PanoramicaProyecto;
-    };
+    panoramica:
+    PanoramicaProyecto;
+  };
 
 interface ConfirmDeleteMediaModalProps {
   titulo: string;
@@ -151,7 +155,7 @@ function ConfirmDeleteMediaModal({
     ) {
       if (
         event.key ===
-          'Escape' &&
+        'Escape' &&
         !eliminando
       ) {
         onCerrar();
@@ -185,7 +189,7 @@ function ConfirmDeleteMediaModal({
       ) => {
         if (
           event.target ===
-            event.currentTarget &&
+          event.currentTarget &&
           !eliminando
         ) {
           onCerrar();
@@ -646,6 +650,13 @@ export function ProjectDetailPage({
       'resumen',
     );
 
+  const [
+    versionCarpetas,
+    setVersionCarpetas,
+  ] = useState(
+    0,
+  );
+
   const navegacionAplicadaRef =
     useRef<
       string | null
@@ -758,7 +769,7 @@ export function ProjectDetailPage({
           respuesta,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -798,7 +809,7 @@ export function ProjectDetailPage({
   }, [
     idProyecto,
   ]);
-    useEffect(() => {
+  useEffect(() => {
     let activa =
       true;
 
@@ -834,7 +845,7 @@ export function ProjectDetailPage({
           respuesta.fotografias,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -911,7 +922,7 @@ export function ProjectDetailPage({
           respuesta.panoramicas,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -988,7 +999,7 @@ export function ProjectDetailPage({
           respuesta.planos,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activa
@@ -1039,7 +1050,7 @@ export function ProjectDetailPage({
     if (
       !navegacionInicial ||
       navegacionAplicadaRef.current ===
-        navegacionInicial.clave
+      navegacionInicial.clave
     ) {
       return;
     }
@@ -1064,7 +1075,7 @@ export function ProjectDetailPage({
     );
 
     switch (
-      navegacionInicial.destino
+    navegacionInicial.destino
     ) {
       case 'FOTOGRAFIAS':
         setSeccionActiva(
@@ -1078,6 +1089,8 @@ export function ProjectDetailPage({
         );
         break;
 
+
+
       case 'PANORAMICAS':
         setSeccionActiva(
           '360',
@@ -1088,6 +1101,12 @@ export function ProjectDetailPage({
       case 'CAPAS':
         setSeccionActiva(
           'mapa',
+        );
+        break;
+
+      case 'CARPETAS':
+        setSeccionActiva(
+          'carpetas',
         );
         break;
 
@@ -1117,7 +1136,7 @@ export function ProjectDetailPage({
       !navegacionInicial ||
       !navegacionInicial.idRecurso ||
       recursoAbiertoRef.current ===
-        navegacionInicial.clave
+      navegacionInicial.clave
     ) {
       return;
     }
@@ -1213,6 +1232,212 @@ export function ProjectDetailPage({
     planos,
   ]);
 
+  useEffect(() => {
+    let activo =
+      true;
+
+    const eventos =
+      new EventSource(
+        '/api/notificaciones/eventos',
+      );
+
+    async function actualizarFotografias() {
+      try {
+        const respuesta =
+          await listarFotografiasProyecto(
+            idProyecto,
+            {
+              pagina:
+                1,
+
+              limite:
+                50,
+            },
+          );
+
+        if (
+          !activo
+        ) {
+          return;
+        }
+
+        setFotografias(
+          respuesta.fotografias,
+        );
+
+        setErrorFotografias(
+          null,
+        );
+      } catch {
+        /*
+         * No mostramos un error nuevo por una actualización
+         * silenciosa en tiempo real.
+         *
+         * La información actual permanece visible.
+         */
+      }
+    }
+
+    async function actualizarPanoramicas() {
+      try {
+        const respuesta =
+          await listarPanoramicasProyecto(
+            idProyecto,
+            {
+              pagina:
+                1,
+
+              limite:
+                20,
+            },
+          );
+
+        if (
+          !activo
+        ) {
+          return;
+        }
+
+        setPanoramicas(
+          respuesta.panoramicas,
+        );
+
+        setErrorPanoramicas(
+          null,
+        );
+      } catch {
+        // Conservamos el contenido actual.
+      }
+    }
+
+    async function actualizarPlanos() {
+      try {
+        const respuesta =
+          await listarPlanosProyecto(
+            idProyecto,
+            {
+              pagina:
+                1,
+
+              limite:
+                50,
+            },
+          );
+
+        if (
+          !activo
+        ) {
+          return;
+        }
+
+        setPlanos(
+          respuesta.planos,
+        );
+
+        setErrorPlanos(
+          null,
+        );
+      } catch {
+        // Conservamos el contenido actual.
+      }
+    }
+
+    function manejarCambioProyecto(
+      event: Event,
+    ) {
+      if (
+        !(event instanceof MessageEvent)
+      ) {
+        return;
+      }
+
+      let datos: {
+        id_proyecto?: unknown;
+        recurso?: unknown;
+      };
+
+      try {
+        datos =
+          JSON.parse(
+            event.data,
+          ) as {
+            id_proyecto?: unknown;
+            recurso?: unknown;
+          };
+      } catch {
+        return;
+      }
+
+      if (
+        datos.id_proyecto !==
+        idProyecto
+      ) {
+        return;
+      }
+
+      switch (
+      datos.recurso
+      ) {
+        case 'FOTOGRAFIAS':
+          void actualizarFotografias();
+          break;
+
+        case 'PANORAMICAS':
+          void actualizarPanoramicas();
+          break;
+
+        case 'PLANOS':
+          void actualizarPlanos();
+          break;
+
+        case 'PLANOS':
+          void actualizarPlanos();
+          break;
+
+        case 'CARPETAS':
+          setVersionCarpetas((
+            versionActual,
+          ) =>
+            versionActual + 1,
+          );
+          break;
+
+        default:
+          break;
+
+        //default:
+        //break;
+      }
+    }
+
+    eventos.addEventListener(
+      'proyecto',
+      manejarCambioProyecto,
+    );
+
+    eventos.onerror =
+      () => {
+        /*
+         * EventSource intenta reconectarse
+         * automáticamente.
+         */
+      };
+
+    return () => {
+      activo =
+        false;
+
+      eventos.removeEventListener(
+        'proyecto',
+        manejarCambioProyecto,
+      );
+
+      eventos.close();
+    };
+  }, [
+    idProyecto,
+  ]);
+
   function seleccionarArchivoFotografia(
     archivo:
       File,
@@ -1260,9 +1485,15 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevaFotografia,
-        ...actuales,
-      ],
+          nuevaFotografia,
+          ...actuales.filter(
+            (
+              fotografia,
+            ) =>
+              fotografia.id_fotografia !==
+              nuevaFotografia.id_fotografia,
+          ),
+        ],
     );
 
     setArchivoFotografia(
@@ -1286,9 +1517,15 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevaPanoramica,
-        ...actuales,
-      ],
+          nuevaPanoramica,
+          ...actuales.filter(
+            (
+              panoramica,
+            ) =>
+              panoramica.id_panoramica !==
+              nuevaPanoramica.id_panoramica,
+          ),
+        ],
     );
 
     setArchivoPanoramica(
@@ -1312,9 +1549,15 @@ export function ProjectDetailPage({
       (
         actuales,
       ) => [
-        nuevoPlano,
-        ...actuales,
-      ],
+          nuevoPlano,
+          ...actuales.filter(
+            (
+              plano,
+            ) =>
+              plano.id_plano !==
+              nuevoPlano.id_plano,
+          ),
+        ],
     );
 
     setArchivoPlano(
@@ -1329,7 +1572,6 @@ export function ProjectDetailPage({
       'planos',
     );
   }
-
   function planoActualizado(
     planoActualizado:
       PlanoProyecto,
@@ -1363,7 +1605,7 @@ export function ProjectDetailPage({
 
     if (
       planoAbierto?.id_plano ===
-        planoActualizado.id_plano
+      planoActualizado.id_plano
     ) {
       setPlanoAbierto(
         planoActualizado,
@@ -1471,7 +1713,7 @@ export function ProjectDetailPage({
           ),
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1531,7 +1773,7 @@ export function ProjectDetailPage({
       null,
     );
   }
-    async function confirmarEliminacionContenido() {
+  async function confirmarEliminacionContenido() {
     if (
       !contenidoEliminando ||
       eliminandoContenido
@@ -1589,7 +1831,7 @@ export function ProjectDetailPage({
           null,
         );
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           errorObtenido instanceof
@@ -1658,7 +1900,7 @@ export function ProjectDetailPage({
         null,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1826,15 +2068,14 @@ export function ProjectDetailPage({
               </h1>
 
               <span
-                className={`${styles.statusBadge} ${
-                  proyecto.estado_proyecto ===
+                className={`${styles.statusBadge} ${proyecto.estado_proyecto ===
                   'ACTIVA'
-                    ? styles.statusActive
-                    : proyecto.estado_proyecto ===
-                        'PAUSA'
-                      ? styles.statusPaused
-                      : styles.statusFinished
-                }`}
+                  ? styles.statusActive
+                  : proyecto.estado_proyecto ===
+                    'PAUSA'
+                    ? styles.statusPaused
+                    : styles.statusFinished
+                  }`}
               >
                 {formatearEstado(
                   proyecto.estado_proyecto,
@@ -2531,7 +2772,7 @@ export function ProjectDetailPage({
               </section>
             </div>
           )}
-                  {seccionActiva ===
+        {seccionActiva ===
           'fotografias' && (
             <section
               className={
@@ -2834,9 +3075,9 @@ export function ProjectDetailPage({
                         ) => {
                           if (
                             event.key ===
-                              'Enter' ||
+                            'Enter' ||
                             event.key ===
-                              ' '
+                            ' '
                           ) {
                             event.preventDefault();
 
@@ -3067,7 +3308,7 @@ export function ProjectDetailPage({
               )}
             </section>
           )}
-                  {seccionActiva ===
+        {seccionActiva ===
           '360' && (
             <section
               className={
@@ -3148,9 +3389,9 @@ export function ProjectDetailPage({
                         ) => {
                           if (
                             event.key ===
-                              'Enter' ||
+                            'Enter' ||
                             event.key ===
-                              ' '
+                            ' '
                           ) {
                             event.preventDefault();
 
@@ -3354,24 +3595,39 @@ export function ProjectDetailPage({
             </section>
           )}
 
-        {seccionActiva ===
-          'carpetas' && (
-            <section
-              className={
-                styles.emptyContent
-              }
-            >
-              <h2>
-                Carpetas
-              </h2>
-
-              <p>
-                Aquí construiremos la organización documental del proyecto.
-              </p>
-            </section>
-          )}
+        {seccionActiva === 'carpetas' && (
+          <ProjectFolders
+            idProyecto={
+              idProyecto
+            }
+            versionCarpetas={
+              versionCarpetas
+            }
+            onAbrirFotografia={(
+              fotografia,
+            ) => {
+              setFotografiaAbierta(
+                fotografia,
+              );
+            }}
+            onAbrirPanoramica={(
+              panoramica,
+            ) => {
+              setPanoramicaAbierta(
+                panoramica,
+              );
+            }}
+            onAbrirPlano={(
+              plano,
+            ) => {
+              setPlanoAbierto(
+                plano,
+              );
+            }}
+          />
+        )}
       </section>
-            {editandoProyecto && (
+      {editandoProyecto && (
         <EditProjectModal
           proyecto={
             proyecto
@@ -3504,6 +3760,12 @@ export function ProjectDetailPage({
         <PlanViewer
           plano={
             planoAbierto
+          }
+          incidenciaInicialId={
+            navegacionInicial?.destino ===
+              'PLANOS'
+              ? navegacionInicial.idIncidencia
+              : null
           }
           onCerrar={() => {
             setPlanoAbierto(

@@ -736,6 +736,43 @@ export function AppShell({
         false,
       );
 
+      try {
+        const vigencia =
+          await comprobarVigenciaNotificacion(
+            notificacion.id_notificacion,
+          );
+
+        if (
+          !vigencia.vigente
+        ) {
+          setNotificacionesAbiertas(
+            false,
+          );
+
+          return;
+        }
+      } catch {
+        setErrorNotificaciones(
+          'No fue posible comprobar la notificación.',
+        );
+
+        return;
+      }
+
+      if (
+        !notificacion.destino
+      ) {
+        setNotificacionesAbiertas(
+          false,
+        );
+
+        return;
+      }
+
+      setNotificacionesAbiertas(
+        false,
+      );
+
       onAbrirNotificacion(
         notificacion,
       );
@@ -861,8 +898,8 @@ export function AppShell({
           >
             <button
               className={`${styles.notificationButton} ${notificacionesAbiertas
-                  ? styles.notificationButtonActive
-                  : ''
+                ? styles.notificationButtonActive
+                : ''
                 }`}
               type="button"
               aria-label={
@@ -1045,8 +1082,8 @@ export function AppShell({
                         >
                           <button
                             className={`${styles.notificationItem} ${!notificacion.leida
-                                ? styles.notificationItemUnread
-                                : ''
+                              ? styles.notificationItemUnread
+                              : ''
                               }`}
                             type="button"
                             onClick={() => {
@@ -1212,8 +1249,8 @@ export function AppShell({
 
               <span
                 className={`${styles.userMenuButton} ${menuUsuarioAbierto
-                    ? styles.userMenuButtonOpen
-                    : ''
+                  ? styles.userMenuButtonOpen
+                  : ''
                   }`}
                 aria-hidden="true"
               >
@@ -1365,9 +1402,9 @@ export function AppShell({
         >
           <button
             className={`${styles.navItem} ${seccionActiva ===
-                'inicio'
-                ? styles.navItemActive
-                : ''
+              'inicio'
+              ? styles.navItemActive
+              : ''
               }`}
             type="button"
             onClick={
@@ -1404,9 +1441,9 @@ export function AppShell({
 
           <button
             className={`${styles.navItem} ${seccionActiva ===
-                'proyectos'
-                ? styles.navItemActive
-                : ''
+              'proyectos'
+              ? styles.navItemActive
+              : ''
               }`}
             type="button"
             onClick={
@@ -1439,9 +1476,9 @@ export function AppShell({
 
           <button
             className={`${styles.navItem} ${seccionActiva ===
-                'perfil'
-                ? styles.navItemActive
-                : ''
+              'perfil'
+              ? styles.navItemActive
+              : ''
               }`}
             type="button"
             onClick={

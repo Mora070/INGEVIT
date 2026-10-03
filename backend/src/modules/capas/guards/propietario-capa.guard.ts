@@ -17,7 +17,8 @@ import type { AuthRequest } from '../../auth/types/auth-request.types';
  * Comprueba el permiso antes de recibir el archivo.
  *
  * Debe ejecutarse después de AuthGuard.
- * Solo permite gestionar capas al propietario activo del proyecto.
+  * Permite gestionar capas al propietario o a un colaborador
+ * activo con acceso al proyecto.
  *
  * Esta comprobación no mantiene bloqueos durante la subida.
  * El servicio de persistencia deberá comprobar nuevamente los permisos
@@ -69,7 +70,6 @@ export class PropietarioCapaGuard implements CanActivate {
 
         if (
             !proyecto
-            || proyecto.id_propietario !== usuario.id_usuario
         ) {
             throw new NotFoundException(
                 'El proyecto no está disponible para gestionar capas.',

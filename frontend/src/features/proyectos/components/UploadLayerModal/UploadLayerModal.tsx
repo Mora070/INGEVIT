@@ -67,6 +67,46 @@ function formatearTamano(
   )} GB`;
 }
 
+function obtenerTiempoEstimado(
+  bytes: number,
+): string {
+  const mb =
+    bytes /
+    (1024 * 1024);
+
+  if (
+    mb <= 100
+  ) {
+    return 'aproximadamente 1 a 2 minutos';
+  }
+
+  if (
+    mb <= 300
+  ) {
+    return 'aproximadamente 2 a 4 minutos';
+  }
+
+  if (
+    mb <= 600
+  ) {
+    return 'aproximadamente 4 a 7 minutos';
+  }
+
+  if (
+    mb <= 1000
+  ) {
+    return 'aproximadamente 7 a 12 minutos';
+  }
+
+  if (
+    mb <= 3000
+  ) {
+    return 'aproximadamente 12 a 20 minutos';
+  }
+
+  return 'más de 20 minutos';
+}
+
 function archivoGeoTiffValido(
   archivo: File,
 ): boolean {
@@ -128,7 +168,7 @@ export function UploadLayerModal({
     ) {
       if (
         event.key ===
-          'Escape' &&
+        'Escape' &&
         !subiendo
       ) {
         onCerrar();
@@ -172,7 +212,7 @@ export function UploadLayerModal({
   const puedeSubir =
     nombreValido &&
     archivo !==
-      null &&
+    null &&
     !subiendo;
 
   function seleccionarArchivo(
@@ -211,7 +251,7 @@ export function UploadLayerModal({
 
     if (
       nombre.trim().length ===
-        0
+      0
     ) {
       const nombreSinExtension =
         archivoSeleccionado.name.replace(
@@ -259,7 +299,7 @@ export function UploadLayerModal({
         nuevaCapa,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -288,7 +328,7 @@ export function UploadLayerModal({
   ) {
     if (
       event.target ===
-        event.currentTarget &&
+      event.currentTarget &&
       !subiendo
     ) {
       onCerrar();
@@ -458,11 +498,10 @@ export function UploadLayerModal({
             </label>
 
             <div
-              className={`${styles.dropzone} ${
-                subiendo
-                  ? styles.dropzoneDisabled
-                  : ''
-              }`}
+              className={`${styles.dropzone} ${subiendo
+                ? styles.dropzoneDisabled
+                : ''
+                }`}
               role="button"
               tabIndex={
                 subiendo
@@ -483,9 +522,9 @@ export function UploadLayerModal({
 
                 if (
                   event.key ===
-                    'Enter' ||
+                  'Enter' ||
                   event.key ===
-                    ' '
+                  ' '
                 ) {
                   event.preventDefault();
 
@@ -510,7 +549,7 @@ export function UploadLayerModal({
                 ) => {
                   seleccionarArchivo(
                     event.target.files?.[
-                      0
+                    0
                     ] ?? null,
                   );
 
@@ -583,6 +622,24 @@ export function UploadLayerModal({
               La georreferenciación, el CRS y la extensión
               espacial se obtendrán automáticamente del archivo.
             </p>
+            {archivo && (
+              <div
+                className={
+                  styles.estimatedTime
+                }
+              >
+                <strong>
+                  Tiempo estimado de carga inicial:
+                </strong>{' '}
+                {obtenerTiempoEstimado(
+                  archivo.size,
+                )}.
+                {' '}
+                Este tiempo puede variar según la velocidad
+                de conexión y el tamaño de la ortofoto.
+                El procesamiento continuará después de la carga.
+              </div>
+            )}
           </div>
 
           {error && (

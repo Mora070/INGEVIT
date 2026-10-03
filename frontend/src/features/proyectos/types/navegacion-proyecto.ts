@@ -5,6 +5,7 @@ export type DestinoProyecto =
   | 'PANORAMICAS'
   | 'MAPA'
   | 'CAPAS'
+  | 'CARPETAS'
   | 'COLABORADORES';
 
 export interface NavegacionProyecto {
@@ -14,5 +15,8 @@ export interface NavegacionProyecto {
     DestinoProyecto | null;
 
   idRecurso:
+    string | null;
+
+  idIncidencia:
     string | null;
 }

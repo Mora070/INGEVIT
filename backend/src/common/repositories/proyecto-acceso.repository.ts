@@ -154,6 +154,72 @@ export class ProyectoAccesoRepository {
     );
   }
 
+
+    /**
+   * Comprueba acceso de lectura al proyecto
+   * sin mantener bloqueos de filas.
+   *
+   * Permite:
+   * - propietario activo;
+   * - colaboradores actuales y activos.
+   *
+   * Debe utilizarse para consultas que no
+   * modifican información del proyecto.
+   */
+  async estaDisponible(
+    client: PoolClient,
+    idProyecto: string,
+    idUsuario: string,
+  ): Promise<boolean> {
+    const resultado =
+      await client.query<{
+        existe: boolean;
+      }>(
+        `
+          SELECT EXISTS (
+            SELECT 1
+            FROM obra.proyectos
+              AS proyecto
+            INNER JOIN obra.usuarios
+              AS usuario
+              ON usuario.id_usuario =
+                $2::uuid
+              AND usuario.estado =
+                'ACTIVO'
+            WHERE
+              proyecto.id_proyecto =
+                $1::uuid
+              AND proyecto.activo =
+                TRUE
+              AND (
+                proyecto.id_propietario =
+                  $2::uuid
+
+                OR EXISTS (
+                  SELECT 1
+                  FROM obra.usuario_proyecto
+                    AS colaboracion
+                  WHERE
+                    colaboracion.id_proyecto =
+                      proyecto.id_proyecto
+                    AND colaboracion.id_usuario =
+                      $2::uuid
+                )
+              )
+          ) AS existe
+        `,
+        [
+          idProyecto,
+          idUsuario,
+        ],
+      );
+
+    return (
+      resultado.rows[0]
+        ?.existe === true
+    );
+  }
+
   /**
    * Comprueba que el solicitante sea el propietario activo
    * de un proyecto activo.

@@ -11,19 +11,19 @@ import type {
 type FilaPagina = (
   | NotificacionRow
   | {
-      [K in keyof NotificacionRow]:
-        null;
-    }
+    [K in keyof NotificacionRow]:
+    null;
+  }
 ) & {
   total: string;
 };
 
 export interface NotificacionesConsultadas {
   notificaciones:
-    NotificacionRow[];
+  NotificacionRow[];
 
   total:
-    number;
+  number;
 }
 
 @Injectable()
@@ -31,7 +31,7 @@ export class NotificacionesConsultaRepository {
   constructor(
     private readonly database:
       DatabaseService,
-  ) {}
+  ) { }
 
   async listarDisponibles(
     idUsuario: string,
@@ -199,7 +199,7 @@ export class NotificacionesConsultaRepository {
             pagina -
             1
           ) *
-            limite,
+          limite,
         ],
       );
 
@@ -209,7 +209,7 @@ export class NotificacionesConsultaRepository {
     if (
       !primera ||
       typeof primera.total !==
-        'string' ||
+      'string' ||
       primera.total.includes(
         '\n',
       ) ||
@@ -235,7 +235,7 @@ export class NotificacionesConsultaRepository {
         total,
       ) ||
       total <
-        0
+      0
     ) {
       throw new Error(
         'El total de notificaciones no puede representarse correctamente.',
@@ -244,7 +244,7 @@ export class NotificacionesConsultaRepository {
 
     const notificaciones:
       NotificacionRow[] =
-        [];
+      [];
 
     for (
       const fila of
@@ -369,21 +369,45 @@ export class NotificacionesConsultaRepository {
                     notificacion.id_proyecto
               )
 
-              WHEN notificacion.destino =
-                'PLANOS'
-              THEN EXISTS (
-                SELECT 1
+WHEN notificacion.destino =
+  'PLANOS'
+THEN (
+  EXISTS (
+    SELECT 1
 
-                FROM obra.planos
-                  AS plano
+    FROM obra.planos
+      AS plano
 
-                WHERE
-                  plano.id_plano =
-                    notificacion.id_recurso
+    WHERE
+      plano.id_plano =
+        notificacion.id_recurso
 
-                  AND plano.id_proyecto =
-                    notificacion.id_proyecto
-              )
+      AND plano.id_proyecto =
+        notificacion.id_proyecto
+  )
+
+  AND (
+    notificacion.id_incidencia
+      IS NULL
+
+    OR EXISTS (
+      SELECT 1
+
+      FROM obra.incidencias
+        AS incidencia
+
+      WHERE
+        incidencia.id_incidencia =
+          notificacion.id_incidencia
+
+        AND incidencia.id_proyecto =
+          notificacion.id_proyecto
+
+        AND incidencia.id_plano =
+          notificacion.id_recurso
+    )
+  )
+)
 
               WHEN notificacion.destino =
                 'PANORAMICAS'
