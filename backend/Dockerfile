@@ -42,7 +42,7 @@ RUN groupadd --system ingevit \
   && useradd --system --gid ingevit --create-home ingevit \
   && chown -R ingevit:ingevit /app /opt/ingevit-gis
 
-USER ingevit
+USER root
 
 EXPOSE 3000
 
