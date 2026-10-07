@@ -63,8 +63,11 @@ export async function http<T>(
   ruta: string,
   opciones: RequestInit = {},
 ): Promise<T> {
-  if (!ruta.startsWith('/api/')) {
-    throw new Error('Las solicitudes deben utilizar una ruta /api/.');
+  // Permitir URLs absolutas (ej. https://ingevit-production.up.railway.app) o relativas /api/
+  const esUrlAbsoluta = ruta.startsWith('http://') || ruta.startsWith('https://');
+
+  if (!esUrlAbsoluta && !ruta.startsWith('/api/')) {
+    throw new Error('Las solicitudes relativas deben utilizar una ruta /api/.');
   }
 
   const headers = new Headers(opciones.headers);
@@ -73,7 +76,7 @@ export async function http<T>(
   const respuesta = await fetch(ruta, {
     ...opciones,
     headers,
-    credentials: 'same-origin',
+    credentials: esUrlAbsoluta ? 'include' : 'same-origin', // Permite enviar la cookie/sesión hacia Railway si es cross-origin
     cache: 'no-store',
   });
 

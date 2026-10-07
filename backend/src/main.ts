@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { createValidationPipe } from './common/pipes/create-validation-pipe';
 import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 import type { Server } from 'node:http';
 
 async function bootstrap(): Promise<void> {
@@ -21,6 +22,22 @@ async function bootstrap(): Promise<void> {
 
   const app = await NestFactory.create(AppModule);
 
+  // 1. Habilitar CORS para permitir peticiones directas desde Vercel y local
+  app.enableCors({
+    origin: [
+      'https://ingevit.vercel.app',
+      'http://localhost:4300',
+      'http://127.0.0.1:3000',
+      'http://localhost:3000',
+    ],
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+  });
+
+  // 2. Aumentar límites del parser para peticiones pesadas (hasta 3.5 GB para GeoTIFFs)
+  app.use(json({ limit: '3500mb' }));
+  app.use(urlencoded({ limit: '3500mb', extended: true }));
 
   // Interpreta las cookies antes de ejecutar los guards.
   app.use(cookieParser());
@@ -34,11 +51,11 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api');
 
   /*
- * Permite recibir originales grandes durante la prueba local.
- * Este tiempo corresponde a la recepción HTTP, no al procesamiento GIS.
- */
+   * Amplía timeouts de socket/petición HTTP.
+   */
   const servidor = app.getHttpServer() as Server;
-  servidor.requestTimeout = 60 * 60 * 1000;
+  servidor.requestTimeout = 60 * 60 * 1000; // 1 hora
+  servidor.headersTimeout = 65 * 60 * 1000;
 
   await app.listen(port, host);
 

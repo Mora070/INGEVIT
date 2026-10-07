@@ -58,34 +58,26 @@ export function subirCapaProyecto(
   idProyecto: string,
   datos: DatosSubirCapa,
 ): Promise<CapaProyecto> {
-  const formulario =
-    new FormData();
+  const formulario = new FormData();
 
-  formulario.append(
-    'nombre',
-    datos.nombre,
-  );
+  formulario.append('nombre', datos.nombre);
+  formulario.append('descripcion', datos.descripcion);
+  formulario.append('archivo', datos.archivo);
 
-  formulario.append(
-    'descripcion',
-    datos.descripcion,
-  );
+  // Si hay una URL de backend en las variables de entorno, la usa para bypass de Vercel
+  const baseUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '') 
+    : '';
 
-  formulario.append(
-    'archivo',
-    datos.archivo,
-  );
+  const endpoint = baseUrl 
+    ? `${baseUrl}/api/proyectos/${encodeURIComponent(idProyecto)}/capas`
+    : `/api/proyectos/${encodeURIComponent(idProyecto)}/capas`;
 
   return http<CapaProyecto>(
-    `/api/proyectos/${encodeURIComponent(
-      idProyecto,
-    )}/capas`,
+    endpoint,
     {
-      method:
-        'POST',
-
-      body:
-        formulario,
+      method: 'POST',
+      body: formulario,
     },
   );
 }
