@@ -36,6 +36,7 @@ function preparar({
         rows: [{
           id_panoramica: 'panoramica',
           s3_key: CLAVE,
+          titulo: 'Sector norte',
         }],
       } : {
         rowCount: 0,
@@ -83,6 +84,12 @@ function preparar({
         if (errorActividad) throw errorActividad;
       },
     },
+    {
+      async crearParaParticipantesProyecto(conexion, datos) {
+        assert.strictEqual(conexion, client);
+        eventos.push('notificacion');
+      },
+    },
   );
 
   return {
@@ -98,7 +105,7 @@ test('PanoramicasEliminacion: elimina, encola y registra antes de confirmar', as
 
   assert.equal(await ejecutar(), undefined);
   assert.deepEqual(eventos, [
-    'acceso', 'eliminar', 'cola', 'actividad', 'confirmar',
+    'acceso', 'eliminar', 'cola', 'actividad', 'notificacion', 'confirmar',
   ]);
 });
 

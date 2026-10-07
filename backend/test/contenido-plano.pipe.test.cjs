@@ -42,7 +42,7 @@ for (const [descripcion, archivo] of entradasInvalidas) {
 }
 
 test(
-  'ContenidoPlanoPipe: admite exactamente 35 MiB y devuelve el mismo Buffer',
+  'ContenidoPlanoPipe: admite exactamente el límite máximo y devuelve el mismo Buffer',
   () => {
     const pipe = new ContenidoPlanoPipe();
     const contenido = Buffer.alloc(MAX_BYTES_PLANO, 7);
@@ -50,14 +50,14 @@ test(
     const resultado = pipe.transform({ buffer: contenido });
 
     assert.strictEqual(resultado, contenido);
-    assert.equal(resultado.length, 36_700_160);
+    assert.equal(resultado.length, MAX_BYTES_PLANO);
     assert.equal(resultado[0], 7);
     assert.equal(resultado[resultado.length - 1], 7);
   },
 );
 
 test(
-  'ContenidoPlanoPipe: rechaza 35 MiB más un byte',
+  'ContenidoPlanoPipe: rechaza el tamaño máximo más un byte',
   () => {
     const pipe = new ContenidoPlanoPipe();
     const contenido = Buffer.alloc(MAX_BYTES_PLANO + 1);

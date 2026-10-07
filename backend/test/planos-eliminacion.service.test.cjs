@@ -4,85 +4,99 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  PlanosRepository,
+} = require('../dist/modules/planos/planos.repository');
+
+const {
   PlanosEliminacionService,
 } = require('../dist/modules/planos/planos-eliminacion.service');
 
-const PROYECTO = '20000000-0000-4000-8000-000000000001';
-const PLANO = '30000000-0000-4000-8000-000000000001';
-const USUARIO = '10000000-0000-4000-8000-000000000001';
-const CLAVE = `planos/${PLANO}.pdf`;
+const CLAVE = 'planos/30000000-0000-4000-8000-000000000001.pdf';
 
 function preparar({
-  disponible = true,
+  acceso = true,
   existe = true,
   errorCola,
   errorActividad,
 } = {}) {
-  const client = {};
   const eventos = [];
+
+  const client = {
+    async query(sql, valores) {
+      assert.deepEqual(valores, ['proyecto', 'plano']);
+      assert.match(sql, /DELETE FROM obra\.planos/i);
+      assert.match(sql, /WHERE\s+id_proyecto\s*=\s*\$1/i);
+      assert.match(sql, /AND\s+id_plano\s*=\s*\$2/i);
+      assert.match(sql, /RETURNING[\s\S]*s3_key/i);
+
+      eventos.push('eliminar');
+
+      return existe ? {
+        rowCount: 1,
+        rows: [{
+          id_plano: 'plano',
+          s3_key: CLAVE,
+          titulo: 'Plano general',
+        }],
+      } : {
+        rowCount: 0,
+        rows: [],
+      };
+    },
+  };
 
   const service = new PlanosEliminacionService(
     {
       async withTransaction(operacion) {
-        eventos.push('inicio');
-        const resultado = await operacion(client);
-        eventos.push('confirmacion');
-        return resultado;
+        await operacion(client);
+        eventos.push('confirmar');
       },
     },
     {
       async bloquearDisponible(conexion, proyecto, usuario) {
         assert.strictEqual(conexion, client);
-        assert.equal(proyecto, PROYECTO);
-        assert.equal(usuario, USUARIO);
+        assert.deepEqual([proyecto, usuario], ['proyecto', 'usuario']);
         eventos.push('acceso');
-        return disponible;
+        return acceso;
       },
     },
-    {
-      async eliminar(conexion, proyecto, plano) {
-        assert.strictEqual(conexion, client);
-        assert.equal(proyecto, PROYECTO);
-        assert.equal(plano, PLANO);
-        eventos.push('eliminacion');
-
-        return existe
-          ? { id_plano: PLANO, s3_key: CLAVE }
-          : null;
-      },
-    },
+    new PlanosRepository(),
     {
       async registrar(conexion, claves) {
         assert.strictEqual(conexion, client);
         assert.deepEqual(claves, [CLAVE]);
         eventos.push('cola');
 
-        if (errorCola) {
-          throw errorCola;
-        }
+        if (errorCola) throw errorCola;
       },
     },
     {
       async crear(conexion, datos) {
         assert.strictEqual(conexion, client);
         assert.deepEqual(datos, {
-          idProyecto: PROYECTO,
-          idActor: USUARIO,
+          idProyecto: 'proyecto',
+          idActor: 'usuario',
           tipoAccion: 'PLANO_ELIMINADO',
-          mensaje: `Plano ${PLANO} eliminado.`,
+          mensaje: 'Plano plano eliminado.',
         });
         eventos.push('actividad');
 
-        if (errorActividad) {
-          throw errorActividad;
-        }
+        if (errorActividad) throw errorActividad;
+      },
+    },
+    {
+      async crearParaParticipantesProyecto(conexion) {
+        assert.strictEqual(conexion, client);
+        eventos.push('notificacion');
       },
     },
   );
 
   return {
     eventos,
-    ejecutar: () => service.eliminar(PROYECTO, PLANO, USUARIO),
+    ejecutar: () => service.eliminar(
+      'proyecto', 'plano', 'usuario',
+    ),
   };
 }
 
@@ -91,28 +105,18 @@ test('PlanosEliminacion: elimina, encola y registra actividad en la misma transa
 
   assert.equal(await ejecutar(), undefined);
   assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'eliminacion',
-    'cola',
-    'actividad',
-    'confirmacion',
+    'acceso', 'eliminar', 'cola', 'actividad', 'notificacion', 'confirmar',
   ]);
 });
 
 test('PlanosEliminacion: rechaza el acceso antes de eliminar', async () => {
-  const { ejecutar, eventos } = preparar({ disponible: false });
+  const { ejecutar, eventos } = preparar({ acceso: false });
 
-  await assert.rejects(ejecutar(), (error) => {
-    assert.equal(error.getStatus(), 404);
-    assert.equal(error.message, 'El proyecto no está disponible.');
-    return true;
-  });
-
-  assert.deepEqual(eventos, ['inicio', 'acceso']);
+  await assert.rejects(ejecutar(), (error) => error.getStatus() === 404);
+  assert.deepEqual(eventos, ['acceso']);
 });
 
-test('PlanosEliminacion: no encola ni registra actividad si el plano no existe', async () => {
+test('PlanosEliminacion: no encola un plano inexistente', async () => {
   const { ejecutar, eventos } = preparar({ existe: false });
 
   await assert.rejects(ejecutar(), (error) => {
@@ -121,11 +125,7 @@ test('PlanosEliminacion: no encola ni registra actividad si el plano no existe',
     return true;
   });
 
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'eliminacion',
-  ]);
+  assert.deepEqual(eventos, ['acceso', 'eliminar']);
 });
 
 test('PlanosEliminacion: propaga el fallo de la cola sin confirmar', async () => {
@@ -133,26 +133,17 @@ test('PlanosEliminacion: propaga el fallo de la cola sin confirmar', async () =>
   const { ejecutar, eventos } = preparar({ errorCola: original });
 
   await assert.rejects(ejecutar(), (error) => error === original);
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'eliminacion',
-    'cola',
-  ]);
+  assert.deepEqual(eventos, ['acceso', 'eliminar', 'cola']);
 });
 
 test('PlanosEliminacion: propaga el fallo de actividad sin confirmar', async () => {
-  const original = new Error('Falló la actividad');
+  const original = new Error('Falló el historial');
   const { ejecutar, eventos } = preparar({
     errorActividad: original,
   });
 
   await assert.rejects(ejecutar(), (error) => error === original);
   assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'eliminacion',
-    'cola',
-    'actividad',
+    'acceso', 'eliminar', 'cola', 'actividad',
   ]);
 });

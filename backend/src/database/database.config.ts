@@ -56,12 +56,18 @@ export function getDatabaseConfig(
     );
   }
 
+    const ssl =
+    environment.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : undefined;
+
   return {
     host,
     port,
     database,
     user,
     password,
+    ssl,
 
     // Identifica las conexiones del backend dentro de PostgreSQL.
     application_name: 'ingevit-backend',

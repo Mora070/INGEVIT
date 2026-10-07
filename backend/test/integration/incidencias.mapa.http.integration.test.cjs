@@ -123,6 +123,8 @@ test('incidencias de mapa HTTP: crea, lista y elimina respetando permisos', asyn
         prioridad: 'ALTA',
         latitud: 4.711,
         longitud: -74.0721,
+        id_fotografia: null,
+        id_panoramica: null,
       };
 
       async function crear(cookie, cambios = {}, idProyecto = proyecto) {

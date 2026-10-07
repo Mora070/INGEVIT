@@ -67,7 +67,7 @@ test('paginación: parametriza el usuario, el límite y el desplazamiento', asyn
   );
 
   assert.equal(llamadas.length, 1);
-  assert.deepEqual(llamadas[0].values, [ID_USUARIO, 20, 40]);
+  assert.deepEqual(llamadas[0].values, [ID_USUARIO, 20, 40, null]);
 
   assert.match(llamadas[0].sql, /LIMIT\s+\$2::integer/i);
   assert.match(llamadas[0].sql, /OFFSET\s+\$3::bigint/i);
@@ -90,7 +90,7 @@ test('paginación: la primera página utiliza desplazamiento cero', async () => 
     20,
   );
 
-  assert.deepEqual(parametros, [ID_USUARIO, 20, 0]);
+  assert.deepEqual(parametros, [ID_USUARIO, 20, 0, null]);
 });
 
 test('paginación: separa el total de los proyectos y conserva su orden', async () => {

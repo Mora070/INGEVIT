@@ -1,37 +1,39 @@
 require('reflect-metadata');
 
-const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { PDFDocument } = require('pdf-lib');
+const assert = require('node:assert/strict');
 
 const {
   PlanosSubidaService,
 } = require('../dist/modules/planos/planos-subida.service');
 
-const proyecto = '20000000-0000-4000-8000-000000000001';
-const usuario = '10000000-0000-4000-8000-000000000001';
-const clave = 'planos/30000000-0000-4000-8000-000000000001.pdf';
-const datos = { titulo: 'Estructura', descripcion: 'Nivel uno' };
-
-async function crearPdf() {
-  const documento = await PDFDocument.create();
-  documento.addPage([200, 300]);
-  documento.addPage([300, 200]);
-  return Buffer.from(await documento.save());
-}
+const PROYECTO = '20000000-0000-4000-8000-000000000001';
+const USUARIO = '10000000-0000-4000-8000-000000000001';
+const PLANO = '30000000-0000-4000-8000-000000000001';
+const CLAVE = `planos/${PLANO}.pdf`;
 
 /**
- * Simula las dependencias transaccionales.
- * El parser de PDF se ejecuta realmente.
+ * Encabezado PDF mínimo válido para superar la validación de inspeccionarPlano.
  */
-function preparar(permisos = [true, true], errorActividad) {
+function crearPdfValido() {
+  return Buffer.from(
+    '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
+    '2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n' +
+    '3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj\n' +
+    'xref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n' +
+    '0000000052 00000 n\n0000000102 00000 n\n' +
+    'trailer<</Size 4/Root 1 0 R>>\nstartxref\n149\n%%EOF',
+  );
+}
+
+function preparar({
+  permisos = [true, true],
+  errorActividad,
+} = {}) {
   const client = {};
-  const llamadas = {
-    accesos: [],
-    guardados: [],
-    planos: [],
-    actividades: [],
-  };
+  const eventos = [];
+  let comprobaciones = 0;
+  let contenidoGuardado;
 
   const service = new PlanosSubidaService(
     {
@@ -40,116 +42,129 @@ function preparar(permisos = [true, true], errorActividad) {
       },
     },
     {
-      async bloquearDisponible(conexion, idProyecto, idUsuario) {
+      async bloquearDisponible(conexion, proyecto, usuario) {
         assert.strictEqual(conexion, client);
-        llamadas.accesos.push([idProyecto, idUsuario]);
-        return permisos[llamadas.accesos.length - 1] ?? false;
+        assert.deepEqual([proyecto, usuario], [PROYECTO, USUARIO]);
+        eventos.push('acceso');
+        return permisos[comprobaciones++] ?? false;
       },
     },
     {
       async guardarYRegistrar(contenido, registrar) {
-        llamadas.guardados.push(contenido);
-        return registrar(client, clave);
+        contenidoGuardado = contenido;
+        eventos.push('archivo');
+        const resultado = await registrar(client, CLAVE);
+        eventos.push('confirmar');
+        return resultado;
       },
     },
     {
-      async crear(conexion, entrada) {
+      async crear(conexion, datos) {
         assert.strictEqual(conexion, client);
-        llamadas.planos.push(entrada);
+        assert.deepEqual(datos, {
+          id_proyecto: PROYECTO,
+          id_usuario_subida: USUARIO,
+          titulo: 'Estructuras',
+          descripcion: 'Plano estructural principal',
+          url: `/api/proyectos/${PROYECTO}/planos/archivos/${PLANO}.pdf`,
+          s3_key: CLAVE,
+          numero_paginas: 1,
+        });
+
+        eventos.push('registro');
 
         return {
-          id_plano: '40000000-0000-4000-8000-000000000001',
-          ...entrada,
+          id_plano: PLANO,
+          ...datos,
           mime_type: 'application/pdf',
           fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
         };
       },
     },
     {
-      async crear(conexion, entrada) {
+      async crear(conexion, datos) {
         assert.strictEqual(conexion, client);
-        llamadas.actividades.push(entrada);
+        assert.deepEqual(datos, {
+          idProyecto: PROYECTO,
+          idActor: USUARIO,
+          tipoAccion: 'PLANO_SUBIDO',
+          mensaje: `Plano ${PLANO} subido.`,
+        });
 
-        if (errorActividad) {
-          throw errorActividad;
-        }
+        eventos.push('actividad');
+
+        if (errorActividad) throw errorActividad;
+      },
+    },
+    {
+      async crearParaParticipantesProyecto(conexion) {
+        assert.strictEqual(conexion, client);
+        eventos.push('notificacion');
       },
     },
   );
 
-  return { service, llamadas };
+  return {
+    eventos,
+    contenidoGuardado: () => contenidoGuardado,
+    ejecutar: (contenido = crearPdfValido()) =>
+      service.subir(
+        PROYECTO, USUARIO, {
+          titulo: 'Estructuras',
+          descripcion: 'Plano estructural principal',
+        }, contenido,
+      ),
+  };
 }
 
 test('PlanosSubida: registra el PDF y su actividad con la identidad recibida', async () => {
-  const { service, llamadas } = preparar();
-  const contenido = await crearPdf();
+  const escenario = preparar();
+  const contenido = crearPdfValido();
 
-  const resultado = await service.subir(
-    proyecto, usuario, datos, contenido,
-  );
+  const resultado = await escenario.ejecutar(contenido);
 
-  assert.deepEqual(llamadas.accesos, [
-    [proyecto, usuario],
-    [proyecto, usuario],
-  ]);
-  assert.strictEqual(llamadas.guardados[0], contenido);
-
-  assert.deepEqual(llamadas.planos, [{
-    id_proyecto: proyecto,
-    id_usuario_subida: usuario,
-    titulo: datos.titulo,
-    descripcion: datos.descripcion,
-    url: `/api/proyectos/${proyecto}/planos/archivos/${clave.slice(7)}`,
-    s3_key: clave,
-    numero_paginas: 2,
-  }]);
-
-  assert.deepEqual(llamadas.actividades, [{
-    idProyecto: proyecto,
-    idActor: usuario,
-    tipoAccion: 'PLANO_SUBIDO',
-    mensaje: `Plano ${resultado.id_plano} subido.`,
-  }]);
-
+  assert.strictEqual(escenario.contenidoGuardado(), contenido);
+  assert.equal(resultado.id_usuario_subida, USUARIO);
   assert.equal(Object.hasOwn(resultado, 's3_key'), false);
   assert.equal(resultado.fecha_subida, '2026-09-15T12:00:00.000Z');
+
+  assert.deepEqual(escenario.eventos, [
+    'acceso',
+    'archivo',
+    'acceso',
+    'registro',
+    'actividad',
+    'notificacion',
+    'confirmar',
+  ]);
 });
 
-test('PlanosSubida: rechaza el acceso antes de interpretar o guardar', async () => {
-  const { service, llamadas } = preparar([false]);
+test('PlanosSubida: rechaza el acceso antes de analizar el PDF', async () => {
+  const { ejecutar, eventos } = preparar({ permisos: [false] });
 
-  await assert.rejects(
-    service.subir(proyecto, usuario, datos, Buffer.from('no es PDF')),
-    (error) => error.getStatus() === 404,
-  );
-
-  assert.equal(llamadas.guardados.length, 0);
-  assert.equal(llamadas.planos.length, 0);
-  assert.equal(llamadas.actividades.length, 0);
+  await assert.rejects(ejecutar(), (error) => error.getStatus() === 404);
+  assert.deepEqual(eventos, ['acceso']);
 });
 
-test('PlanosSubida: rechaza una pérdida de acceso antes de insertar', async () => {
-  const { service, llamadas } = preparar([true, false]);
+test('PlanosSubida: vuelve a comprobar el acceso antes de insertar', async () => {
+  const { ejecutar, eventos } = preparar({ permisos: [true, false] });
 
-  await assert.rejects(
-    service.subir(proyecto, usuario, datos, await crearPdf()),
-    (error) => error.getStatus() === 404,
-  );
-
-  assert.equal(llamadas.guardados.length, 1);
-  assert.equal(llamadas.planos.length, 0);
-  assert.equal(llamadas.actividades.length, 0);
+  await assert.rejects(ejecutar(), (error) => error.getStatus() === 404);
+  assert.deepEqual(eventos, ['acceso', 'archivo', 'acceso']);
 });
 
-test('PlanosSubida: propaga el fallo de actividad al coordinador transaccional', async () => {
-  const original = new Error('No se pudo registrar la actividad');
-  const { service, llamadas } = preparar([true, true], original);
+test('PlanosSubida: propaga el fallo del historial sin confirmar', async () => {
+  const original = new Error('Falló la actividad');
+  const { ejecutar, eventos } = preparar({
+    errorActividad: original,
+  });
 
-  await assert.rejects(
-    service.subir(proyecto, usuario, datos, await crearPdf()),
-    (error) => error === original,
-  );
-
-  assert.equal(llamadas.planos.length, 1);
-  assert.equal(llamadas.actividades.length, 1);
+  await assert.rejects(ejecutar(), (error) => error === original);
+  assert.deepEqual(eventos, [
+    'acceso',
+    'archivo',
+    'acceso',
+    'registro',
+    'actividad',
+  ]);
 });

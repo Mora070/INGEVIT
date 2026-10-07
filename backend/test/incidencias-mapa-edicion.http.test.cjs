@@ -21,6 +21,9 @@ const {
   ActividadesRepository,
 } = require('../dist/modules/actividades/actividades.repository');
 const {
+  NotificacionesRepository,
+} = require('../dist/modules/notificaciones/notificaciones.repository');
+const {
   DatabaseService,
 } = require('../dist/database/database.service');
 const {
@@ -40,6 +43,10 @@ const DATOS = {
   descripcion: 'Reparación verificada.',
   prioridad: 'BAJA',
   estado: 'SOLUCIONADA',
+  latitud: 4.711,
+  longitud: -74.0721,
+  id_fotografia: null,
+  id_panoramica: null,
 };
 
 async function conAplicacion(ejecutar, opciones = {}) {
@@ -76,6 +83,21 @@ async function conAplicacion(ejecutar, opciones = {}) {
       {
         provide: IncidenciasRepository,
         useValue: {
+          async obtenerEnMapa(conexion, proyecto, incidencia) {
+            assert.strictEqual(conexion, client);
+            assert.equal(proyecto, PROYECTO);
+            assert.equal(incidencia, INCIDENCIA);
+            
+            if (opciones.ausente) return null;
+
+            return {
+              id_incidencia: INCIDENCIA,
+              id_proyecto: PROYECTO,
+              id_creador: CREADOR,
+              id_fotografia: null,
+              id_panoramica: null,
+            };
+          },
           async actualizarDatosEnMapa(
             conexion, proyecto, incidencia, datos,
           ) {
@@ -96,8 +118,8 @@ async function conAplicacion(ejecutar, opciones = {}) {
               numero_pagina: null,
               coordenada_x: null,
               coordenada_y: null,
-              latitud: '4.711',
-              longitud: '-74.0721',
+              latitud: String(datos.latitud),
+              longitud: String(datos.longitud),
               fecha_creacion: new Date('2026-09-22T12:00:00.000Z'),
             };
           },
@@ -119,6 +141,14 @@ async function conAplicacion(ejecutar, opciones = {}) {
             if (opciones.fallaActividad) {
               throw new Error('Fallo interno simulado');
             }
+          },
+        },
+      },
+      {
+        provide: NotificacionesRepository,
+        useValue: {
+          async crearParaParticipantesProyecto() {
+            // Mock básico de notificaciones
           },
         },
       },
@@ -200,7 +230,6 @@ test('PATCH mapa: edita con otro usuario y conserva creador y ubicación', async
 for (const [nombre, datos, id] of [
   ['identificador inválido', DATOS, 'incorrecto'],
   ['autoría enviada', { ...DATOS, id_creador: EDITOR }],
-  ['ubicación enviada', { ...DATOS, latitud: 0 }],
   ['estado inválido', { ...DATOS, estado: 'CERRADA' }],
 ]) {
   test(`PATCH mapa: rechaza ${nombre}`, async () => {
@@ -234,7 +263,7 @@ test('PATCH mapa: no registra actividad si la incidencia no está disponible', a
 
     assert.equal(respuesta.status, 404);
     assert.equal(respuesta.cuerpo.message, 'La incidencia no está disponible.');
-    assert.deepEqual(eventos, ['iniciar', 'autorizar', 'actualizar']);
+    assert.deepEqual(eventos, ['iniciar', 'autorizar']);
   }, { ausente: true });
 });
 

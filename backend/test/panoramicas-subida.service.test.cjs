@@ -14,11 +14,10 @@ const PANORAMICA = '30000000-0000-4000-8000-000000000001';
 const CLAVE = `panoramicas/${PANORAMICA}.png`;
 
 async function crearImagen() {
-  // Imagen sintética: prueba el archivo, no una captura 360° real.
   return sharp({
     create: {
-      width: 400,
-      height: 200,
+      width: 2048,
+      height: 1024,
       channels: 3,
       background: { r: 30, g: 80, b: 120 },
     },
@@ -69,8 +68,6 @@ function preparar({
             `/api/proyectos/${PROYECTO}/panoramicas/archivos/${PANORAMICA}.png`,
           s3_key: CLAVE,
           mime_type: 'image/png',
-          latitud: 4.711,
-          longitud: -74.0721,
         });
 
         eventos.push('registro');
@@ -78,8 +75,8 @@ function preparar({
         return {
           id_panoramica: PANORAMICA,
           ...datos,
-          latitud: String(datos.latitud),
-          longitud: String(datos.longitud),
+          latitud: null,
+          longitud: null,
           fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
         };
       },
@@ -99,6 +96,12 @@ function preparar({
         if (errorActividad) throw errorActividad;
       },
     },
+    {
+      async crearParaParticipantesProyecto(conexion) {
+        assert.strictEqual(conexion, client);
+        eventos.push('notificacion');
+      },
+    },
   );
 
   return {
@@ -107,10 +110,8 @@ function preparar({
     ejecutar: (contenido) =>
       service.subir(
         PROYECTO, USUARIO, {
-        titulo: 'Sector norte',
-        latitud: 4.711,
-        longitud: -74.0721,
-      }, contenido,
+          titulo: 'Sector norte',
+        }, contenido,
       ),
   };
 }
@@ -124,13 +125,13 @@ test('PanoramicasSubida: utiliza el formato detectado y conserva el original', a
   assert.strictEqual(escenario.contenidoGuardado(), contenido);
   assert.equal(resultado.id_usuario_subida, USUARIO);
   assert.equal(resultado.mime_type, 'image/png');
-  assert.equal(resultado.latitud, 4.711);
-  assert.equal(resultado.longitud, -74.0721);
+  assert.equal(resultado.latitud, null);
+  assert.equal(resultado.longitud, null);
   assert.equal(Object.hasOwn(resultado, 's3_key'), false);
   assert.equal(resultado.fecha_subida, '2026-09-15T12:00:00.000Z');
 
   assert.deepEqual(escenario.eventos, [
-    'acceso', 'archivo', 'acceso', 'registro', 'actividad', 'confirmar',
+    'acceso', 'archivo', 'acceso', 'registro', 'actividad', 'notificacion', 'confirmar',
   ]);
 });
 

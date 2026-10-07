@@ -24,6 +24,8 @@ function crearProyecto(cambios = {}) {
     activo: true,
     latitud: '4.7110',
     longitud: '-74.0721',
+    equipo: [],
+    ultima_actualizacion: new Date('2026-09-15T12:00:00.000Z'),
     ...cambios,
   };
 }
@@ -36,8 +38,9 @@ test('listarDisponibles: transmite la identidad y la paginación y devuelve proy
       idUsuario,
       pagina,
       limite,
+      busqueda,
     ) {
-      llamadas.push({ idUsuario, pagina, limite });
+      llamadas.push({ idUsuario, pagina, limite, busqueda });
 
       return {
         proyectos: [
@@ -60,6 +63,7 @@ test('listarDisponibles: transmite la identidad y la paginación y devuelve proy
       idUsuario: ID_USUARIO,
       pagina: 3,
       limite: 20,
+      busqueda: undefined,
     },
   ]);
 
@@ -78,6 +82,8 @@ test('listarDisponibles: transmite la identidad y la paginación y devuelve proy
         activo: true,
         latitud: 4.711,
         longitud: -74.0721,
+        equipo: [],
+        ultima_actualizacion: '2026-09-15T12:00:00.000Z',
       },
     ],
     pagina: 3,

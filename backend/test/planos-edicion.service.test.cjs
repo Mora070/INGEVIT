@@ -4,136 +4,127 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  PlanosRepository,
+} = require('../dist/modules/planos/planos.repository');
+
+const {
   PlanosEdicionService,
 } = require('../dist/modules/planos/planos-edicion.service');
 
-const PROYECTO = '20000000-0000-4000-8000-000000000001';
-const PLANO = '30000000-0000-4000-8000-000000000001';
-const USUARIO = '10000000-0000-4000-8000-000000000001';
-const AUTOR = '10000000-0000-4000-8000-000000000002';
-
-const DATOS = {
-  titulo: 'Título actualizado',
-  descripcion: '',
-};
-
 function preparar({
-  disponible = true,
+  acceso = true,
   existe = true,
-  errorActualizacion,
   errorActividad,
 } = {}) {
-  const client = {};
   const eventos = [];
+
+  const client = {
+    async query(sql, valores) {
+      assert.deepEqual(valores, [
+        'proyecto', 'plano', "Plano corregido'; SELECT 1; --", 'Descripción actualizada',
+      ]);
+      assert.equal(sql.includes(valores[2]), false);
+      assert.match(sql, /SET\s+/i);
+      assert.match(sql, /WHERE\s+id_proyecto\s*=\s*\$1/i);
+      assert.match(sql, /AND\s+id_plano\s*=\s*\$2/i);
+
+      eventos.push('actualizar');
+
+      return existe ? {
+        rowCount: 1,
+        rows: [{
+          id_plano: 'plano',
+          id_proyecto: 'proyecto',
+          id_usuario_subida: 'autor-original',
+          titulo: valores[2],
+          descripcion: valores[3],
+          url: '/plano.pdf',
+          s3_key: 'planos/clave.pdf',
+          mime_type: 'application/pdf',
+          numero_paginas: 2,
+          fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
+        }],
+      } : { rowCount: 0, rows: [] };
+    },
+  };
 
   const service = new PlanosEdicionService(
     {
       async withTransaction(operacion) {
-        eventos.push('inicio');
         const resultado = await operacion(client);
-        eventos.push('confirmacion');
+        eventos.push('confirmar');
         return resultado;
       },
     },
     {
       async bloquearDisponible(conexion, proyecto, usuario) {
         assert.strictEqual(conexion, client);
-        assert.equal(proyecto, PROYECTO);
-        assert.equal(usuario, USUARIO);
+        assert.deepEqual([proyecto, usuario], ['proyecto', 'editor']);
         eventos.push('acceso');
-        return disponible;
+        return acceso;
       },
     },
-    {
-      async actualizarDatos(conexion, proyecto, plano, datos) {
-        assert.strictEqual(conexion, client);
-        assert.equal(proyecto, PROYECTO);
-        assert.equal(plano, PLANO);
-        assert.deepEqual(datos, DATOS);
-        eventos.push('actualizacion');
-
-        if (errorActualizacion) {
-          throw errorActualizacion;
-        }
-
-        if (!existe) {
-          return null;
-        }
-
-        return {
-          id_plano: PLANO,
-          id_proyecto: PROYECTO,
-          id_usuario_subida: AUTOR,
-          ...datos,
-          url: '/plano.pdf',
-          s3_key: `planos/${PLANO}.pdf`,
-          mime_type: 'application/pdf',
-          fecha_subida: new Date('2026-09-15T12:00:00.000Z'),
-        };
-      },
-    },
+    new PlanosRepository(),
     {
       async crear(conexion, datos) {
         assert.strictEqual(conexion, client);
         assert.deepEqual(datos, {
-          idProyecto: PROYECTO,
-          idActor: USUARIO,
+          idProyecto: 'proyecto',
+          idActor: 'editor',
           tipoAccion: 'PLANO_DATOS_GUARDADOS',
-          mensaje: `Datos del plano ${PLANO} guardados.`,
+          mensaje: 'Datos del plano plano guardados.',
         });
-        eventos.push('actividad');
 
-        if (errorActividad) {
-          throw errorActividad;
-        }
+        eventos.push('actividad');
+        if (errorActividad) throw errorActividad;
+      },
+    },
+    {
+      async crearParaParticipantesProyecto(conexion) {
+        assert.strictEqual(conexion, client);
+        eventos.push('notificacion');
       },
     },
   );
 
   return {
     eventos,
-    ejecutar: () =>
-      service.actualizarDatos(PROYECTO, PLANO, USUARIO, DATOS),
+    ejecutar: () => service.actualizarDatos(
+      'proyecto', 'plano', 'editor', {
+        titulo: "Plano corregido'; SELECT 1; --",
+        descripcion: 'Descripción actualizada',
+      },
+    ),
   };
 }
 
 test('PlanosEdicion: coordina acceso, actualización e historial y conserva el autor', async () => {
   const { ejecutar, eventos } = preparar();
-  const resultado = await ejecutar();
 
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'actualizacion',
-    'actividad',
-    'confirmacion',
-  ]);
-
-  assert.deepEqual(resultado, {
-    id_plano: PLANO,
-    id_proyecto: PROYECTO,
-    id_usuario_subida: AUTOR,
-    titulo: DATOS.titulo,
-    descripcion: '',
+  assert.deepEqual(await ejecutar(), {
+    id_plano: 'plano',
+    id_proyecto: 'proyecto',
+    id_usuario_subida: 'autor-original',
+    titulo: "Plano corregido'; SELECT 1; --",
+    descripcion: 'Descripción actualizada',
     url: '/plano.pdf',
     mime_type: 'application/pdf',
     fecha_subida: '2026-09-15T12:00:00.000Z',
   });
+
+  assert.deepEqual(eventos, [
+    'acceso', 'actualizar', 'actividad', 'notificacion', 'confirmar',
+  ]);
 });
 
-test('PlanosEdicion: rechaza el proyecto no disponible antes de actualizar', async () => {
-  const { ejecutar, eventos } = preparar({ disponible: false });
+test('PlanosEdicion: rechaza el proyecto antes de actualizar', async () => {
+  const { ejecutar, eventos } = preparar({ acceso: false });
 
-  await assert.rejects(ejecutar(), (error) => {
-    assert.equal(error.getStatus(), 404);
-    assert.equal(error.message, 'El proyecto no está disponible.');
-    return true;
-  });
-
-  assert.deepEqual(eventos, ['inicio', 'acceso']);
+  await assert.rejects(ejecutar(), (error) => error.getStatus() === 404);
+  assert.deepEqual(eventos, ['acceso']);
 });
 
-test('PlanosEdicion: no registra actividad si el plano no existe', async () => {
+test('PlanosEdicion: no registra actividad para un plano inexistente', async () => {
   const { ejecutar, eventos } = preparar({ existe: false });
 
   await assert.rejects(ejecutar(), (error) => {
@@ -142,26 +133,7 @@ test('PlanosEdicion: no registra actividad si el plano no existe', async () => {
     return true;
   });
 
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'actualizacion',
-  ]);
-});
-
-test('PlanosEdicion: propaga el fallo de actualización sin registrar actividad', async () => {
-  const original = new Error('Falló la actualización');
-  const { ejecutar, eventos } = preparar({
-    errorActualizacion: original,
-  });
-
-  await assert.rejects(ejecutar(), (error) => error === original);
-
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'actualizacion',
-  ]);
+  assert.deepEqual(eventos, ['acceso', 'actualizar']);
 });
 
 test('PlanosEdicion: propaga el fallo del historial sin confirmar', async () => {
@@ -171,11 +143,5 @@ test('PlanosEdicion: propaga el fallo del historial sin confirmar', async () => 
   });
 
   await assert.rejects(ejecutar(), (error) => error === original);
-
-  assert.deepEqual(eventos, [
-    'inicio',
-    'acceso',
-    'actualizacion',
-    'actividad',
-  ]);
+  assert.deepEqual(eventos, ['acceso', 'actualizar', 'actividad']);
 });

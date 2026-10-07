@@ -81,7 +81,7 @@ for (const formato of ['jpeg', 'png', 'webp']) {
 test(
     'optimizarFotografia: reduce una imagen grande conservando su proporción',
     async () => {
-        const original = await crearImagen('jpeg', 3000, 1500);
+        const original = await crearImagen('jpeg', 4000, 3000);
 
         const optimizada = await optimizarFotografia(original);
         const metadatos = await comprobarSalida(optimizada);
@@ -92,7 +92,7 @@ test(
         );
         assert.equal(
             metadatos.height,
-            MAX_LADO_FOTOGRAFIA_OPTIMIZADA / 2,
+            Math.round((MAX_LADO_FOTOGRAFIA_OPTIMIZADA * 3) / 4),
         );
     },
 );

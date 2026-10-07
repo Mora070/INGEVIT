@@ -17,6 +17,8 @@ const DATOS = {
   prioridad: 'ALTA',
   latitud: 4.711,
   longitud: -74.0721,
+  id_fotografia: null,
+  id_panoramica: null,
 };
 
 function preparar({
@@ -121,7 +123,7 @@ test('crear incidencia de mapa: autoriza y registra antes de confirmar', async (
     idProyecto: PROYECTO,
     idActor: USUARIO,
     tipoAccion: 'INCIDENCIA_CREADA',
-    mensaje: `Incidencia ${INCIDENCIA} creada en el mapa.`,
+    mensaje: `Incidencia ${INCIDENCIA} creada en el mapa, de texto.`,
   });
 
   assert.deepEqual(resultado, {

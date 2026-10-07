@@ -45,6 +45,8 @@ test('NotificacionesRepository: parametriza todos los datos sin modificarlos', a
           datos.tipo,
           datos.titulo,
           datos.mensaje,
+          null,
+          null,
         ]);
 
         return { rowCount: 1 };

@@ -15,10 +15,14 @@ const ID_AUTOR = '40000000-0000-4000-8000-000000000004';
 
 const DATOS = { titulo: 'Avance actualizado' };
 
-/**
- * Sustituye las dependencias para comprobar la coordinación.
- * La reversión real se comprobará después con PostgreSQL.
- */
+// Mock de NotificacionesRepository
+class NotificacionesRepositoryMock {
+  async crearParaParticipantesProyecto(cliente, datos) {
+    // simplemente simula que se insertó una notificación
+    return 1;
+  }
+}
+
 function preparar(opciones = {}) {
   const client = {};
   const operaciones = [];
@@ -40,9 +44,7 @@ function preparar(opciones = {}) {
   const database = {
     async withTransaction(operacion) {
       operaciones.push('iniciar');
-
       const resultado = await operacion(client);
-
       operaciones.push('confirmar');
       return resultado;
     },
@@ -51,15 +53,11 @@ function preparar(opciones = {}) {
   const acceso = {
     async bloquearDisponible(cliente, idProyecto, idUsuario) {
       operaciones.push('autorizar');
-
       assert.strictEqual(cliente, client);
       assert.equal(idProyecto, ID_PROYECTO);
       assert.equal(idUsuario, ID_ACTOR);
 
-      if (opciones.errorAcceso) {
-        throw opciones.errorAcceso;
-      }
-
+      if (opciones.errorAcceso) throw opciones.errorAcceso;
       return opciones.disponible ?? true;
     },
   };
@@ -67,16 +65,12 @@ function preparar(opciones = {}) {
   const fotografias = {
     async actualizarTitulo(cliente, idProyecto, idFotografia, titulo) {
       operaciones.push('actualizar');
-
       assert.strictEqual(cliente, client);
       assert.equal(idProyecto, ID_PROYECTO);
       assert.equal(idFotografia, ID_FOTOGRAFIA);
       assert.equal(titulo, DATOS.titulo);
 
-      if (opciones.errorActualizacion) {
-        throw opciones.errorActualizacion;
-      }
-
+      if (opciones.errorActualizacion) throw opciones.errorActualizacion;
       return opciones.fotografiaAusente ? null : fotografia;
     },
   };
@@ -84,7 +78,6 @@ function preparar(opciones = {}) {
   const actividades = {
     async crear(cliente, datos) {
       operaciones.push('actividad');
-
       assert.strictEqual(cliente, client);
       assert.deepEqual(datos, {
         idProyecto: ID_PROYECTO,
@@ -92,10 +85,7 @@ function preparar(opciones = {}) {
         tipoAccion: 'FOTOGRAFIA_TITULO_GUARDADO',
         mensaje: `Título de la fotografía ${ID_FOTOGRAFIA} guardado.`,
       });
-
-      if (opciones.errorActividad) {
-        throw opciones.errorActividad;
-      }
+      if (opciones.errorActividad) throw opciones.errorActividad;
     },
   };
 
@@ -104,125 +94,78 @@ function preparar(opciones = {}) {
     acceso,
     fotografias,
     actividades,
+    new NotificacionesRepositoryMock() // ✅ agregado
   );
 
   return {
     operaciones,
     ejecutar: () =>
-      servicio.actualizarTitulo(
-        ID_PROYECTO,
-        ID_FOTOGRAFIA,
-        ID_ACTOR,
-        DATOS,
-      ),
+      servicio.actualizarTitulo(ID_PROYECTO, ID_FOTOGRAFIA, ID_ACTOR, DATOS),
   };
 }
 
-test(
-  'edición fotografía: autoriza, actualiza y registra la actividad antes de confirmar',
-  async () => {
-    const { ejecutar, operaciones } = preparar();
+test('edición fotografía: autoriza, actualiza y registra la actividad antes de confirmar', async () => {
+  const { ejecutar, operaciones } = preparar();
+  const resultado = await ejecutar();
 
-    const resultado = await ejecutar();
+  assert.deepEqual(operaciones, [
+    'iniciar',
+    'autorizar',
+    'actualizar',
+    'actividad',
+    'confirmar',
+  ]);
 
-    assert.deepEqual(operaciones, [
-      'iniciar',
-      'autorizar',
-      'actualizar',
-      'actividad',
-      'confirmar',
-    ]);
+  assert.equal(resultado.id_fotografia, ID_FOTOGRAFIA);
+  assert.equal(resultado.titulo, DATOS.titulo);
+  assert.equal(resultado.id_usuario_subida, ID_AUTOR);
+  assert.equal(resultado.fecha_subida, '2026-09-14T12:00:00.000Z');
+  assert.equal(Object.hasOwn(resultado, 's3_key'), false);
+  assert.equal(Object.hasOwn(resultado, 'original_s3_key'), false);
+});
 
-    assert.equal(resultado.id_fotografia, ID_FOTOGRAFIA);
-    assert.equal(resultado.titulo, DATOS.titulo);
+test('edición fotografía: rechaza un proyecto no disponible antes de actualizar', async () => {
+  const { ejecutar, operaciones } = preparar({ disponible: false });
 
-    // El actor de la edición no reemplaza al autor de la fotografía.
-    assert.equal(resultado.id_usuario_subida, ID_AUTOR);
+  await assert.rejects(ejecutar, (error) => {
+    assert.ok(error instanceof NotFoundException);
+    assert.equal(error.getStatus(), 404);
+    assert.equal(error.message, 'El proyecto no está disponible.');
+    return true;
+  });
 
-    assert.equal(
-      resultado.fecha_subida,
-      '2026-09-14T12:00:00.000Z',
-    );
+  assert.deepEqual(operaciones, ['iniciar', 'autorizar']);
+});
 
-    assert.equal(Object.hasOwn(resultado, 's3_key'), false);
-    assert.equal(Object.hasOwn(resultado, 'original_s3_key'), false);
-  },
-);
+test('edición fotografía: no registra actividad si la fotografía no existe en el proyecto', async () => {
+  const { ejecutar, operaciones } = preparar({ fotografiaAusente: true });
 
-test(
-  'edición fotografía: rechaza un proyecto no disponible antes de actualizar',
-  async () => {
-    const { ejecutar, operaciones } = preparar({
-      disponible: false,
-    });
+  await assert.rejects(ejecutar, (error) => {
+    assert.ok(error instanceof NotFoundException);
+    assert.equal(error.getStatus(), 404);
+    assert.equal(error.message, 'La fotografía no está disponible.');
+    return true;
+  });
 
-    await assert.rejects(ejecutar, (error) => {
-      assert.ok(error instanceof NotFoundException);
-      assert.equal(error.getStatus(), 404);
-      assert.equal(error.message, 'El proyecto no está disponible.');
-      return true;
-    });
-
-    assert.deepEqual(operaciones, ['iniciar', 'autorizar']);
-  },
-);
-
-test(
-  'edición fotografía: no registra actividad si la fotografía no existe en el proyecto',
-  async () => {
-    const { ejecutar, operaciones } = preparar({
-      fotografiaAusente: true,
-    });
-
-    await assert.rejects(ejecutar, (error) => {
-      assert.ok(error instanceof NotFoundException);
-      assert.equal(error.getStatus(), 404);
-      assert.equal(error.message, 'La fotografía no está disponible.');
-      return true;
-    });
-
-    assert.deepEqual(operaciones, [
-      'iniciar',
-      'autorizar',
-      'actualizar',
-    ]);
-  },
-);
+  assert.deepEqual(operaciones, ['iniciar', 'autorizar', 'actualizar']);
+});
 
 const casosDeError = [
-  [
-    'errorAcceso',
-    'un fallo al comprobar el acceso',
-    ['iniciar', 'autorizar'],
-  ],
-  [
-    'errorActualizacion',
-    'un fallo al actualizar',
-    ['iniciar', 'autorizar', 'actualizar'],
-  ],
-  [
-    'errorActividad',
-    'un fallo al registrar la actividad',
-    ['iniciar', 'autorizar', 'actualizar', 'actividad'],
-  ],
+  ['errorAcceso', 'un fallo al comprobar el acceso', ['iniciar', 'autorizar']],
+  ['errorActualizacion', 'un fallo al actualizar', ['iniciar', 'autorizar', 'actualizar']],
+  ['errorActividad', 'un fallo al registrar la actividad', ['iniciar', 'autorizar', 'actualizar', 'actividad']],
 ];
 
 for (const [opcion, descripcion, pasosEsperados] of casosDeError) {
-  test(
-    `edición fotografía: propaga ${descripcion} sin confirmar`,
-    async () => {
-      const errorEsperado = new Error('Fallo simulado');
+  test(`edición fotografía: propaga ${descripcion} sin confirmar`, async () => {
+    const errorEsperado = new Error('Fallo simulado');
+    const { ejecutar, operaciones } = preparar({ [opcion]: errorEsperado });
 
-      const { ejecutar, operaciones } = preparar({
-        [opcion]: errorEsperado,
-      });
+    await assert.rejects(ejecutar, (error) => {
+      assert.strictEqual(error, errorEsperado);
+      return true;
+    });
 
-      await assert.rejects(ejecutar, (error) => {
-        assert.strictEqual(error, errorEsperado);
-        return true;
-      });
-
-      assert.deepEqual(operaciones, pasosEsperados);
-    },
-  );
+    assert.deepEqual(operaciones, pasosEsperados);
+  });
 }

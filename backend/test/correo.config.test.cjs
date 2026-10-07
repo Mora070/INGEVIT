@@ -21,8 +21,8 @@ test('correo: obtiene la configuración local sin modificar el entorno', () => {
   const env = Object.freeze(entorno());
 
   assert.deepEqual(getCorreoConfig(env), {
-    //secure: false,
-    //ignoreTLS: true,
+    secure: false,
+    ignoreTLS: true,
     host: '127.0.0.1',
     port: 1025,
     remitente: {

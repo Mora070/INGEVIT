@@ -52,6 +52,7 @@ function crearEscenario({
   proyectoEditable = crearFila(),
   errorActualizacion,
   errorActividad,
+  errorNotificacion,
   errorConfirmacion,
 } = {}) {
   const client = {};
@@ -119,6 +120,17 @@ function crearEscenario({
     },
   };
 
+  const notificacionesRepository = {
+    async crearParaParticipantesProyecto(cliente, datos) {
+      assert.strictEqual(cliente, client);
+      operaciones.push({ tipo: 'notificacion', datos });
+
+      if (errorNotificacion) {
+        throw errorNotificacion;
+      }
+    },
+  };
+
   const database = {
     async withTransaction(operation) {
       operaciones.push({ tipo: 'inicio' });
@@ -140,6 +152,7 @@ function crearEscenario({
       repository,
       database,
       actividadesRepository,
+      notificacionesRepository,
     ),
     operaciones,
   };
@@ -185,6 +198,19 @@ test('actualizar proyecto: bloquea en orden, actualiza y registra la actividad',
         idActor: ID_USUARIO,
         tipoAccion: 'PROYECTO_MODIFICADO',
         mensaje: 'Datos del proyecto actualizados.',
+      },
+    },
+    {
+      tipo: 'notificacion',
+      datos: {
+        id_actor: ID_USUARIO,
+        id_proyecto: ID_PROYECTO,
+        id_incidencia: null,
+        tipo: 'PROYECTO_MODIFICADO',
+        titulo: 'Proyecto actualizado',
+        mensaje: 'Se actualizaron los datos del proyecto "Proyecto actualizado".',
+        destino: 'RESUMEN',
+        id_recurso: null,
       },
     },
     { tipo: 'confirmacion' },

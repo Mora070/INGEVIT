@@ -21,6 +21,9 @@ function crearRegistro(cambios = {}) {
     latitud: '4.7110',
     longitud: '-74.0721',
     fecha_creacion: new Date('2026-09-22T12:00:00.000Z'),
+    // normalizamos a undefined para que coincida con lo esperado
+  id_fotografia: null,
+  id_panoramica: null,
     ...cambios,
   };
 }
@@ -45,6 +48,8 @@ test('mapearIncidenciaMapa: devuelve exclusivamente los campos públicos', () =>
     latitud: 4.711,
     longitud: -74.0721,
     fecha_creacion: '2026-09-22T12:00:00.000Z',
+    id_fotografia: null,
+    id_panoramica: null,
   });
 });
 
@@ -79,21 +84,9 @@ test('mapearIncidenciaMapa: conserva cero y acepta los límites', () => {
 
 test('mapearIncidenciaMapa: rechaza coordenadas ausentes o inválidas', () => {
   for (const campo of ['latitud', 'longitud']) {
-    for (const valor of [
-      null,
-      undefined,
-      '',
-      ' ',
-      'NaN',
-      'Infinity',
-      '0x10',
-      'texto',
-      '1e999',
-    ]) {
+    for (const valor of [null, undefined, '', ' ', 'NaN', 'Infinity', '0x10', 'texto', '1e999']) {
       assert.throws(
-        () => mapearIncidenciaMapa(crearRegistro({
-          [campo]: valor,
-        })),
+        () => mapearIncidenciaMapa(crearRegistro({ [campo]: valor })),
         /ubicación inválida/,
       );
     }
@@ -121,9 +114,7 @@ test('mapearIncidenciaMapa: rechaza contexto de plano y columnas omitidas', () =
   ]) {
     for (const contenido of [valor, undefined]) {
       assert.throws(
-        () => mapearIncidenciaMapa(crearRegistro({
-          [campo]: contenido,
-        })),
+        () => mapearIncidenciaMapa(crearRegistro({ [campo]: contenido })),
         /contexto de plano inesperado/,
       );
     }
@@ -135,15 +126,10 @@ test('mapearIncidenciaMapa: conserva el instante en UTC y rechaza fechas inváli
     fecha_creacion: new Date('2026-09-22T07:00:00.123-05:00'),
   }));
 
-  assert.equal(
-    resultado.fecha_creacion,
-    '2026-09-22T12:00:00.123Z',
-  );
+  assert.equal(resultado.fecha_creacion, '2026-09-22T12:00:00.123Z');
 
   assert.throws(
-    () => mapearIncidenciaMapa(crearRegistro({
-      fecha_creacion: new Date(NaN),
-    })),
+    () => mapearIncidenciaMapa(crearRegistro({ fecha_creacion: new Date(NaN) })),
     RangeError,
   );
 });

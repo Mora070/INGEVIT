@@ -23,6 +23,8 @@ function crearEscenario({
   relacionRetirada = true,
   errorRetirada,
   errorActividad,
+  errorNotificacionDirecta,
+  errorNotificacionParticipantes,
   errorConfirmacion,
 } = {}) {
   const client = {};
@@ -94,6 +96,36 @@ function crearEscenario({
     },
   };
 
+  const notificaciones = {
+    async crearRetiroColaborador(cliente, idActor, idProyecto, idColaborador) {
+      assert.strictEqual(cliente, client);
+
+      operaciones.push({
+        tipo: 'notificacion_directa',
+        idActor,
+        idProyecto,
+        idColaborador,
+      });
+
+      if (errorNotificacionDirecta) {
+        throw errorNotificacionDirecta;
+      }
+    },
+
+    async crearParaParticipantesProyecto(cliente, datos) {
+      assert.strictEqual(cliente, client);
+
+      operaciones.push({
+        tipo: 'notificacion_participantes',
+        datos,
+      });
+
+      if (errorNotificacionParticipantes) {
+        throw errorNotificacionParticipantes;
+      }
+    },
+  };
+
   const database = {
     async withTransaction(operacion) {
       operaciones.push({ tipo: 'inicio' });
@@ -115,6 +147,7 @@ function crearEscenario({
       repositorio,
       database,
       actividades,
+      notificaciones,
     ),
     operaciones,
   };
@@ -157,6 +190,25 @@ test(
           tipoAccion: 'COLABORADOR_RETIRADO',
           mensaje:
             `Usuario ${ID_COLABORADOR} retirado como colaborador.`,
+        },
+      },
+      {
+        tipo: 'notificacion_directa',
+        idActor: ID_ACTOR,
+        idProyecto: ID_PROYECTO,
+        idColaborador: ID_COLABORADOR,
+      },
+      {
+        tipo: 'notificacion_participantes',
+        datos: {
+          id_actor: ID_ACTOR,
+          id_proyecto: ID_PROYECTO,
+          id_incidencia: null,
+          tipo: 'COLABORADOR_RETIRADO',
+          titulo: 'Colaborador retirado',
+          mensaje: 'Se retiró un colaborador del proyecto.',
+          destino: 'COLABORADORES',
+          id_recurso: null,
         },
       },
       { tipo: 'confirmacion' },

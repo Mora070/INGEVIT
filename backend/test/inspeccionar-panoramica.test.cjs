@@ -12,7 +12,7 @@ const {
   crearApngDosFotogramas,
 } = require('./helpers/crear-apng.cjs');
 
-function imagen(ancho = 400, alto = 200) {
+function imagen(ancho = 2048, alto = 1024) {
   return sharp({
     create: {
       width: ancho,
@@ -40,8 +40,8 @@ for (const [formato, mimeType] of [
       formato,
       mimeType,
       bytes: contenido.length,
-      ancho: 400,
-      alto: 200,
+      ancho: 2048,
+      alto: 1024,
       proporcionDosAUno: true,
     });
 
@@ -50,12 +50,19 @@ for (const [formato, mimeType] of [
 }
 
 test('PanoramicaInspector: informa una proporción distinta sin certificar contenido 360°', async () => {
-  const contenido = await imagen(300, 200).png().toBuffer();
-  const resultado = await inspeccionarPanoramica(contenido);
+  const contenido = await imagen(2048, 1200).png().toBuffer();
 
-  assert.equal(resultado.proporcionDosAUno, false);
-  assert.equal(resultado.ancho, 300);
-  assert.equal(resultado.alto, 200);
+  await assert.rejects(
+    inspeccionarPanoramica(contenido),
+    (error) => {
+      assert.equal(error.getStatus(), 400);
+      assert.equal(
+        error.message,
+        'La imagen no es compatible con el visor 360°. Debe ser una panorámica equirectangular con proporción aproximada 2:1.',
+      );
+      return true;
+    },
+  );
 });
 
 test('PanoramicaInspector: rechaza contenido vacío o ilegible', async () => {
@@ -72,8 +79,8 @@ test('PanoramicaInspector: rechaza contenido vacío o ilegible', async () => {
 
 test('PanoramicaInspector: rechaza SVG aunque sea una imagen interpretable', async () => {
   const contenido = Buffer.from(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">' +
-    '<rect width="400" height="200" fill="blue"/></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024">' +
+    '<rect width="2048" height="1024" fill="blue"/></svg>',
   );
 
   await assert.rejects(
@@ -91,10 +98,10 @@ test('PanoramicaInspector: aplica el límite también fuera del controlador', as
 
 test('PanoramicaInspector: considera la orientación EXIF sin modificar el original', async () => {
   /*
-   * El archivo contiene 200 × 400 píxeles.
-   * La orientación 6 indica que los ejes se intercambian al mostrarlo.
+   * El archivo contiene 1024 × 2048 píxeles sin rotar.
+   * La orientación 6 indica que los ejes se intercambian al mostrarlo (pasa a 2048 × 1024).
    */
-  const contenido = await imagen(200, 400)
+  const contenido = await imagen(1024, 2048)
     .jpeg()
     .withMetadata({ orientation: 6 })
     .toBuffer();
@@ -102,14 +109,14 @@ test('PanoramicaInspector: considera la orientación EXIF sin modificar el origi
   const copia = Buffer.from(contenido);
   const metadatos = await sharp(contenido).metadata();
 
-  assert.equal(metadatos.width, 200);
-  assert.equal(metadatos.height, 400);
+  assert.equal(metadatos.width, 1024);
+  assert.equal(metadatos.height, 2048);
   assert.equal(metadatos.orientation, 6);
 
   const resultado = await inspeccionarPanoramica(contenido);
 
-  assert.equal(resultado.ancho, 400);
-  assert.equal(resultado.alto, 200);
+  assert.equal(resultado.ancho, 2048);
+  assert.equal(resultado.alto, 1024);
   assert.equal(resultado.proporcionDosAUno, true);
   assert.deepEqual(contenido, copia);
 });
@@ -122,8 +129,8 @@ test('PanoramicaInspector: rechaza WebP animado sin modificarlo', async () => {
     ].map((background) =>
       sharp({
         create: {
-          width: 32,
-          height: 16,
+          width: 2048,
+          height: 1024,
           channels: 3,
           background,
         },

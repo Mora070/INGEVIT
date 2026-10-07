@@ -79,6 +79,11 @@ function preparar({
         if (errorActividad) throw errorActividad;
       },
     },
+    {
+      async crearParaParticipantesProyecto() {
+        // Mock de notificaciones
+      },
+    },
   );
 
   return {

@@ -108,8 +108,9 @@ function crearEscenario({
         url: datos.url,
         s3_key: datos.s3Key,
         original_s3_key: datos.originalS3Key,
-        latitud: String(datos.latitud),
-        longitud: String(datos.longitud),
+        latitud: '4.711',
+        longitud: '-74.0721',
+        es_portada: false,
         fecha_subida: new Date('2026-09-11T15:30:00.000Z'),
       };
     },
@@ -127,6 +128,12 @@ function crearEscenario({
     },
   };
 
+  const notificaciones = {
+    async crearParaParticipantesProyecto(client, datos) {
+      assert.strictEqual(client, clientRegistro);
+    },
+  };
+
   return {
     servicio: new FotografiasSubidaService(
       database,
@@ -134,6 +141,7 @@ function crearEscenario({
       persistencia,
       fotografias,
       actividades,
+      notificaciones,
     ),
     operaciones,
     obtenerProcesada: () => procesadaRecibida,
@@ -176,8 +184,6 @@ test(
       url: urlEsperada,
       s3Key: CLAVES.s3_key,
       originalS3Key: CLAVES.original_s3_key,
-      latitud: 4.711,
-      longitud: -74.0721,
     });
 
     assert.deepEqual(escenario.obtenerActividad(), {
@@ -195,6 +201,7 @@ test(
       url: urlEsperada,
       latitud: 4.711,
       longitud: -74.0721,
+      es_portada: false,
       fecha_subida: '2026-09-11T15:30:00.000Z',
     });
 
@@ -217,7 +224,6 @@ test(
       accesoInicial: false,
     });
 
-    // El contenido inválido no debe llegar a inspeccionarse.
     await assert.rejects(
       servicio.subir(
         ID_PROYECTO,

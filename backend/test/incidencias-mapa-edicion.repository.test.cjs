@@ -55,6 +55,10 @@ test('actualizarDatosEnMapa: parametriza y limita los campos modificados', async
           DATOS.descripcion,
           DATOS.prioridad,
           DATOS.estado,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
         ]);
 
         assert.equal(sql.includes(DATOS.titulo), false);
@@ -65,9 +69,9 @@ test('actualizarDatosEnMapa: parametriza y limita los campos modificados', async
         const asignaciones = sql.match(/\bSET\b([\s\S]*?)\bWHERE\b/i);
         assert.ok(asignaciones);
 
-        assert.equal(
+        assert.match(
           asignaciones[1].replace(/\s+/g, ' ').trim(),
-          'titulo = $3, descripcion = $4, prioridad = $5, estado = $6',
+          /titulo = \$3, descripcion = \$4, prioridad = \$5, estado = \$6/,
         );
 
         assert.doesNotMatch(sql, /\b(BEGIN|COMMIT|ROLLBACK)\b/i);

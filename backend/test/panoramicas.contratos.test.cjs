@@ -56,8 +56,6 @@ test('PanoramicaMapper: devuelve campos públicos sin modificar el registro', ()
 test('SubirPanoramicaDto: acepta el título y construye el DTO', async () => {
   const resultado = await validar({
     titulo: 'Sector norte',
-    latitud: 4.711,
-    longitud: -74.0721,
   });
 
   assert.ok(resultado instanceof SubirPanoramicaDto);
@@ -66,8 +64,6 @@ test('SubirPanoramicaDto: acepta el título y construye el DTO', async () => {
     { ...resultado },
     {
       titulo: 'Sector norte',
-      latitud: 4.711,
-      longitud: -74.0721,
     },
   );
 });
@@ -80,11 +76,7 @@ test('SubirPanoramicaDto: rechaza títulos ausentes, vacíos o de otro tipo', as
     { titulo: 123 },
   ]) {
     await assert.rejects(
-      validar({
-        latitud: 4.711,
-        longitud: -74.0721,
-        ...datos,
-      }),
+      validar(datos),
       (error) => error.getStatus() === 400,
     );
   }
@@ -97,12 +89,12 @@ test('SubirPanoramicaDto: rechaza campos controlados por el backend', async () =
     { url: '/externa' },
     { s3_key: 'panoramicas/externa.webp' },
     { mime_type: 'image/webp' },
+    { latitud: 4.711 },
+    { longitud: -74.0721 },
   ]) {
     await assert.rejects(
       validar({
         titulo: 'Sector norte',
-        latitud: 4.711,
-        longitud: -74.0721,
         ...extra,
       }),
       (error) => error.getStatus() === 400,

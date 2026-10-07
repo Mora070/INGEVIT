@@ -29,6 +29,7 @@ async function escenario(opciones, comprobar) {
     let claveGuardada;
     let datosInsertados;
     let actividad;
+    let notificacion;
 
     await writeFile(ruta, contenido);
 
@@ -70,6 +71,13 @@ async function escenario(opciones, comprobar) {
             },
         },
         {
+            async bloquearDisponible(conexion, proyecto, usuario) {
+                assert.equal(conexion, client);
+                assert.equal(proyecto, PROYECTO);
+                assert.equal(usuario, USUARIO);
+                eventos.push('acceso');
+                return opciones.acceso !== false && opciones.activo !== false;
+            },
             async bloquearPropietarioActivo(conexion, usuario) {
                 assert.equal(conexion, client);
                 assert.equal(usuario, USUARIO);
@@ -128,6 +136,16 @@ async function escenario(opciones, comprobar) {
                 }
             },
         },
+        {
+            async crearParaParticipantesProyecto(conexion, datos) {
+                assert.equal(conexion, client);
+                eventos.push('notificacion');
+                notificacion = datos;
+                if (opciones.errorNotificacion) {
+                    throw opciones.errorNotificacion;
+                }
+            },
+        },
     );
 
     try {
@@ -153,6 +171,7 @@ async function escenario(opciones, comprobar) {
             obtenerClave: () => claveGuardada,
             obtenerDatos: () => datosInsertados,
             obtenerActividad: () => actividad,
+            obtenerNotificacion: () => notificacion,
         });
     } finally {
         await rm(raiz, { recursive: true, force: true });
@@ -164,8 +183,8 @@ test('persistencia de capa: conserva los bytes y registra capa e historial antes
         const resultado = await caso.ejecutar();
 
         assert.deepEqual(caso.eventos, [
-            'guardar', 'transaccion', 'usuario',
-            'proyecto', 'capa', 'actividad', 'confirmada',
+            'guardar', 'transaccion', 'acceso',
+             'capa', 'actividad', 'notificacion', 'confirmada',
         ]);
         assert.match(
             caso.obtenerClave(),
@@ -200,7 +219,7 @@ test('persistencia de capa: conserva los bytes y registra capa e historial antes
 
 test('persistencia de capa: vuelve a comprobar permisos y compensa si se perdieron', async () => {
     for (const [opciones, estado] of [
-        [{ activo: false }, 401],
+        [{ activo: false }, 404],
         [{ acceso: false }, 404],
     ]) {
         await escenario(opciones, async (caso) => {

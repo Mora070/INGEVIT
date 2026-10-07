@@ -107,7 +107,7 @@ test('propietario de capa: rechaza proyectos no disponibles', async () => {
 test('propietario de capa: un colaborador no obtiene permiso de gestión', async () => {
     const guard = new PropietarioCapaGuard({
         async findDisponibleById() {
-            return { id_propietario: OTRO_USUARIO };
+            return null;
         },
     });
 

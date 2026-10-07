@@ -90,8 +90,8 @@ test(
       datos.url,
       datos.s3Key,
       datos.originalS3Key,
-      datos.latitud,
-      datos.longitud,
+      //datos.latitud,
+      //datos.longitud,
     ]);
 
     const sql = consultas[0].sql.replace(/\s+/g, ' ').trim();

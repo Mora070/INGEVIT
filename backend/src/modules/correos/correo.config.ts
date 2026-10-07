@@ -3,64 +3,23 @@ import { isEmail } from 'class-validator';
 export interface CorreoConfig {
   host: string;
   port: number;
+  secure: boolean;
+  ignoreTLS: boolean;
+  auth?: {
+    user: string;
+    pass: string;
+  };
   remitente: {
     name: string;
     address: string;
   };
 }
 
-/**
- * Obtiene la configuración del proveedor local.
- *
- * Por ahora únicamente admitimos Mailpit en desarrollo y pruebas.
- * La configuración de producción se incorporará cuando se elija
- * el proveedor y sus requisitos de autenticación y cifrado.
- *
- * Recibir las variables como argumento permite probar esta función
- * sin modificar process.env.
- */
-export function getCorreoConfig(
-  env: NodeJS.ProcessEnv = process.env,
-): CorreoConfig {
-  if (
-    env.NODE_ENV !== 'development' &&
-    env.NODE_ENV !== 'test'
-  ) {
-    throw new Error(
-      'Mailpit requiere NODE_ENV=development o NODE_ENV=test.',
-    );
-  }
-
-  if (env.CORREO_PROVEEDOR !== 'mailpit') {
-    throw new Error('CORREO_PROVEEDOR debe ser mailpit.');
-  }
-
-  // Coincide con la dirección local donde iniciamos Mailpit.
-  if (env.CORREO_SMTP_HOST !== '127.0.0.1') {
-    throw new Error(
-      'Mailpit debe utilizar CORREO_SMTP_HOST=127.0.0.1.',
-    );
-  }
-
-  const puertoTexto = env.CORREO_SMTP_PORT ?? '';
-
-  if (!/^[0-9]+$/.test(puertoTexto)) {
-    throw new Error('CORREO_SMTP_PORT debe ser un puerto válido.');
-  }
-
-  const port = Number(puertoTexto);
-
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error('CORREO_SMTP_PORT debe estar entre 1 y 65535.');
-  }
-
+function obtenerRemitente(env: NodeJS.ProcessEnv): CorreoConfig['remitente'] {
   const nombre = env.CORREO_REMITENTE_NOMBRE ?? '';
   const direccion = env.CORREO_REMITENTE_DIRECCION ?? '';
 
-  if (
-    !nombre.trim() ||
-    /[\r\n\u0000]/.test(nombre)
-  ) {
+  if (!nombre.trim() || /[\r\n\u0000]/.test(nombre)) {
     throw new Error('CORREO_REMITENTE_NOMBRE no es válido.');
   }
 
@@ -73,11 +32,66 @@ export function getCorreoConfig(
   }
 
   return {
-    host: env.CORREO_SMTP_HOST,
-    port,
-    remitente: {
-      name: nombre.trim(),
-      address: direccion,
-    },
+    name: nombre.trim(),
+    address: direccion,
   };
+}
+
+export function getCorreoConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): CorreoConfig {
+  const remitente = obtenerRemitente(env);
+
+  if (env.CORREO_PROVEEDOR === 'mailpit') {
+    if (env.NODE_ENV !== 'development' && env.NODE_ENV !== 'test') {
+      throw new Error('Mailpit requiere NODE_ENV=development o NODE_ENV=test.');
+    }
+
+    if (env.CORREO_SMTP_HOST !== '127.0.0.1') {
+      throw new Error('Mailpit debe utilizar CORREO_SMTP_HOST=127.0.0.1.');
+    }
+
+    if (env.CORREO_SMTP_PORT !== '1025') {
+      throw new Error('Mailpit debe utilizar CORREO_SMTP_PORT=1025.');
+    }
+
+    return {
+      host: '127.0.0.1',
+      port: 1025,
+      secure: false,
+      ignoreTLS: true,
+      remitente,
+    };
+  }
+
+  if (env.CORREO_PROVEEDOR === 'resend') {
+    if (env.NODE_ENV !== 'production') {
+      throw new Error('Resend requiere NODE_ENV=production.');
+    }
+
+    const apiKey = env.CORREO_SMTP_PASSWORD;
+
+    if (
+      typeof apiKey !== 'string' ||
+      apiKey !== apiKey.trim() ||
+      apiKey.length === 0 ||
+      /[\r\n\u0000]/.test(apiKey)
+    ) {
+      throw new Error('CORREO_SMTP_PASSWORD no es válida.');
+    }
+
+    return {
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
+      ignoreTLS: false,
+      auth: {
+        user: 'resend',
+        pass: apiKey,
+      },
+      remitente,
+    };
+  }
+
+  throw new Error('CORREO_PROVEEDOR debe ser mailpit o resend.');
 }

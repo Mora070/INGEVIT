@@ -20,6 +20,7 @@ function crearFotografia(cambios = {}) {
     fecha_subida: new Date('2026-09-10T15:30:00.000Z'),
     latitud: null,
     longitud: null,
+    es_portada: null,
     ...cambios,
   };
 }
@@ -42,6 +43,7 @@ test(
       latitud: null,
       longitud: null,
       fecha_subida: '2026-09-10T15:30:00.000Z',
+      es_portada: null,
     });
 
     assert.equal(Object.hasOwn(resultado, 's3_key'), false);

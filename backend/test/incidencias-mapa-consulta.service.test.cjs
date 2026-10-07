@@ -75,6 +75,8 @@ test('listado mapa servicio: transmite parámetros y construye la respuesta púb
     numero_pagina: null,
     coordenada_x: null,
     coordenada_y: null,
+    id_fotografia: null,
+    id_panoramica: null,
     latitud: '4.711',
     longitud: '-74.0721',
     fecha_creacion: new Date('2026-09-22T12:00:00.000Z'),

@@ -33,6 +33,8 @@ function crearRegistro(datos) {
     numero_pagina: null,
     coordenada_x: null,
     coordenada_y: null,
+    id_fotografia: null,
+    id_panoramica: null,
     latitud: String(datos.latitud),
     longitud: String(datos.longitud),
     fecha_creacion: new Date('2026-09-22T12:00:00.000Z'),
@@ -58,6 +60,8 @@ test('crearEnMapa: parametriza los datos y establece el contexto de mapa', async
         datos.prioridad,
         datos.latitud,
         datos.longitud,
+        undefined,
+        undefined,
       ]);
 
       assert.equal(sql.includes(datos.titulo), false);

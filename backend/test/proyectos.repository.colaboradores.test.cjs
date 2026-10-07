@@ -117,9 +117,10 @@ test('agregarColaborador: inserta con parámetros y devuelve true para una relac
     /INSERT INTO obra\.usuario_proyecto/i,
   );
 
+  // Expresión regular adaptada para saltos de línea y espacios en ON CONFLICT
   assert.match(
     llamadas[0].sql,
-    /ON CONFLICT\s*\(id_usuario,\s*id_proyecto\)\s*DO NOTHING/i,
+    /ON CONFLICT\s*\([\s\S]*?id_usuario[\s\S]*?id_proyecto[\s\S]*?\)\s*DO NOTHING/i,
   );
 
   assert.equal(llamadas[0].sql.includes(ID_USUARIO), false);

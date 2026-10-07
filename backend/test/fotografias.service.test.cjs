@@ -106,6 +106,7 @@ test(
           latitud: null,
           longitud: null,
           fecha_subida: '2026-09-10T15:30:00.000Z',
+          es_portada: undefined,
         },
       ],
       pagina: 3,

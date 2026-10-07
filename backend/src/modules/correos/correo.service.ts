@@ -37,8 +37,9 @@ export class CorreoService implements OnApplicationShutdown {
         this.transport = crearTransporte({
             host: this.config.host,
             port: this.config.port,
-            secure: false,
-            ignoreTLS: true,
+            secure: this.config.secure,
+            ignoreTLS: this.config.ignoreTLS,
+            auth: this.config.auth,
             pool: false,
             connectionTimeout: 5_000,
             greetingTimeout: 5_000,

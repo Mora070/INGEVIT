@@ -26,6 +26,7 @@ function crearEscenario({
   agregado = true,
   errorInsercion,
   errorActividad,
+  errorNotificacion,
   errorConfirmacion,
 } = {}) {
   const client = {};
@@ -88,6 +89,17 @@ function crearEscenario({
     },
   };
 
+  const notificacionesRepository = {
+    async crearParaParticipantesProyecto(cliente, datos) {
+      assert.strictEqual(cliente, client);
+      operaciones.push({ tipo: 'notificacion', datos });
+
+      if (errorNotificacion) {
+        throw errorNotificacion;
+      }
+    },
+  };
+
   const database = {
     async withTransaction(operation) {
       operaciones.push({ tipo: 'inicio' });
@@ -109,6 +121,7 @@ function crearEscenario({
       repository,
       database,
       actividadesRepository,
+      notificacionesRepository,
     ),
     operaciones,
   };
@@ -155,6 +168,19 @@ test('agregarColaborador: comprueba permisos, crea la relación y registra al ac
         tipoAccion: 'COLABORADOR_AGREGADO',
         mensaje:
           `Usuario ${ID_COLABORADOR} agregado como colaborador.`,
+      },
+    },
+    {
+      tipo: 'notificacion',
+      datos: {
+        id_actor: ID_PROPIETARIO,
+        id_proyecto: ID_PROYECTO,
+        id_incidencia: null,
+        tipo: 'COLABORADOR_AGREGADO',
+        titulo: 'Colaborador agregado',
+        mensaje: 'Se agregó un nuevo colaborador al proyecto.',
+        destino: 'RESUMEN',
+        id_recurso: null,
       },
     },
     { tipo: 'confirmacion' },
