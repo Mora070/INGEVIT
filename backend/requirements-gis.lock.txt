@@ -5,4 +5,4 @@ click==8.5.0
 numpy==2.3.3
 pillow==12.3.0
 pyparsing==3.3.3
-rasterio==1.5.1
+rasterio==1.4.4
