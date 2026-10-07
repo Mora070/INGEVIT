@@ -54,11 +54,16 @@ export class CapasSubidaController {
       );
     }
 
-    return this.subida.subir(
-      idProyecto,
-      request.usuario.id_usuario,
-      datos,
-      archivo,
-    );
+    try {
+      return await this.subida.subir(
+        idProyecto,
+        request.usuario.id_usuario,
+        datos,
+        archivo,
+      );
+    } catch (error) {
+      console.error('=== ERROR AL SUBIR CAPA ===', error);
+      throw error;
+    }
   }
 }
