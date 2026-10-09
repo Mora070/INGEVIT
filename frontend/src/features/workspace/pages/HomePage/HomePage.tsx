@@ -3,36 +3,28 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import { useProyectos } from '../../../proyectos/hooks/useProyectos';
 import { ProjectsMap } from '../../../proyectos/components/ProjectsMap/ProjectsMap';
-
 import styles from './HomePage.module.css';
-
 type FiltroEstado =
   | 'TODOS'
   | 'ACTIVA'
   | 'PAUSA'
   | 'FINALIZADA';
-
 type VistaProyectos =
   | 'tarjetas'
   | 'lista';
-
 function formatearEstado(
   estado: 'ACTIVA' | 'PAUSA' | 'FINALIZADA',
 ): string {
   if (estado === 'ACTIVA') {
     return 'Activa';
   }
-
   if (estado === 'PAUSA') {
     return 'En pausa';
   }
-
   return 'Finalizada';
 }
-
 function obtenerIniciales(
   nombre: string | null,
   apellidos: string | null,
@@ -48,23 +40,19 @@ function obtenerIniciales(
     .map((valor) =>
       valor.trim(),
     );
-
   if (partes.length === 0) {
     return 'U';
   }
-
   if (partes.length === 1) {
     return partes[0]
       .slice(0, 2)
       .toUpperCase();
   }
-
   return (
     partes[0][0] +
     partes[1][0]
   ).toUpperCase();
 }
-
 function obtenerNombreParticipante(
   nombre: string | null,
   apellidos: string | null,
@@ -79,10 +67,8 @@ function obtenerNombreParticipante(
     )
     .join(' ')
     .trim();
-
   return nombreCompleto || 'Usuario';
 }
-
 function formatearUltimaActualizacion(
   fecha: string | null,
 ): {
@@ -95,10 +81,8 @@ function formatearUltimaActualizacion(
       hora: null,
     };
   }
-
   const valor =
     new Date(fecha);
-
   if (
     Number.isNaN(
       valor.getTime(),
@@ -109,7 +93,6 @@ function formatearUltimaActualizacion(
       hora: null,
     };
   }
-
   return {
     fecha:
       new Intl.DateTimeFormat(
@@ -120,7 +103,6 @@ function formatearUltimaActualizacion(
           year: 'numeric',
         },
       ).format(valor),
-
     hora:
       new Intl.DateTimeFormat(
         'es-CO',
@@ -132,56 +114,46 @@ function formatearUltimaActualizacion(
       ).format(valor),
   };
 }
-
 export function HomePage() {
   const [
     busqueda,
     setBusqueda,
   ] = useState('');
-
   const [
     busquedaAplicada,
     setBusquedaAplicada,
   ] = useState('');
-
   const [
     filtroEstado,
     setFiltroEstado,
   ] = useState<FiltroEstado>(
     'TODOS',
   );
-
   const [
     mostrandoFiltros,
     setMostrandoFiltros,
   ] = useState(false);
-
   const [
     pagina,
     setPagina,
   ] = useState(1);
-
   const [
     proyectoSeleccionadoId,
     setProyectoSeleccionadoId,
   ] = useState<
     string | null
   >(null);
-
   const [
     mapaAmpliado,
     setMapaAmpliado,
   ] = useState(false);
-
   const [
     vistaProyectos,
     setVistaProyectos,
   ] = useState<VistaProyectos>(
     'lista',
   );
-
   const limite = 20;
-
   const {
     cargando,
     proyectos,
@@ -194,24 +166,19 @@ export function HomePage() {
     limite,
     busquedaAplicada,
   );
-
   useEffect(() => {
     const temporizador =
       window.setTimeout(() => {
         const nuevaBusqueda =
           busqueda.trim();
-
         setPagina(1);
-
         setProyectoSeleccionadoId(
           null,
         );
-
         setBusquedaAplicada(
           nuevaBusqueda,
         );
       }, 250);
-
     return () => {
       window.clearTimeout(
         temporizador,
@@ -220,7 +187,6 @@ export function HomePage() {
   }, [
     busqueda,
   ]);
-
   useEffect(() => {
     if (
       totalPaginas > 0 &&
@@ -234,7 +200,6 @@ export function HomePage() {
     pagina,
     totalPaginas,
   ]);
-
   useEffect(() => {
     setProyectoSeleccionadoId(
       null,
@@ -242,12 +207,10 @@ export function HomePage() {
   }, [
     pagina,
   ]);
-
   useEffect(() => {
     if (!mapaAmpliado) {
       return;
     }
-
     function cerrarConEscape(
       event: KeyboardEvent,
     ) {
@@ -257,31 +220,25 @@ export function HomePage() {
         setMapaAmpliado(false);
       }
     }
-
     document.addEventListener(
       'keydown',
       cerrarConEscape,
     );
-
     const overflowAnterior =
       document.body.style.overflow;
-
     document.body.style.overflow =
       'hidden';
-
     return () => {
       document.removeEventListener(
         'keydown',
         cerrarConEscape,
       );
-
       document.body.style.overflow =
         overflowAnterior;
     };
   }, [
     mapaAmpliado,
   ]);
-
   const proyectosFiltrados =
     useMemo(() => {
       return proyectos.filter(
@@ -292,7 +249,6 @@ export function HomePage() {
           ) {
             return true;
           }
-
           return (
             proyecto.estado_proyecto ===
             filtroEstado
@@ -303,7 +259,6 @@ export function HomePage() {
       filtroEstado,
       proyectos,
     ]);
-
   const proyectosConUbicacion =
     useMemo(
       () =>
@@ -318,24 +273,20 @@ export function HomePage() {
         proyectosFiltrados,
       ],
     );
-
   const hayFiltrosActivos =
     filtroEstado !==
     'TODOS';
-
   const desde =
     total === 0
       ? 0
       : (pagina - 1) *
           limite +
         1;
-
   const hasta =
     Math.min(
       pagina * limite,
       total,
     );
-
   function paginaAnterior() {
     setPagina(
       (paginaActual) =>
@@ -345,7 +296,6 @@ export function HomePage() {
         ),
     );
   }
-
   function paginaSiguiente() {
     setPagina(
       (paginaActual) =>
@@ -355,13 +305,11 @@ export function HomePage() {
         ),
     );
   }
-
   function limpiarFiltros() {
     setFiltroEstado(
       'TODOS',
     );
   }
-
   return (
     <section
       className={styles.page}
@@ -371,25 +319,25 @@ export function HomePage() {
           styles.pageHeader
         }
       >
-        <div>
-          <h1
-            className={
-              styles.title
-            }
-          >
-            Inicio
-          </h1>
-
-          <p
-            className={
-              styles.subtitle
-            }
-          >
-            Resumen general de tus
-            proyectos.
+        <div className={styles.headerIntroduction}>
+          <div className={styles.headerEyebrow}>
+            <span className={styles.headerIcon} aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              </svg>
+            </span>
+            <span>PANEL DE CONTROL</span>
+          </div>
+          <h1 className={styles.title}>Tus proyectos, en un solo lugar.</h1>
+          <p className={styles.subtitle}>
+            Supervisa la ubicación, el estado y la actividad de tus proyectos
+            desde una vista centralizada.
           </p>
+          <span className={styles.headerAccent} aria-hidden="true" />
         </div>
-
         <div
           className={
             styles.actions
@@ -407,7 +355,6 @@ export function HomePage() {
             >
               Buscar proyecto
             </span>
-
             <input
               type="search"
               placeholder="Buscar proyecto..."
@@ -421,13 +368,11 @@ export function HomePage() {
                 setBusqueda(
                   event.target.value,
                 );
-
                 setProyectoSeleccionadoId(
                   null,
                 );
               }}
             />
-
             <svg
               className={
                 styles.searchIcon
@@ -440,11 +385,9 @@ export function HomePage() {
                 cy="11"
                 r="7"
               />
-
               <path d="m20 20-4-4" />
             </svg>
           </label>
-
           <button
             className={`${styles.filterButton} ${
               mostrandoFiltros ||
@@ -473,11 +416,9 @@ export function HomePage() {
               <path d="M7 12h10" />
               <path d="M10 19h4" />
             </svg>
-
             <span>
               Filtros
             </span>
-
             {hayFiltrosActivos && (
               <span
                 className={
@@ -489,7 +430,6 @@ export function HomePage() {
           </button>
         </div>
       </header>
-
       {mostrandoFiltros && (
         <section
           className={
@@ -509,7 +449,6 @@ export function HomePage() {
             >
               Estado del proyecto
             </span>
-
             <div
               className={
                 styles.filterOptions
@@ -552,7 +491,6 @@ export function HomePage() {
                       setFiltroEstado(
                         valor,
                       );
-
                       setProyectoSeleccionadoId(
                         null,
                       );
@@ -566,7 +504,6 @@ export function HomePage() {
               )}
             </div>
           </div>
-
           {hayFiltrosActivos && (
             <button
               className={
@@ -575,7 +512,6 @@ export function HomePage() {
               type="button"
               onClick={() => {
                 limpiarFiltros();
-
                 setProyectoSeleccionadoId(
                   null,
                 );
@@ -586,7 +522,6 @@ export function HomePage() {
           )}
         </section>
       )}
-
       <div
         className={
           styles.dashboardGrid
@@ -612,19 +547,16 @@ export function HomePage() {
                 aria-hidden="true"
               >
                 <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
-
                 <circle
                   cx="12"
                   cy="10"
                   r="2"
                 />
               </svg>
-
               <div>
                 <h2>
                   Mapa de proyectos
                 </h2>
-
                 <span
                   className={
                     styles.panelMeta
@@ -637,7 +569,6 @@ export function HomePage() {
                 </span>
               </div>
             </div>
-
             <button
               className={
                 styles.iconButton
@@ -661,7 +592,6 @@ export function HomePage() {
               </svg>
             </button>
           </header>
-
           <div
             className={
               styles.mapContainer
@@ -677,7 +607,6 @@ export function HomePage() {
             />
           </div>
         </article>
-
         <article
           className={
             styles.panel
@@ -704,12 +633,10 @@ export function HomePage() {
                 <path d="M3 12h.01" />
                 <path d="M3 18h.01" />
               </svg>
-
               <div>
                 <h2>
                   Lista de proyectos
                 </h2>
-
                 <span
                   className={
                     styles.panelMeta
@@ -722,7 +649,6 @@ export function HomePage() {
                 </span>
               </div>
             </div>
-
             <div
               className={
                 styles.viewButtons
@@ -757,21 +683,18 @@ export function HomePage() {
                     width="7"
                     height="7"
                   />
-
                   <rect
                     x="14"
                     y="3"
                     width="7"
                     height="7"
                   />
-
                   <rect
                     x="3"
                     y="14"
                     width="7"
                     height="7"
                   />
-
                   <rect
                     x="14"
                     y="14"
@@ -780,7 +703,6 @@ export function HomePage() {
                   />
                 </svg>
               </button>
-
               <button
                 className={`${styles.iconButton} ${
                   vistaProyectos ===
@@ -814,7 +736,6 @@ export function HomePage() {
               </button>
             </div>
           </header>
-
           <div
             className={
               styles.projectListPlaceholder
@@ -830,25 +751,20 @@ export function HomePage() {
                 <span>
                   Proyecto
                 </span>
-
                 <span>
                   Ubicación
                 </span>
-
                 <span>
                   Estado
                 </span>
-
                 <span>
                   Equipo
                 </span>
-
                 <span>
                   Última actualización
                 </span>
               </div>
             )}
-
             {cargando && (
               <div
                 className={
@@ -862,11 +778,9 @@ export function HomePage() {
                   }
                   aria-hidden="true"
                 />
-
                 <h3>
                   Cargando proyectos
                 </h3>
-
                 <p>
                   Estamos consultando
                   la información del
@@ -874,7 +788,6 @@ export function HomePage() {
                 </p>
               </div>
             )}
-
             {!cargando &&
               error && (
                 <div
@@ -891,20 +804,16 @@ export function HomePage() {
                       cy="12"
                       r="9"
                     />
-
                     <path d="M12 7v6" />
                     <path d="M12 17h.01" />
                   </svg>
-
                   <h3>
                     No pudimos cargar
                     los proyectos
                   </h3>
-
                   <p>
                     {error}
                   </p>
-
                   <button
                     className={
                       styles.retryButton
@@ -918,7 +827,6 @@ export function HomePage() {
                   </button>
                 </div>
               )}
-
             {!cargando &&
               !error &&
               proyectosFiltrados.length ===
@@ -935,14 +843,12 @@ export function HomePage() {
                     <path d="M3 7.5h6l2-2h10v14H3z" />
                     <path d="M3 10h18" />
                   </svg>
-
                   <h3>
                     {busqueda.trim() ||
                     hayFiltrosActivos
                       ? 'No encontramos proyectos'
                       : 'Aún no tienes proyectos'}
                   </h3>
-
                   <p>
                     {busqueda.trim() ||
                     hayFiltrosActivos
@@ -951,7 +857,6 @@ export function HomePage() {
                   </p>
                 </div>
               )}
-
             {!cargando &&
               !error &&
               proyectosFiltrados.length >
@@ -968,31 +873,26 @@ export function HomePage() {
                       const seleccionado =
                         proyecto.id_proyecto ===
                         proyectoSeleccionadoId;
-
                       const tieneUbicacion =
                         proyecto.latitud !==
                           null &&
                         proyecto.longitud !==
                           null;
-
                       const ultimaActualizacion =
                         formatearUltimaActualizacion(
                           proyecto.ultima_actualizacion,
                         );
-
                       const participantesVisibles =
                         proyecto.equipo.slice(
                           0,
                           3,
                         );
-
                       const participantesRestantes =
                         Math.max(
                           proyecto.equipo.length -
                             participantesVisibles.length,
                           0,
                         );
-
                       return (
                         <button
                           key={
@@ -1011,10 +911,8 @@ export function HomePage() {
                               setProyectoSeleccionadoId(
                                 null,
                               );
-
                               return;
                             }
-
                             setProyectoSeleccionadoId(
                               proyecto.id_proyecto,
                             );
@@ -1046,7 +944,6 @@ export function HomePage() {
                                 <path d="M3 10h18" />
                               </svg>
                             </div>
-
                             <div
                               className={
                                 styles.projectText
@@ -1057,7 +954,6 @@ export function HomePage() {
                                   proyecto.nombre
                                 }
                               </strong>
-
                               <span>
                                 {
                                   proyecto.contratante
@@ -1065,7 +961,6 @@ export function HomePage() {
                               </span>
                             </div>
                           </div>
-
                           <div
                             className={
                               styles.projectLocation
@@ -1076,21 +971,18 @@ export function HomePage() {
                               aria-hidden="true"
                             >
                               <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
-
                               <circle
                                 cx="12"
                                 cy="10"
                                 r="2"
                               />
                             </svg>
-
                             <span>
                               {
                                 proyecto.direccion
                               }
                             </span>
                           </div>
-
                           <div>
                             <span
                               className={`${styles.statusBadge} ${
@@ -1108,7 +1000,6 @@ export function HomePage() {
                               )}
                             </span>
                           </div>
-
                           <div
                             className={
                               styles.projectTeam
@@ -1139,7 +1030,6 @@ export function HomePage() {
                                         participante.nombre,
                                         participante.apellidos,
                                       );
-
                                     return (
                                       <div
                                         key={
@@ -1171,7 +1061,6 @@ export function HomePage() {
                                     );
                                   },
                                 )}
-
                                 {participantesRestantes >
                                   0 && (
                                   <div
@@ -1187,7 +1076,6 @@ export function HomePage() {
                               </div>
                             )}
                           </div>
-
                           <div
                             className={
                               styles.lastUpdate
@@ -1198,7 +1086,6 @@ export function HomePage() {
                                 ultimaActualizacion.fecha
                               }
                             </strong>
-
                             {ultimaActualizacion.hora && (
                               <span>
                                 {
@@ -1213,7 +1100,6 @@ export function HomePage() {
                   )}
                 </div>
               )}
-
             {!cargando &&
               !error &&
               proyectosFiltrados.length >
@@ -1230,31 +1116,26 @@ export function HomePage() {
                       const seleccionado =
                         proyecto.id_proyecto ===
                         proyectoSeleccionadoId;
-
                       const tieneUbicacion =
                         proyecto.latitud !==
                           null &&
                         proyecto.longitud !==
                           null;
-
                       const ultimaActualizacion =
                         formatearUltimaActualizacion(
                           proyecto.ultima_actualizacion,
                         );
-
                       const participantesVisibles =
                         proyecto.equipo.slice(
                           0,
                           3,
                         );
-
                       const participantesRestantes =
                         Math.max(
                           proyecto.equipo.length -
                             participantesVisibles.length,
                           0,
                         );
-
                       return (
                         <button
                           key={
@@ -1281,10 +1162,8 @@ export function HomePage() {
                               setProyectoSeleccionadoId(
                                 null,
                               );
-
                               return;
                             }
-
                             setProyectoSeleccionadoId(
                               proyecto.id_proyecto,
                             );
@@ -1308,7 +1187,6 @@ export function HomePage() {
                                 <path d="M3 10h18" />
                               </svg>
                             </div>
-
                             <span
                               className={`${styles.statusBadge} ${
                                 proyecto.estado_proyecto ===
@@ -1325,7 +1203,6 @@ export function HomePage() {
                               )}
                             </span>
                           </div>
-
                           <div
                             className={
                               styles.projectCardTitle
@@ -1336,14 +1213,12 @@ export function HomePage() {
                                 proyecto.nombre
                               }
                             </strong>
-
                             <span>
                               {
                                 proyecto.contratante
                               }
                             </span>
                           </div>
-
                           <div
                             className={
                               styles.projectCardLocation
@@ -1354,21 +1229,18 @@ export function HomePage() {
                               aria-hidden="true"
                             >
                               <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
-
                               <circle
                                 cx="12"
                                 cy="10"
                                 r="2"
                               />
                             </svg>
-
                             <span>
                               {
                                 proyecto.direccion
                               }
                             </span>
                           </div>
-
                           <div
                             className={
                               styles.projectCardFooter
@@ -1429,7 +1301,6 @@ export function HomePage() {
                                       </div>
                                     ),
                                   )}
-
                                   {participantesRestantes >
                                     0 && (
                                     <div
@@ -1445,7 +1316,6 @@ export function HomePage() {
                                 </div>
                               )}
                             </div>
-
                             <div
                               className={
                                 styles.lastUpdate
@@ -1456,7 +1326,6 @@ export function HomePage() {
                                   ultimaActualizacion.fecha
                                 }
                               </strong>
-
                               {ultimaActualizacion.hora && (
                                 <span>
                                   {
@@ -1472,7 +1341,6 @@ export function HomePage() {
                   )}
                 </div>
               )}
-
             {!cargando &&
               !error &&
               totalPaginas >
@@ -1491,7 +1359,6 @@ export function HomePage() {
                     {desde}–{hasta}{' '}
                     de {total}
                   </span>
-
                   <div
                     className={
                       styles.paginationControls
@@ -1515,12 +1382,10 @@ export function HomePage() {
                       >
                         <path d="m15 18-6-6 6-6" />
                       </svg>
-
                       <span>
                         Anterior
                       </span>
                     </button>
-
                     <span
                       className={
                         styles.currentPage
@@ -1530,7 +1395,6 @@ export function HomePage() {
                       {pagina} de{' '}
                       {totalPaginas}
                     </span>
-
                     <button
                       className={
                         styles.paginationButton
@@ -1547,7 +1411,6 @@ export function HomePage() {
                       <span>
                         Siguiente
                       </span>
-
                       <svg
                         viewBox="0 0 24 24"
                         aria-hidden="true"
@@ -1561,7 +1424,6 @@ export function HomePage() {
           </div>
         </article>
       </div>
-
       {mapaAmpliado && (
         <div
           className={
@@ -1604,19 +1466,16 @@ export function HomePage() {
                   aria-hidden="true"
                 >
                   <path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z" />
-
                   <circle
                     cx="12"
                     cy="10"
                     r="2"
                   />
                 </svg>
-
                 <div>
                   <h2 id="expanded-map-title">
                     Mapa de proyectos
                   </h2>
-
                   <span>
                     {
                       proyectosConUbicacion.length
@@ -1625,7 +1484,6 @@ export function HomePage() {
                   </span>
                 </div>
               </div>
-
               <button
                 className={
                   styles.expandedMapClose
@@ -1647,7 +1505,6 @@ export function HomePage() {
                 </svg>
               </button>
             </header>
-
             <div
               className={
                 styles.expandedMapContent

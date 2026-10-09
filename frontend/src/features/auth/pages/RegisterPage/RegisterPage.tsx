@@ -1,7 +1,7 @@
+
 import { RegisterForm } from '../../components/RegisterForm/RegisterForm';
 
-import logoPrincipal from '../../../../assets/branding/ingevit-logo.png';
-import logoFormulario from '../../../../assets/branding/ingevit-logo2.png';
+import logoPrincipal from '../../../../assets/branding/ingevit-360-white.png';
 
 import styles from './RegisterPage.module.css';
 
@@ -20,12 +20,13 @@ export function RegisterPage({
       />
 
       <section className={styles.shell}>
+        {/* PANEL IZQUIERDO */}
         <div className={styles.brandPanel}>
           <div className={styles.brandContent}>
             <img
               className={styles.mainLogo}
               src={logoPrincipal}
-              alt="INGEVIT - Ingeniería, vías y topografía"
+              alt="INGEVIT 360"
             />
 
             <div className={styles.brandText}>
@@ -50,15 +51,10 @@ export function RegisterPage({
           />
         </div>
 
+        {/* PANEL DERECHO */}
         <div className={styles.formPanel}>
           <div className={styles.formContainer}>
             <header className={styles.header}>
-              <img
-                className={styles.formLogo}
-                src={logoFormulario}
-                alt="INGEVIT"
-              />
-
               <h2 className={styles.title}>
                 Crea tu cuenta
               </h2>

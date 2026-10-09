@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 
 import { RecoveryRequestForm } from '../../components/RecoveryRequestForm/RecoveryRequestForm';
 import { ResetPasswordForm } from '../../components/ResetPasswordForm/ResetPasswordForm';
 
-import logoIngevit from '../../../../assets/branding/ingevit-logo2.png';
+import logoIngevit from '../../../../assets/branding/ingevit-360.png';
 
 import styles from './RecoveryPage.module.css';
 
@@ -65,7 +66,7 @@ export function RecoveryPage({
             <img
               className={styles.logo}
               src={logoIngevit}
-              alt="INGEVIT"
+              alt="INGEVIT 360"
             />
           </div>
 

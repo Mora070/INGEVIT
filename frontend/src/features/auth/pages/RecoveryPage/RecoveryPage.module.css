@@ -1,66 +1,73 @@
+
+/* =========================================================
+   INGEVIT 360 - RECUPERACIÓN DE CONTRASEÑA
+========================================================= */
+
 .page {
   position: relative;
+  isolation: isolate;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
 
-  display: grid;
-  place-items: center;
+  padding: 20px 16px;
 
-  padding: clamp(1rem, 4vw, 2.5rem);
-
-  background:
-    linear-gradient(
-      135deg,
-      #f8f8f6 0%,
-      #ffffff 48%,
-      #f4f4f1 100%
-    );
+  background: #f6f6f3;
 
   overflow-x: hidden;
-  overflow-y: auto;
 }
 
+/* =========================================================
+   CURVAS DE NIVEL
+========================================================= */
+
 .topography {
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: -1;
 
   background-image:
     url('../../../../assets/branding/topografia-auth.svg');
 
+  background-position: center;
   background-repeat: no-repeat;
-  background-position: center bottom;
   background-size: cover;
 
-  opacity: 0.38;
+  opacity: 0.28;
 
   pointer-events: none;
 }
+
+/* =========================================================
+   TARJETA PRINCIPAL
+========================================================= */
 
 .card {
   position: relative;
   z-index: 1;
 
-  width: min(100%, 450px);
+  width: 100%;
+  max-width: 460px;
+  min-width: 0;
 
-  padding:
-    clamp(2rem, 5vw, 3rem)
-    clamp(1.4rem, 5vw, 2.7rem);
+  margin: auto;
 
-  background:
-    rgb(255 255 255 / 95%);
+  padding: 24px 36px 26px;
 
-  border:
-    1px solid
-    rgb(57 59 62 / 8%);
+  box-sizing: border-box;
 
-  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+
+  border: 1px solid #e7e8e5;
+  border-radius: 12px;
 
   box-shadow:
-    0 20px 60px
-    rgb(40 42 44 / 11%);
-
-  backdrop-filter: blur(10px);
+    0 8px 28px rgba(35, 39, 41, 0.045);
 
   font-family:
     "Inter",
@@ -69,110 +76,98 @@
     sans-serif;
 }
 
-.header {
-  margin-bottom: 1.7rem;
+/* =========================================================
+   ENCABEZADO
+========================================================= */
 
+.header {
+  margin-bottom: 20px;
   text-align: center;
 }
 
+/* =========================================================
+   LOGO INGEVIT 360
+========================================================= */
+
 .logoFrame {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   width: 100%;
-  height: 88px;
 
-  margin-bottom: 0.8rem;
-
-  overflow: visible;
+  margin-bottom: 14px;
 }
 
 .logo {
-  position: absolute;
-
-  left: 50%;
-  top: 50%;
-
   display: block;
 
   width: auto;
-  height: 78px;
-
-  max-width: none;
+  max-width: 100%;
+  height: 105px;
 
   object-fit: contain;
-
-  transform:
-    translate(-50%, -50%)
-    scale(1.35);
-
-  transform-origin: center;
+  object-position: center;
 }
+
+/* =========================================================
+   TÍTULO Y DESCRIPCIÓN
+========================================================= */
 
 .title {
   margin: 0;
 
-  color:
-    var(--color-text-strong);
+  color: #292d2f;
 
-  font-size:
-    clamp(1.8rem, 4vw, 2.3rem);
-
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.2;
 
-  line-height: 1.1;
-
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .description {
   max-width: 340px;
 
-  margin:
-    0.55rem auto
-    0;
+  margin: 8px auto 0;
 
-  color:
-    var(--color-text-secondary);
+  color: #777b7e;
 
-  font-size: 0.86rem;
+  font-size: 13px;
   font-weight: 400;
-
   line-height: 1.5;
 }
 
+/* =========================================================
+   MENSAJE DE RECUPERACIÓN
+========================================================= */
+
 .message {
-  margin-bottom: 0.9rem;
+  margin-bottom: 12px;
 
-  padding:
-    0.75rem
-    0.85rem;
+  padding: 11px 13px;
 
-  color:
-    var(--color-brand-olive);
+  color: #596b42;
+  background: #f1f3ec;
 
-  background:
-    var(--color-brand-olive-soft);
+  border: 1px solid #dce3d1;
+  border-radius: 8px;
 
-  border:
-    1px solid
-    rgb(88 107 60 / 20%);
-
-  border-radius: 9px;
-
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
+/* =========================================================
+   CORREO DEL USUARIO
+========================================================= */
+
 .email {
-  margin:
-    0 0
-    1rem;
+  margin: 0 0 16px;
 
-  color:
-    var(--color-text-secondary);
+  color: #777b7e;
 
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
 
   text-align: center;
 }
@@ -180,175 +175,254 @@
 .email strong {
   display: block;
 
-  margin-top: 0.2rem;
+  margin-top: 3px;
 
-  color:
-    var(--color-text-strong);
+  color: #292d2f;
 
+  font-size: 12px;
   font-weight: 700;
+
+  overflow-wrap: anywhere;
 }
 
+/* =========================================================
+   BOTÓN DE CONFIRMACIÓN
+========================================================= */
+
 .primaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100%;
   min-height: 46px;
 
-  padding:
-    0.7rem
-    1rem;
+  padding: 11px 16px;
 
   color: #ffffff;
-
-  background:
-    var(--color-brand-orange);
+  background: #e96b13;
 
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
 
-  font: inherit;
-
-  font-size: 0.86rem;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 700;
 
-  letter-spacing: 0.015em;
+  cursor: pointer;
 
   transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .primaryButton:hover {
-  background:
-    var(--color-brand-orange-hover);
+  background: #cf5809;
 
   box-shadow:
-    0 8px 22px
-    rgb(234 117 26 / 20%);
+    0 4px 12px rgba(233, 107, 19, 0.15);
 }
 
-.backPrompt {
-  margin-top: 1.25rem;
+/* =========================================================
+   VOLVER AL INICIO DE SESIÓN
+========================================================= */
 
+.backPrompt {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
 
-  gap: 0.3rem;
+  gap: 5px;
 
-  color:
-    var(--color-text-secondary);
+  margin-top: 18px;
 
-  font-size: 0.78rem;
+  color: #777b7e;
+
+  font-size: 12px;
+  text-align: center;
 }
 
 .backButton {
   padding: 0;
 
-  color:
-    var(--color-brand-orange);
-
+  color: #d9620d;
   background: transparent;
 
   border: 0;
 
-  font: inherit;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 700;
+
+  cursor: pointer;
 }
 
 .backButton:hover {
-  color:
-    var(--color-brand-orange-hover);
-
+  color: #ad4907;
   text-decoration: underline;
 }
 
-@media (max-width: 600px) {
-  .page {
-    padding: 0;
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
 
-    place-items: stretch;
-  }
-
-  .card {
-    width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    padding:
-      2rem
-      clamp(1rem, 7vw, 2rem);
-
-    border: 0;
-    border-radius: 0;
-
-    box-shadow: none;
-
-    background:
-      rgb(255 255 255 / 92%);
-  }
-
-  .topography {
-    background-position:
-      center bottom;
-
-    background-size:
-      auto 75%;
-
-    opacity: 0.22;
-  }
-
-  .logoFrame {
-    height: 82px;
-  }
-
-  .logo {
-    height: 72px;
-
-    transform:
-      translate(-50%, -50%)
-      scale(1.25);
-  }
+.primaryButton:focus-visible,
+.backButton:focus-visible {
+  outline: 2px solid #ed7015;
+  outline-offset: 4px;
 }
 
-@media (max-width: 380px) {
+/* =========================================================
+   PANTALLAS DE MENOR ALTURA
+========================================================= */
+
+@media (max-height: 850px) and (min-width: 601px) {
+  .page {
+    padding: 12px 16px;
+  }
+
   .card {
-    padding:
-      1.4rem
-      1rem;
+    padding: 18px 30px 20px;
   }
 
   .header {
-    margin-bottom: 1.4rem;
+    margin-bottom: 15px;
   }
 
   .logoFrame {
-    height: 72px;
+    margin-bottom: 9px;
   }
 
   .logo {
-    height: 64px;
-
-    transform:
-      translate(-50%, -50%)
-      scale(1.18);
+    height: 75px;
   }
 
   .title {
-    font-size: 1.8rem;
+    font-size: 22px;
   }
 
   .description {
-    font-size: 0.82rem;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  .message {
+    padding: 9px 11px;
+    margin-bottom: 9px;
+  }
+
+  .email {
+    margin-bottom: 12px;
+  }
+
+  .backPrompt {
+    margin-top: 14px;
   }
 }
 
+/* =========================================================
+   TABLETS Y CELULARES
+========================================================= */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 14px;
+  }
+
+  .card {
+    max-width: 440px;
+    padding: 22px 24px;
+  }
+
+  .logo {
+    height: 90px;
+  }
+
+  .header {
+    margin-bottom: 18px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .description {
+    font-size: 12px;
+  }
+
+  .topography {
+    opacity: 0.2;
+  }
+}
+
+/* =========================================================
+   CELULARES PEQUEÑOS
+========================================================= */
+
+@media (max-width: 380px) {
+  .page {
+    padding: 10px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .logo {
+    height: 75px;
+  }
+
+  .header {
+    margin-bottom: 15px;
+  }
+
+  .title {
+    font-size: 21px;
+  }
+
+  .backPrompt {
+    margin-top: 14px;
+  }
+}
+
+/* =========================================================
+   PANTALLAS MUY BAJAS
+========================================================= */
+
+@media (max-height: 650px) {
+  .page {
+    align-items: flex-start;
+  }
+
+  .card {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .logo {
+    height: 65px;
+  }
+
+  .header {
+    margin-bottom: 12px;
+  }
+
+  .logoFrame {
+    margin-bottom: 8px;
+  }
+
+  .backPrompt {
+    margin-top: 12px;
+  }
+}
+
+/* =========================================================
+   MOVIMIENTO REDUCIDO
+========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
-  .primaryButton,
-  .backButton {
+  .primaryButton {
     transition: none;
   }
 }

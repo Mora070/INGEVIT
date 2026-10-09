@@ -846,90 +846,107 @@ export function ProjectsMap({
    * ====================================================
    */
 
-  useEffect(() => {
-    const accessToken =
-      import.meta.env
-        .VITE_MAPBOX_ACCESS_TOKEN;
+  
+useEffect(() => {
+  const accessToken =
+    import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-    if (
-      !mapContainer.current ||
-      map.current ||
-      !accessToken
-    ) {
+  const contenedorMapa = mapContainer.current;
+
+  if (
+    !contenedorMapa ||
+    map.current ||
+    !accessToken
+  ) {
+    return;
+  }
+
+  mapboxgl.accessToken = accessToken;
+
+  const nuevoMapa = new mapboxgl.Map({
+    container: contenedorMapa,
+
+    style: 'mapbox://styles/mapbox/streets-v12',
+
+    center: CENTRO_INICIAL,
+
+    zoom: 4.5,
+
+    attributionControl: true,
+  });
+
+  nuevoMapa.addControl(
+    new mapboxgl.NavigationControl(),
+    'top-right',
+  );
+
+  map.current = nuevoMapa;
+
+  /*
+   * ============================================
+   * AJUSTE AUTOMÁTICO DEL TAMAÑO DEL MAPA
+   * ============================================
+   */
+
+  const observadorTamanio = new ResizeObserver(() => {
+    if (map.current !== nuevoMapa) {
       return;
     }
 
-    mapboxgl.accessToken =
-      accessToken;
+    nuevoMapa.resize();
+  });
 
-    const nuevoMapa =
-      new mapboxgl.Map({
-        container:
-          mapContainer.current,
+  observadorTamanio.observe(contenedorMapa);
 
-        style:
-          'mapbox://styles/mapbox/streets-v12',
+  nuevoMapa.once('load', () => {
+    if (map.current === nuevoMapa) {
+      nuevoMapa.resize();
+    }
+  });
 
-        center:
-          CENTRO_INICIAL,
+  /*
+   * ============================================
+   * LIMPIEZA
+   * ============================================
+   */
 
-        zoom:
-          4.5,
+  return () => {
+    observadorTamanio.disconnect();
 
-        attributionControl:
-          true,
-      });
-
-    nuevoMapa.addControl(
-      new mapboxgl.NavigationControl(),
-      'top-right',
+    marcadores.current.forEach(
+      ({
+        marcador,
+        popup,
+      }) => {
+        popup.remove();
+        marcador.remove();
+      },
     );
 
-    map.current =
-      nuevoMapa;
+    marcadores.current = [];
 
-    return () => {
-      marcadores.current.forEach(
-        ({
-          marcador,
-          popup,
-        }) => {
-          popup.remove();
+    marcadoresIncidencias.current.forEach(
+      (marcador) => {
+        marcador.remove();
+      },
+    );
 
-          marcador.remove();
-        },
-      );
+    marcadoresIncidencias.current = [];
 
-      marcadores.current =
-        [];
+    marcadorNuevaIncidencia.current?.remove();
 
-      marcadoresIncidencias.current.forEach(
-        (
-          marcador,
-        ) => {
-          marcador.remove();
-        },
-      );
+    marcadorNuevaIncidencia.current = null;
 
-      marcadoresIncidencias.current =
-        [];
+    marcadorEdicionIncidencia.current?.remove();
 
-      marcadorNuevaIncidencia.current?.remove();
+    marcadorEdicionIncidencia.current = null;
 
-      marcadorNuevaIncidencia.current =
-        null;
+    nuevoMapa.remove();
 
-      marcadorEdicionIncidencia.current?.remove();
+    map.current = null;
+  };
+}, []);
 
-      marcadorEdicionIncidencia.current =
-        null;
-
-      nuevoMapa.remove();
-
-      map.current =
-        null;
-    };
-  }, []);
 
   /*
    * ====================================================

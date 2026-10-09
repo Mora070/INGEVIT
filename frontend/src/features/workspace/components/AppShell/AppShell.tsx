@@ -26,7 +26,7 @@ import type {
   Notificacion,
 } from '../../api/notificaciones.api';
 
-import logoIngevit from '../../../../assets/branding/ingevit-logo2.png';
+import logoIngevit from '../../../../assets/branding/ingevit-360.png';
 
 import styles from './AppShell.module.css';
 
@@ -867,20 +867,23 @@ export function AppShell({
           styles.topbar
         }
       >
-        <div
-          className={
-            styles.brand
-          }
-        >
-          <img
-            className={
-              styles.brandLogo
-            }
-            src={
-              logoIngevit
-            }
-            alt="INGEVIT"
-          />
+
+        <div className={styles.brand}>
+          <div className={styles.brandIdentity}>
+            <img
+              className={styles.brandLogo}
+              src={logoIngevit}
+              alt="INGEVIT 360"
+            />
+          </div>
+
+          <div className={styles.brandText}>
+            <strong>
+              INGEVIT <span>360</span>
+            </strong>
+
+            <small>GESTIÓN DE PROYECTOS</small>
+          </div>
         </div>
 
         <div

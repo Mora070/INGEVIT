@@ -1,3 +1,8 @@
+
+/* =========================================================
+   INGEVIT 360 - REGISTRO DE USUARIOS
+========================================================= */
+
 .page {
   position: relative;
 
@@ -21,6 +26,10 @@
   overflow-y: auto;
 }
 
+/* =========================================================
+   CURVAS DE NIVEL
+========================================================= */
+
 .topography {
   position: absolute;
   inset: 0;
@@ -36,6 +45,10 @@
 
   pointer-events: none;
 }
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
 
 .shell {
   position: relative;
@@ -61,6 +74,10 @@
 
   backdrop-filter: blur(10px);
 }
+
+/* =========================================================
+   PANEL IZQUIERDO
+========================================================= */
 
 .brandPanel {
   position: relative;
@@ -118,19 +135,28 @@
   max-width: 540px;
 }
 
-/* Logo principal del panel oscuro: ingevit-logo.png */
+/* =========================================================
+   LOGO BLANCO INGEVIT 360
+========================================================= */
+
 .mainLogo {
   display: block;
 
-  width: min(100%, 370px);
-  max-height: 175px;
+  width: 100%;
+  max-width: 370px;
+  height: 220px;
 
   margin:
     -0.8rem auto
     clamp(2rem, 4vh, 3rem);
 
   object-fit: contain;
+  object-position: center;
 }
+
+/* =========================================================
+   TEXTOS DEL PANEL IZQUIERDO
+========================================================= */
 
 .brandText {
   display: grid;
@@ -169,6 +195,10 @@
   line-height: 1.6;
 }
 
+/* =========================================================
+   ACENTO INFERIOR
+========================================================= */
+
 .brandAccent {
   position: absolute;
 
@@ -186,6 +216,10 @@
     );
 }
 
+/* =========================================================
+   PANEL DERECHO
+========================================================= */
+
 .formPanel {
   display: flex;
   align-items: center;
@@ -200,36 +234,13 @@
   margin: 0 auto;
 }
 
+/* =========================================================
+   ENCABEZADO SIN LOGO
+========================================================= */
+
 .header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.8rem;
 }
-
-/*
- * Contenedor del logo secundario.
- *
- * La altura permanece fija para que "Crea tu cuenta"
- * NO se mueva aunque agrandemos visualmente el logo.
- */
-.formLogoFrame {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  height: 90px; /* 🔹 aumenta un poco la altura */
-  margin-bottom: 1.5rem; /* 🔹 más espacio debajo del logo */
-}
-
-
-.formLogo {
-  display: block;
-  height: 80px;
-  object-fit: contain;
-  transform: scale(1.55);
-  transform-origin: center; /* centra el punto de escala */
-  margin: 0 auto; /* centra horizontalmente */
-}
-
-
 
 .title {
   margin: 0;
@@ -244,7 +255,7 @@
 }
 
 .description {
-  margin: 0.55rem 0 0;
+  margin: 0.65rem 0 0;
 
   color: var(--color-text-secondary);
 
@@ -253,6 +264,10 @@
 
   text-align: left;
 }
+
+/* =========================================================
+   ENLACE AL LOGIN
+========================================================= */
 
 .loginPrompt {
   margin-top: 1.15rem;
@@ -279,12 +294,23 @@
 
   font: inherit;
   font-weight: 800;
+
+  cursor: pointer;
 }
 
 .loginButton:hover {
   color: var(--color-brand-orange-hover);
   text-decoration: underline;
 }
+
+.loginButton:focus-visible {
+  outline: 2px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+/* =========================================================
+   TABLETS
+========================================================= */
 
 @media (max-width: 900px) {
   .page {
@@ -326,17 +352,6 @@
     text-align: center;
   }
 
-  .formLogoFrame {
-    height: 76px;
-    margin-bottom: 1rem;
-  }
-
-  .formLogo {
-    height: 76px;
-
-    transform: scale(1.4);
-  }
-
   .title,
   .description {
     text-align: center;
@@ -349,6 +364,10 @@
     opacity: 0.24;
   }
 }
+
+/* =========================================================
+   CELULARES
+========================================================= */
 
 @media (max-width: 480px) {
   .formPanel {
@@ -364,17 +383,6 @@
     margin-bottom: 1.3rem;
   }
 
-  .formLogoFrame {
-    height: 66px;
-    margin-bottom: 0.9rem;
-  }
-
-  .formLogo {
-    height: 66px;
-
-    transform: scale(1.28);
-  }
-
   .title {
     font-size: 1.8rem;
   }
@@ -385,10 +393,13 @@
 
   .topography {
     background-size: auto 58%;
-
     opacity: 0.18;
   }
 }
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .loginButton {

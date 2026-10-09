@@ -6,30 +6,22 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-
   gap: 1.5rem;
-
   margin-bottom: 1.5rem;
 }
 
 .title {
   margin: 0;
-
   color: var(--color-text-strong);
-
   font-size: clamp(1.8rem, 3vw, 2.3rem);
   font-weight: 700;
-
   line-height: 1.1;
-
   letter-spacing: -0.025em;
 }
 
 .subtitle {
   margin: 0.5rem 0 0;
-
   color: var(--color-text-secondary);
-
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -37,54 +29,37 @@
 /* =========================
    ACCIONES SUPERIORES
    ========================= */
-
 .actions {
   display: flex;
   align-items: center;
-
   gap: 0.8rem;
-
   flex: 0 1 auto;
 }
 
 .searchBox {
   position: relative;
-
   display: flex;
   align-items: center;
-
   width: min(100%, 330px);
 }
 
 .searchInput {
   width: 100%;
   min-height: 46px;
-
   padding:
-    0.72rem
-    3rem
-    0.72rem
-    0.95rem;
-
+    0.72rem 3rem 0.72rem 0.95rem;
   color: var(--color-text);
-
   background: #ffffff;
-
   border:
-    1px solid
-    var(--color-border);
-
+    1px solid var(--color-border);
   border-radius: 9px;
-
   font-family:
     "Inter",
     "Segoe UI",
     Arial,
     sans-serif;
-
   font-size: 0.84rem;
   font-weight: 500;
-
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
@@ -101,74 +76,50 @@
 
 .searchInput:focus {
   outline: none;
-
   border-color:
     var(--color-brand-orange);
-
   box-shadow:
-    0 0 0 3px
-    rgb(234 117 26 / 12%);
+    0 0 0 3px rgb(234 117 26 / 12%);
 }
 
 .searchIcon {
   position: absolute;
-
   right: 0.9rem;
   top: 50%;
-
   width: 21px;
   height: 21px;
-
   transform: translateY(-50%);
-
   fill: none;
-
   stroke:
     var(--color-brand-charcoal);
-
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-
   pointer-events: none;
 }
 
 .filterButton {
   position: relative;
-
   min-height: 46px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   gap: 0.55rem;
-
   padding:
-    0.7rem
-    1rem;
-
+    0.7rem 1rem;
   color: var(--color-text-strong);
-
   background: #ffffff;
-
   border:
-    1px solid
-    var(--color-border);
-
+    1px solid var(--color-border);
   border-radius: 9px;
-
   font-family:
     "Inter",
     "Segoe UI",
     Arial,
     sans-serif;
-
   font-size: 0.82rem;
   font-weight: 700;
-
   white-space: nowrap;
-
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
@@ -179,9 +130,7 @@
 .filterButton svg {
   width: 20px;
   height: 20px;
-
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
@@ -191,26 +140,21 @@
 .filterButton:hover {
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 30%);
 }
 
 .filterButton:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .filterButtonActive {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 32%);
 }
@@ -223,69 +167,46 @@
 .filterIndicator {
   width: 7px;
   height: 7px;
-
   flex: 0 0 auto;
-
   margin-left: 0.05rem;
-
   background:
     var(--color-brand-orange);
-
   border-radius: 50%;
-
   box-shadow:
-    0 0 0 3px
-    rgb(234 117 26 / 10%);
+    0 0 0 3px rgb(234 117 26 / 10%);
 }
 
 /* =========================
    PANEL DE FILTROS
    ========================= */
-
 .filtersPanel {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-
   gap: 1rem;
-
   margin:
-    -0.4rem
-    0
-    1.25rem;
-
+    -0.4rem 0 1.25rem;
   padding:
-    1rem
-    1.1rem;
-
+    1rem 1.1rem;
   background: #ffffff;
-
   border:
-    1px solid
-    rgb(57 59 62 / 9%);
-
+    1px solid rgb(57 59 62 / 9%);
   border-radius: 12px;
-
   box-shadow:
-    0 6px 20px
-    rgb(40 42 44 / 4%);
+    0 6px 20px rgb(40 42 44 / 4%);
 }
 
 .filterGroup {
   min-width: 0;
-
   display: grid;
-
   gap: 0.55rem;
 }
 
 .filterLabel {
   color:
     var(--color-text-secondary);
-
   font-size: 0.68rem;
   font-weight: 700;
-
   letter-spacing: 0.025em;
   text-transform: uppercase;
 }
@@ -294,44 +215,31 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-
   gap: 0.45rem;
 }
 
 .filterOption {
   min-height: 34px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   padding:
-    0.4rem
-    0.72rem;
-
+    0.4rem 0.72rem;
   color:
     var(--color-text-secondary);
-
   background:
     #f7f7f5;
-
   border:
-    1px solid
-    rgb(57 59 62 / 9%);
-
+    1px solid rgb(57 59 62 / 9%);
   border-radius: 999px;
-
   font-family:
     "Inter",
     "Segoe UI",
     Arial,
     sans-serif;
-
   font-size: 0.7rem;
   font-weight: 700;
-
   white-space: nowrap;
-
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -341,71 +249,52 @@
 .filterOption:hover {
   color:
     var(--color-text-strong);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 22%);
 }
 
 .filterOption:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .filterOptionActive {
   color: #ffffff;
-
   background:
     var(--color-brand-orange);
-
   border-color:
     var(--color-brand-orange);
 }
 
 .filterOptionActive:hover {
   color: #ffffff;
-
   background:
     var(--color-brand-orange-hover);
-
   border-color:
     var(--color-brand-orange-hover);
 }
 
 .clearFiltersButton {
   flex: 0 0 auto;
-
   min-height: 36px;
-
   padding:
-    0.45rem
-    0.72rem;
-
+    0.45rem 0.72rem;
   color:
     var(--color-text-secondary);
-
   background: transparent;
-
   border:
-    1px solid
-    var(--color-border);
-
+    1px solid var(--color-border);
   border-radius: 8px;
-
   font-family:
     "Inter",
     "Segoe UI",
     Arial,
     sans-serif;
-
   font-size: 0.69rem;
   font-weight: 700;
-
   transition:
     color 160ms ease,
     border-color 160ms ease,
@@ -415,97 +304,73 @@
 .clearFiltersButton:hover {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 24%);
 }
 
 .clearFiltersButton:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 /* =========================
    DASHBOARD
    ========================= */
-
 .dashboardGrid {
   display: grid;
-
   grid-template-columns:
-    minmax(0, 1fr)
-    minmax(0, 1.15fr);
-
+    minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 1rem;
-
   align-items: stretch;
 }
 
 .panel {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 
   display: flex;
   flex-direction: column;
 
   background: #ffffff;
 
-  border:
-    1px solid
-    rgb(57 59 62 / 9%);
-
+  border: 1px solid rgb(57 59 62 / 9%);
   border-radius: 14px;
 
-  box-shadow:
-    0 8px 24px
-    rgb(40 42 44 / 5%);
+  box-shadow: 0 8px 24px rgb(40 42 44 / 5%);
 
   overflow: hidden;
 }
 
 .panelHeader {
   min-height: 58px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 1rem;
-
   padding:
-    0.8rem
-    1rem;
-
+    0.8rem 1rem;
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 }
 
 .panelTitle {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 0.6rem;
 }
 
 .panelTitle svg {
   flex: 0 0 auto;
-
   width: 22px;
   height: 22px;
-
   fill: none;
-
   stroke:
     var(--color-brand-olive);
-
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -513,24 +378,18 @@
 
 .panelTitle h2 {
   margin: 0;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.92rem;
   font-weight: 700;
-
   letter-spacing: -0.01em;
 }
 
 .panelMeta {
   display: block;
-
   margin-top: 0.15rem;
-
   color:
     var(--color-text-muted);
-
   font-size: 0.68rem;
   font-weight: 500;
 }
@@ -538,25 +397,16 @@
 .iconButton {
   display: grid;
   place-items: center;
-
   flex: 0 0 auto;
-
   width: 38px;
   height: 38px;
-
   padding: 0;
-
   color:
     var(--color-brand-charcoal);
-
   background: #ffffff;
-
   border:
-    1px solid
-    transparent;
-
+    1px solid transparent;
   border-radius: 8px;
-
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -566,9 +416,7 @@
 .iconButton svg {
   width: 20px;
   height: 20px;
-
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
@@ -578,26 +426,21 @@
 .iconButton:hover {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
 }
 
 .iconButton:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .iconButtonActive {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 30%);
 }
@@ -605,7 +448,6 @@
 .viewButtons {
   display: flex;
   align-items: center;
-
   gap: 0.35rem;
 }
 
@@ -614,84 +456,76 @@
    ========================= */
 
 .mapContainer {
-  flex: 1;
+  position: relative;
 
-  min-height: 520px;
+  flex: 1 1 auto;
 
-  background:
-    #e7e9e6;
+  min-height: 0;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #e7e9e6;
 
   overflow: hidden;
+}
+
+.mapContainer > * {
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-height: 0;
 }
 
 /* =========================
    LISTADO DE PROYECTOS
    ========================= */
-
 .projectListPlaceholder {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
 
-  display: flex;
-  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
 
-  min-height: 520px;
+  display: block;
 
+  overflow-y: auto;
   overflow-x: auto;
-  overflow-y: hidden;
+
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 
   scrollbar-width: thin;
-  scrollbar-color:
-    rgb(57 59 62 / 24%)
-    transparent;
+  scrollbar-color: #f58220 #f1f1ef;
 }
 
 .projectListPlaceholder::-webkit-scrollbar {
+  width: 9px;
   height: 8px;
 }
 
 .projectListPlaceholder::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1ef;
 }
 
 .projectListPlaceholder::-webkit-scrollbar-thumb {
-  background:
-    rgb(57 59 62 / 20%);
-
-  border-radius: 999px;
+  background: #f58220;
+  border-radius: 10px;
 }
-
-.projectListPlaceholder::-webkit-scrollbar-thumb:hover {
-  background:
-    rgb(57 59 62 / 30%);
-}
-
 .tableHeader {
   min-width: 720px;
-
   display: grid;
-
   grid-template-columns:
-    minmax(165px, 1.3fr)
-    minmax(115px, 0.9fr)
-    minmax(85px, 0.65fr)
-    minmax(110px, 0.75fr)
-    minmax(155px, 1fr);
-
+    minmax(165px, 1.3fr) minmax(115px, 0.9fr) minmax(85px, 0.65fr) minmax(110px, 0.75fr) minmax(155px, 1fr);
   gap: 0.75rem;
-
   padding:
-    0.9rem
-    1rem;
-
+    0.9rem 1rem;
   color:
     var(--color-text-secondary);
-
   background: #fbfbfa;
-
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 8%);
-
+    1px solid rgb(57 59 62 / 8%);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -704,41 +538,22 @@
 .projectRow {
   width: 100%;
   min-width: 720px;
-
   display: grid;
-
   grid-template-columns:
-    minmax(165px, 1.3fr)
-    minmax(115px, 0.9fr)
-    minmax(85px, 0.65fr)
-    minmax(110px, 0.75fr)
-    minmax(155px, 1fr);
-
+    minmax(165px, 1.3fr) minmax(115px, 0.9fr) minmax(85px, 0.65fr) minmax(110px, 0.75fr) minmax(155px, 1fr);
   align-items: center;
-
   gap: 0.75rem;
-
   min-height: 74px;
-
   padding:
-    0.75rem
-    1rem;
-
+    0.75rem 1rem;
   color:
     var(--color-text);
-
   background: #ffffff;
-
   border: 0;
-
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 7%);
-
+    1px solid rgb(57 59 62 / 7%);
   font: inherit;
-
   text-align: left;
-
   transition:
     background-color 160ms ease;
 }
@@ -755,10 +570,8 @@
 .projectRowSelected {
   background:
     var(--color-brand-orange-soft);
-
   box-shadow:
-    inset 4px 0 0
-    var(--color-brand-orange);
+    inset 4px 0 0 var(--color-brand-orange);
 }
 
 .projectRowSelected:hover {
@@ -769,47 +582,35 @@
 .projectRow:focus-visible {
   position: relative;
   z-index: 1;
-
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: -2px;
 }
 
 .projectMain {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 0.7rem;
 }
 
 .projectIcon {
   flex: 0 0 auto;
-
   width: 36px;
   height: 36px;
-
   display: grid;
   place-items: center;
-
   color:
     var(--color-brand-olive);
-
   background:
     var(--color-brand-olive-soft);
-
   border-radius: 8px;
 }
 
 .projectIcon svg {
   width: 19px;
   height: 19px;
-
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
@@ -818,62 +619,46 @@
 
 .projectText {
   min-width: 0;
-
   display: grid;
-
   gap: 0.18rem;
 }
 
 .projectText strong {
   overflow: hidden;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.8rem;
   font-weight: 700;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .projectText span {
   overflow: hidden;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.69rem;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .projectLocation {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 0.4rem;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.72rem;
 }
 
 .projectLocation svg {
   flex: 0 0 auto;
-
   width: 16px;
   height: 16px;
-
   fill: none;
-
   stroke:
     var(--color-brand-olive);
-
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -881,7 +666,6 @@
 
 .projectLocation span {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -889,39 +673,30 @@
 .statusBadge {
   display: inline-flex;
   align-items: center;
-
   min-height: 26px;
-
   padding:
-    0.25rem
-    0.6rem;
-
+    0.25rem 0.6rem;
   border-radius: 999px;
-
   font-size: 0.67rem;
   font-weight: 700;
-
   white-space: nowrap;
 }
 
 .statusActive {
   color:
     var(--color-brand-olive);
-
   background:
     var(--color-brand-olive-soft);
 }
 
 .statusPaused {
   color: #98620d;
-
   background: #fff5da;
 }
 
 .statusFinished {
   color:
     var(--color-text-secondary);
-
   background:
     #eceeed;
 }
@@ -929,56 +704,39 @@
 /* =========================
    EQUIPO DEL PROYECTO
    ========================= */
-
 .projectTeam {
   min-width: 0;
-
   display: flex;
   align-items: center;
 }
 
 .teamAvatars {
   min-width: 0;
-
   display: flex;
   align-items: center;
 }
 
 .teamAvatar {
   position: relative;
-
   width: 32px;
   height: 32px;
-
   flex: 0 0 32px;
-
   display: grid;
   place-items: center;
-
   overflow: hidden;
-
   margin-left: -8px;
-
   color:
     var(--color-brand-charcoal);
-
   background:
     var(--color-brand-olive-soft);
-
   border:
-    2px solid
-    #ffffff;
-
+    2px solid #ffffff;
   border-radius: 50%;
-
   font-size: 0.61rem;
   font-weight: 800;
-
   line-height: 1;
-
   box-shadow:
-    0 1px 4px
-    rgb(40 42 44 / 10%);
+    0 1px 4px rgb(40 42 44 / 10%);
 }
 
 .teamAvatar:first-child {
@@ -988,35 +746,26 @@
 .teamAvatar img {
   width: 100%;
   height: 100%;
-
   display: block;
-
   object-fit: cover;
   object-position: center;
-
   border-radius: 50%;
 }
 
 .teamAvatar span {
   display: block;
-
   max-width: 100%;
-
   overflow: hidden;
-
   text-align: center;
   text-overflow: clip;
-
   white-space: nowrap;
 }
 
 .teamAvatarMore {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   font-size: 0.61rem;
   font-weight: 800;
 }
@@ -1024,51 +773,38 @@
 .noTeam {
   color:
     var(--color-text-muted);
-
   font-size: 0.69rem;
   font-weight: 500;
-
   white-space: nowrap;
 }
 
 /* =========================
    ÚLTIMA ACTUALIZACIÓN
    ========================= */
-
 .lastUpdate {
   min-width: 0;
-
   display: grid;
-
   gap: 0.16rem;
 }
 
 .lastUpdate strong {
   overflow: hidden;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.7rem;
   font-weight: 700;
-
   line-height: 1.25;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .lastUpdate span {
   overflow: hidden;
-
   color:
     var(--color-text-muted);
-
   font-size: 0.65rem;
   font-weight: 500;
-
   line-height: 1.25;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1076,51 +812,40 @@
 /* =========================
    VISTA DE TARJETAS
    ========================= */
-
 .projectCards {
   width: 100%;
 
   display: grid;
 
   grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    repeat(2, minmax(0, 1fr));
+
+  align-content: start;
+  align-items: stretch;
 
   gap: 0.85rem;
-
   padding: 1rem;
 
-  overflow-x: hidden;
+  flex: 0 0 auto;
+
+  overflow: visible;
 }
 
 .projectCard {
   width: 100%;
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 0.85rem;
-
   padding: 1rem;
-
   color:
     var(--color-text);
-
   background: #ffffff;
-
   border:
-    1px solid
-    rgb(57 59 62 / 9%);
-
+    1px solid rgb(57 59 62 / 9%);
   border-radius: 12px;
-
   font: inherit;
-
   text-align: left;
-
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
@@ -1131,42 +856,32 @@
 .projectCard:hover {
   background:
     #fcfcfb;
-
   border-color:
     rgb(234 117 26 / 20%);
-
   box-shadow:
-    0 8px 20px
-    rgb(40 42 44 / 7%);
-
+    0 8px 20px rgb(40 42 44 / 7%);
   transform:
     translateY(-1px);
 }
 
 .projectCard:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .projectCardSelected {
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 38%);
-
   box-shadow:
-    inset 0 0 0 1px
-    rgb(234 117 26 / 10%);
+    inset 0 0 0 1px rgb(234 117 26 / 10%);
 }
 
 .projectCardSelected:hover {
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 45%);
 }
@@ -1175,73 +890,54 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 0.75rem;
 }
 
 .projectCardTitle {
   min-width: 0;
-
   display: grid;
-
   gap: 0.22rem;
 }
 
 .projectCardTitle strong {
   overflow: hidden;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.82rem;
   font-weight: 700;
-
   line-height: 1.35;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .projectCardTitle span {
   overflow: hidden;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.69rem;
   font-weight: 500;
-
   line-height: 1.35;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .projectCardLocation {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 0.4rem;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.7rem;
 }
 
 .projectCardLocation svg {
   width: 16px;
   height: 16px;
-
   flex: 0 0 auto;
-
   fill: none;
-
   stroke:
     var(--color-brand-olive);
-
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1249,112 +945,80 @@
 
 .projectCardLocation span {
   overflow: hidden;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .projectCardFooter {
   min-width: 0;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 0.8rem;
-
   margin-top: auto;
-
   padding-top: 0.75rem;
-
   border-top:
-    1px solid
-    rgb(57 59 62 / 7%);
+    1px solid rgb(57 59 62 / 7%);
 }
 
 .projectCardFooter .lastUpdate {
   flex: 0 0 auto;
-
   text-align: right;
 }
 
 /* =========================
    PAGINACIÓN
    ========================= */
-
 .pagination {
   min-width: 720px;
-
   margin-top: auto;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 1rem;
-
   padding:
-    0.8rem
-    1rem;
-
+    0.8rem 1rem;
   background:
     #fbfbfa;
-
   border-top:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 }
 
 .paginationInfo {
   color:
     var(--color-text-secondary);
-
   font-size: 0.69rem;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
 .paginationControls {
   display: flex;
   align-items: center;
-
   gap: 0.55rem;
 }
 
 .paginationButton {
   min-height: 34px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   gap: 0.3rem;
-
   padding:
-    0.4rem
-    0.65rem;
-
+    0.4rem 0.65rem;
   color:
     var(--color-text-strong);
-
   background: #ffffff;
-
   border:
-    1px solid
-    var(--color-border);
-
+    1px solid var(--color-border);
   border-radius: 7px;
-
   font-family:
     "Inter",
     "Segoe UI",
     Arial,
     sans-serif;
-
   font-size: 0.68rem;
   font-weight: 700;
-
   transition:
     color 160ms ease,
     border-color 160ms ease,
@@ -1365,9 +1029,7 @@
 .paginationButton svg {
   width: 16px;
   height: 16px;
-
   fill: none;
-
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
@@ -1377,121 +1039,91 @@
 .paginationButton:hover:not(:disabled) {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 26%);
 }
 
 .paginationButton:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .paginationButton:disabled {
   cursor: not-allowed;
-
   opacity: 0.42;
 }
 
 .currentPage {
   min-width: 92px;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.68rem;
   font-weight: 600;
-
   text-align: center;
-
   white-space: nowrap;
 }
 
 /* =========================
    ESTADOS VACÍOS / ERROR
    ========================= */
-
 .emptyState {
   flex: 1;
-
   display: grid;
   place-items: center;
   align-content: center;
-
   gap: 0.55rem;
-
   padding: 2rem;
-
   text-align: center;
 }
 
 .emptyState svg {
   width: 44px;
   height: 44px;
-
   fill: none;
-
   stroke:
     var(--color-brand-olive);
-
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-
   opacity: 0.75;
 }
 
 .emptyState h3 {
   margin: 0;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.9rem;
   font-weight: 700;
 }
 
 .emptyState p {
   max-width: 280px;
-
   margin: 0;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.78rem;
   line-height: 1.5;
 }
 
 .errorState {
   flex: 1;
-
   display: grid;
   place-items: center;
   align-content: center;
-
   gap: 0.6rem;
-
   padding: 2rem;
-
   text-align: center;
 }
 
 .errorState svg {
   width: 42px;
   height: 42px;
-
   fill: none;
-
   stroke:
     var(--color-error);
-
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1499,45 +1131,32 @@
 
 .errorState h3 {
   margin: 0;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.9rem;
   font-weight: 700;
 }
 
 .errorState p {
   max-width: 300px;
-
   margin: 0;
-
   color:
     var(--color-text-secondary);
-
   font-size: 0.76rem;
   line-height: 1.5;
 }
 
 .retryButton {
   min-height: 36px;
-
   margin-top: 0.35rem;
-
   padding:
-    0.45rem
-    0.8rem;
-
+    0.45rem 0.8rem;
   color: #ffffff;
-
   background:
     var(--color-brand-orange);
-
   border: 0;
   border-radius: 7px;
-
   font: inherit;
-
   font-size: 0.74rem;
   font-weight: 700;
 }
@@ -1550,23 +1169,16 @@
 /* =========================
    CARGA
    ========================= */
-
 .loadingSpinner {
   width: 32px;
   height: 32px;
-
   border:
-    3px solid
-    rgb(57 59 62 / 12%);
-
+    3px solid rgb(57 59 62 / 12%);
   border-top-color:
     var(--color-brand-orange);
-
   border-radius: 50%;
-
   animation:
-    home-loading-spin
-    800ms linear infinite;
+    home-loading-spin 800ms linear infinite;
 }
 
 @keyframes home-loading-spin {
@@ -1578,117 +1190,78 @@
 /* =========================
    ACCESIBILIDAD
    ========================= */
-
 .srOnly {
   position: absolute;
-
   width: 1px;
   height: 1px;
-
   padding: 0;
   margin: -1px;
-
   overflow: hidden;
-
   clip: rect(0, 0, 0, 0);
-
   white-space: nowrap;
-
   border: 0;
 }
 
 /* =========================
    MAPA AMPLIADO
    ========================= */
-
 .expandedMapBackdrop {
   position: fixed;
   z-index: 1000;
-
   inset: 0;
-
   display: grid;
   place-items: center;
-
   padding: 1.5rem;
-
   background:
     rgb(22 23 24 / 62%);
-
   backdrop-filter: blur(3px);
 }
 
 .expandedMap {
   width: min(1180px, 100%);
-
   height:
-    min(
-      760px,
-      calc(100vh - 3rem)
-    );
-
+    min(760px,
+      calc(100vh - 3rem));
   min-height: 0;
-
   display: flex;
   flex-direction: column;
-
   overflow: hidden;
-
   background: #ffffff;
-
   border:
-    1px solid
-    rgb(255 255 255 / 16%);
-
+    1px solid rgb(255 255 255 / 16%);
   border-radius: 16px;
-
   box-shadow:
-    0 24px 70px
-    rgb(0 0 0 / 24%);
+    0 24px 70px rgb(0 0 0 / 24%);
 }
 
 .expandedMapHeader {
   min-height: 64px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 1rem;
-
   flex: 0 0 auto;
-
   padding:
-    0.85rem
-    1rem;
-
+    0.85rem 1rem;
   background: #ffffff;
-
   border-bottom:
-    1px solid
-    rgb(57 59 62 / 8%);
+    1px solid rgb(57 59 62 / 8%);
 }
 
 .expandedMapTitle {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 0.65rem;
 }
 
-.expandedMapTitle > svg {
+.expandedMapTitle>svg {
   width: 24px;
   height: 24px;
-
   flex: 0 0 auto;
-
   fill: none;
-
   stroke:
     var(--color-brand-olive);
-
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1696,22 +1269,17 @@
 
 .expandedMapTitle h2 {
   margin: 0;
-
   color:
     var(--color-text-strong);
-
   font-size: 0.95rem;
   font-weight: 700;
 }
 
 .expandedMapTitle span {
   display: block;
-
   margin-top: 0.12rem;
-
   color:
     var(--color-text-muted);
-
   font-size: 0.68rem;
   font-weight: 500;
 }
@@ -1719,25 +1287,16 @@
 .expandedMapClose {
   width: 40px;
   height: 40px;
-
   flex: 0 0 auto;
-
   display: grid;
   place-items: center;
-
   padding: 0;
-
   color:
     var(--color-brand-charcoal);
-
   background: #ffffff;
-
   border:
-    1px solid
-    var(--color-border);
-
+    1px solid var(--color-border);
   border-radius: 9px;
-
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -1747,9 +1306,7 @@
 .expandedMapClose svg {
   width: 20px;
   height: 20px;
-
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.9;
   stroke-linecap: round;
@@ -1759,40 +1316,44 @@
 .expandedMapClose:hover {
   color:
     var(--color-brand-orange);
-
   background:
     var(--color-brand-orange-soft);
-
   border-color:
     rgb(234 117 26 / 25%);
 }
 
 .expandedMapClose:focus-visible {
   outline:
-    2px solid
-    var(--color-brand-orange);
-
+    2px solid var(--color-brand-orange);
   outline-offset: 2px;
 }
 
 .expandedMapContent {
   min-height: 0;
-
   flex: 1;
-
   overflow: hidden;
-
   background: #e7e9e6;
 }
 
 /* =========================
    RESPONSIVE
    ========================= */
-
 @media (max-width: 1180px) {
-  .dashboardGrid {
-    grid-template-columns: 1fr;
-  }
+.dashboardGrid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1.15fr);
+
+  gap: 1rem;
+  align-items: stretch;
+
+  /* Altura estable para los dos paneles */
+  height: clamp(520px, calc(100dvh - 260px), 760px);
+
+  min-height: 0;
+}
 
   .mapContainer,
   .projectListPlaceholder {
@@ -1803,7 +1364,6 @@
 @media (max-width: 900px) {
   .pageHeader {
     flex-direction: column;
-
     align-items: stretch;
   }
 
@@ -1813,7 +1373,6 @@
 
   .searchBox {
     flex: 1;
-
     width: auto;
   }
 
@@ -1825,7 +1384,6 @@
 @media (max-width: 700px) {
   .actions {
     flex-direction: column;
-
     align-items: stretch;
   }
 
@@ -1839,23 +1397,17 @@
 
   .filtersPanel {
     flex-direction: column;
-
     align-items: stretch;
-
     margin-top: -0.25rem;
-
     padding:
       0.9rem;
   }
 
   .filterOptions {
     display: grid;
-
     grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+      repeat(2,
+        minmax(0, 1fr));
   }
 
   .filterOption {
@@ -1868,28 +1420,28 @@
 
   .projectListPlaceholder {
     min-height: 360px;
-
     overflow-x: hidden;
   }
 
-  .tableHeader {
-    display: none;
-  }
+.tableHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
 
-  .projectRows {
-    min-width: 0;
-  }
+ .projectRows {
+  width: 100%;
+  min-width: 720px;
+
+  flex: 0 0 auto;
+}
 
   .projectRow {
     min-width: 0;
-
     grid-template-columns: 1fr;
-
     gap: 0.6rem;
-
     padding:
-      0.9rem
-      1rem;
+      0.9rem 1rem;
   }
 
   .projectLocation {
@@ -1904,7 +1456,6 @@
 
   .projectCards {
     grid-template-columns: 1fr;
-
     padding: 0.9rem;
   }
 
@@ -1922,14 +1473,29 @@
   }
 
   .mapContainer {
-    min-height: 360px;
+    position: relative;
+
+    flex: 1;
+    min-height: 520px;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #e7e9e6;
+    overflow: hidden;
+  }
+
+  /* Permitir que el contenedor interno del mapa
+   ocupe toda la altura disponible */
+  .mapContainer>* {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
   }
 
   .pagination {
     min-width: 0;
-
     flex-direction: column;
-
     align-items: stretch;
   }
 
@@ -1948,7 +1514,6 @@
   .expandedMap {
     height:
       calc(100vh - 1.5rem);
-
     border-radius: 12px;
   }
 }
@@ -1972,10 +1537,8 @@
 
   .panelHeader {
     min-height: 54px;
-
     padding:
-      0.75rem
-      0.8rem;
+      0.75rem 0.8rem;
   }
 
   .panelTitle h2 {
@@ -1984,7 +1547,7 @@
 
   .mapContainer,
   .projectListPlaceholder {
-    min-height: 320px;
+    overflow-x: auto;
   }
 
   .emptyState,
@@ -2005,7 +1568,6 @@
   .teamAvatar {
     width: 30px;
     height: 30px;
-
     flex-basis: 30px;
   }
 
@@ -2044,21 +1606,15 @@
 
   .paginationControls {
     width: 100%;
-
     display: grid;
-
     grid-template-columns:
-      1fr
-      auto
-      1fr;
-
+      1fr auto 1fr;
     gap: 0.4rem;
   }
 
   .paginationButton {
     padding:
-      0.4rem
-      0.5rem;
+      0.4rem 0.5rem;
   }
 
   .paginationButton span {
@@ -2067,7 +1623,6 @@
 
   .currentPage {
     min-width: 0;
-
     font-size: 0.64rem;
   }
 }
@@ -2075,8 +1630,8 @@
 /* =========================
    REDUCIR MOVIMIENTO
    ========================= */
-
 @media (prefers-reduced-motion: reduce) {
+
   .searchInput,
   .filterButton,
   .filterOption,
@@ -2097,3 +1652,329 @@
     animation: none;
   }
 }
+
+/* =========================================================
+   ENCABEZADO CORPORATIVO INGEVIT 360
+   Conserva los demás estilos y funciones existentes.
+========================================================= */
+.pageHeader {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+  padding: 1.6rem 1.8rem;
+  background: radial-gradient(ellipse at 92% 5%, rgba(245, 130, 32, .045), transparent 45%), #fffefd;
+  border: 1px solid #e9e6e0;
+  border-radius: 16px;
+  box-shadow: 0 5px 24px rgba(32, 35, 36, .035);
+  overflow: hidden;
+}
+
+.pageHeader::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 470px;
+  height: 470px;
+  top: -260px;
+  right: -95px;
+  border-radius: 47% 53% 58% 42%;
+  background: repeating-radial-gradient(ellipse at center, transparent 0, transparent 20px, rgba(100, 95, 86, .065) 21px, transparent 22px, transparent 34px);
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+.headerIntroduction {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 680px;
+}
+
+.headerEyebrow {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: 1rem;
+  color: #bc641b;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .095em;
+}
+
+.headerIcon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  color: #e87919;
+  background: #fff0e3;
+  border: 1px solid rgba(245, 130, 32, .1);
+  border-radius: 9px;
+}
+
+.headerIcon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.title {
+  margin: 0;
+  color: #292d30;
+  font-size: clamp(1.55rem, 2.35vw, 2.1rem);
+  font-weight: 750;
+  line-height: 1.18;
+  letter-spacing: -.035em;
+}
+
+.subtitle {
+  max-width: 570px;
+  margin: .7rem 0 0;
+  color: #73797d;
+  font-size: .84rem;
+  line-height: 1.65;
+}
+
+.headerAccent {
+  display: block;
+  width: 52px;
+  height: 3px;
+  margin-top: 1.15rem;
+  background: #f58220;
+  border-radius: 999px;
+}
+
+.pageHeader .actions {
+  position: relative;
+  z-index: 1;
+  flex: 0 1 410px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.pageHeader .searchBox {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.pageHeader .filterButton {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1100px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.3rem;
+    padding: 1.4rem;
+  }
+
+  .pageHeader .actions {
+    flex: 0 1 auto;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .pageHeader .searchBox {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 700px) {
+  .pageHeader {
+    padding: 1.2rem;
+    gap: 1.25rem;
+    border-radius: 13px;
+  }
+
+  .pageHeader::before {
+    right: -260px;
+    opacity: .6;
+  }
+
+  .pageHeader .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .7rem;
+  }
+
+  .pageHeader .searchBox {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .pageHeader .filterButton {
+    width: 100%;
+  }
+
+  .headerEyebrow {
+    font-size: .65rem;
+  }
+
+  .title {
+    font-size: clamp(1.45rem, 5vw, 1.8rem);
+  }
+
+  .subtitle {
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    padding: 1.1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .headerIcon {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+  }
+
+  .headerAccent {
+    margin-top: 1rem;
+  }
+}
+/* =========================================
+   ALTURA ESTABLE Y SCROLL RESPONSIVE
+========================================= */
+
+@media (max-width: 1180px) {
+  .dashboardGrid {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardGrid > .panel {
+    height: 480px;
+    min-height: 0;
+  }
+
+  .mapContainer,
+  .projectListPlaceholder {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboardGrid > .panel {
+    height: 420px;
+  }
+
+  .projectListPlaceholder {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    touch-action: pan-y;
+  }
+
+  .mapContainer,
+  .projectListPlaceholder {
+    min-height: 0;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardGrid > .panel {
+    height: 390px;
+  }
+
+  .mapContainer,
+  .projectListPlaceholder {
+    min-height: 0;
+  }
+}
+/* El listado no puede aumentar la altura del panel */
+.dashboardGrid {
+  min-height: 0;
+}
+
+.dashboardGrid > .panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* El área de proyectos ocupa el espacio restante */
+.projectListPlaceholder {
+  min-height: 0;
+  max-height: 100%;
+}
+
+/* Dos tarjetas por fila también en pantallas pequeñas */
+@media (max-width: 700px) {
+  .projectCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0.65rem;
+  }
+
+  .projectCard {
+    min-width: 0;
+    padding: 0.7rem;
+  }
+}
+
+/* En celulares muy estrechos, una columna para evitar
+   que el contenido quede ilegible */
+@media (max-width: 420px) {
+  .projectCards {
+    grid-template-columns: 1fr;
+  }
+}
+.dashboardGrid {
+  height: 650px;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.dashboardGrid > .panel {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mapContainer {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+@media (max-width: 1180px) {
+  .dashboardGrid {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardGrid > .panel {
+    height: 500px;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboardGrid > .panel {
+    height: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardGrid > .panel {
+    height: 390px;
+  }
+}
+

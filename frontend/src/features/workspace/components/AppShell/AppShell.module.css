@@ -1,35 +1,35 @@
+
+/* =========================================================
+   INGEVIT 360 - APPSHELL
+   PARTE 1: ESTRUCTURA, LOGO Y NOTIFICACIONES
+========================================================= */
+
 .app {
+  --shell-orange: #ee801d;
+  --shell-orange-soft: #fff1e4;
+  --shell-ink: #292d30;
+  --shell-muted: #697178;
+  --shell-background: #faf9f6;
+
   min-height: 100vh;
   min-height: 100dvh;
 
   display: grid;
-
-  grid-template-columns:
-    230px
-    minmax(0, 1fr);
-
-  grid-template-rows:
-    78px
-    minmax(0, 1fr);
-
+  grid-template-columns: 230px minmax(0, 1fr);
+  grid-template-rows: 84px minmax(0, 1fr);
   grid-template-areas:
     "topbar topbar"
     "sidebar content";
 
-  background: #f7f7f5;
+  color: var(--color-text, #34383b);
+  background: var(--shell-background);
 
-  color: var(--color-text);
-
-  font-family:
-    "Inter",
-    "Segoe UI",
-    Arial,
-    sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
-/* =========================
+/* =========================================================
    BARRA SUPERIOR
-   ========================= */
+========================================================= */
 
 .topbar {
   grid-area: topbar;
@@ -43,51 +43,95 @@
   justify-content: space-between;
 
   min-width: 0;
+  min-height: 84px;
 
-  padding:
-    0
-    clamp(1.25rem, 3vw, 2rem);
+  padding: 0 clamp(1.25rem, 3vw, 2rem);
 
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid rgba(40, 44, 48, 0.08);
 
-  border-bottom:
-    1px solid
-    rgb(57 59 62 / 8%);
-
-  box-shadow:
-    0 1px 8px
-    rgb(40 42 44 / 3%);
+  box-shadow: 0 3px 20px rgba(30, 35, 40, 0.035);
 }
 
-.brand {
-  min-width: 0;
 
+/* =========================================================
+   LOGO INGEVIT 360 - CORRECCIÓN DE TAMAÑO
+========================================================= */
+
+.brand {
   display: flex;
   align-items: center;
+  gap: 0.85rem;
+
+  min-width: 0;
+  max-width: 320px;
+}
+
+.brandIdentity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+
+  flex: 0 0 64px;
+  overflow: hidden;
 }
 
 .brandLogo {
   display: block;
 
   width: auto;
-  height: 52px;
-
-  max-width: 210px;
+  height: 58px;
+  max-width: 100%;
 
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
+
+  transition: transform 200ms ease;
 }
 
-/* =========================
+.brand:hover .brandLogo {
+  transform: scale(1.03);
+}
+
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.brandText strong {
+  color: #292d30;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.brandText strong span {
+  color: var(--shell-orange);
+}
+
+.brandText small {
+  color: #858a8e;
+  font-size: 0.59rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+/* =========================================================
    ÁREA DE USUARIO
-   ========================= */
+========================================================= */
 
 .userArea {
   min-width: 0;
 
   display: flex;
   align-items: center;
-
   gap: 0.65rem;
 }
 
@@ -96,46 +140,46 @@
   position: relative;
 }
 
+/* =========================================================
+   BOTÓN DE NOTIFICACIONES
+========================================================= */
+
 .notificationButton {
   position: relative;
 
   display: grid;
   place-items: center;
-
   flex: 0 0 auto;
 
   width: 40px;
   height: 40px;
-
   padding: 0;
 
-  color:
-    var(--color-brand-charcoal);
-
+  color: var(--color-brand-charcoal, #292d30);
   background: transparent;
 
   border: 0;
   border-radius: 10px;
+  cursor: pointer;
 
   transition:
-    background-color 160ms ease,
-    color 160ms ease;
+    transform 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
 .notificationButton:hover,
 .notificationButtonActive {
-  color:
-    var(--color-brand-orange);
+  color: var(--shell-orange);
+  background: rgba(238, 128, 29, 0.08);
+}
 
-  background:
-    rgb(234 117 26 / 7%);
+.notificationButton:hover {
+  transform: translateY(-2px);
 }
 
 .notificationButton:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
+  outline: 2px solid var(--shell-orange);
   outline-offset: 2px;
 }
 
@@ -144,7 +188,6 @@
   height: 24px;
 
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
@@ -166,14 +209,9 @@
   padding: 0 4px;
 
   color: #ffffff;
+  background: var(--shell-orange);
 
-  background:
-    var(--color-brand-orange);
-
-  border:
-    2px solid
-    #ffffff;
-
+  border: 2px solid #ffffff;
   border-radius: 999px;
 
   font-size: 0.58rem;
@@ -181,47 +219,33 @@
   line-height: 1;
 }
 
-/* =========================
+/* =========================================================
    PANEL DE NOTIFICACIONES
-   ========================= */
+========================================================= */
 
 .notificationsPanel {
   position: absolute;
-
   top: calc(100% + 0.75rem);
   right: 0;
-
   z-index: 100;
 
-  width: min(
-    360px,
-    calc(100vw - 2rem)
-  );
-
+  width: min(360px, calc(100vw - 2rem));
   overflow: hidden;
 
   background: #ffffff;
 
-  border:
-    1px solid
-    rgb(57 59 62 / 10%);
+  border: 1px solid rgba(57, 59, 62, 0.1);
+  border-radius: 16px;
 
-  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(32, 36, 40, 0.16);
 
-  box-shadow:
-    0 18px 45px
-    rgb(40 42 44 / 16%);
-
-  animation:
-    shell-dropdown-in
-    150ms ease-out;
+  animation: shell-dropdown-in 220ms ease-out;
 }
 
 .notificationsPanel::before {
   content: "";
 
   position: absolute;
-
   top: -6px;
   right: 14px;
 
@@ -230,16 +254,10 @@
 
   background: #ffffff;
 
-  border-top:
-    1px solid
-    rgb(57 59 62 / 10%);
+  border-top: 1px solid rgba(57, 59, 62, 0.1);
+  border-left: 1px solid rgba(57, 59, 62, 0.1);
 
-  border-left:
-    1px solid
-    rgb(57 59 62 / 10%);
-
-  transform:
-    rotate(45deg);
+  transform: rotate(45deg);
 }
 
 .notificationsHeader {
@@ -249,40 +267,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 1rem;
 
-  padding:
-    1rem
-    1.1rem;
+  padding: 1rem 1.1rem;
 
   background: #ffffff;
-
-  border-bottom:
-    1px solid
-    rgb(57 59 62 / 8%);
+  border-bottom: 1px solid rgba(57, 59, 62, 0.08);
 }
 
 .notificationsHeader > div {
   min-width: 0;
-
   display: grid;
-
   gap: 0.15rem;
 }
 
 .notificationsHeader strong {
-  color:
-    var(--color-text-strong);
-
+  color: var(--color-text-strong, #292d30);
   font-size: 0.86rem;
   font-weight: 700;
 }
 
 .notificationsHeader span {
-  color:
-    var(--color-text-secondary);
-
+  color: var(--color-text-secondary, #697178);
   font-size: 0.68rem;
   font-weight: 500;
 }
@@ -290,13 +296,9 @@
 .notificationsMarkAll {
   flex: 0 0 auto;
 
-  padding:
-    0.35rem
-    0.5rem;
+  padding: 0.35rem 0.5rem;
 
-  color:
-    var(--color-brand-orange);
-
+  color: var(--shell-orange);
   background: transparent;
 
   border: 0;
@@ -305,7 +307,6 @@
   font-family: inherit;
   font-size: 0.64rem;
   font-weight: 700;
-
   cursor: pointer;
 
   transition:
@@ -314,15 +315,17 @@
 }
 
 .notificationsMarkAll:hover:not(:disabled) {
-  background:
-    var(--color-brand-orange-soft);
+  background: var(--shell-orange-soft);
 }
 
 .notificationsMarkAll:disabled {
   cursor: wait;
-
   opacity: 0.55;
 }
+
+/* =========================================================
+   ESTADOS DE NOTIFICACIONES
+========================================================= */
 
 .notificationsEmpty {
   min-height: 190px;
@@ -331,13 +334,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   gap: 0.5rem;
 
-  padding:
-    1.5rem
-    1rem;
-
+  padding: 1.5rem 1rem;
   text-align: center;
 }
 
@@ -350,11 +349,8 @@
 
   margin-bottom: 0.15rem;
 
-  color:
-    var(--color-brand-olive);
-
-  background:
-    var(--color-brand-olive-soft);
+  color: var(--color-brand-olive, #5c694b);
+  background: var(--color-brand-olive-soft, #eef1e9);
 
   border-radius: 50%;
 }
@@ -364,7 +360,6 @@
   height: 22px;
 
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
@@ -372,9 +367,7 @@
 }
 
 .notificationsEmpty > strong {
-  color:
-    var(--color-text-strong);
-
+  color: var(--color-text-strong, #292d30);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -382,27 +375,19 @@
 .notificationsEmpty > span {
   max-width: 235px;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary, #697178);
 
   font-size: 0.7rem;
   font-weight: 500;
-
   line-height: 1.45;
 }
 
 .notificationsRetry {
   margin-top: 0.35rem;
+  padding: 0.45rem 0.75rem;
 
-  padding:
-    0.45rem
-    0.75rem;
-
-  color:
-    var(--color-brand-orange);
-
-  background:
-    var(--color-brand-orange-soft);
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
 
   border: 0;
   border-radius: 8px;
@@ -410,52 +395,63 @@
   font-family: inherit;
   font-size: 0.7rem;
   font-weight: 700;
-
   cursor: pointer;
 }
 
+/* =========================================================
+   LISTADO DE NOTIFICACIONES
+========================================================= */
+
 .notificationsList {
   max-height: 420px;
-
   overflow-y: auto;
+}
+
+.notificationRow {
+  position: relative;
+
+  display: flex;
+  width: 100%;
+
+  background: #ffffff;
+  border-bottom: 1px solid rgba(57, 59, 62, 0.07);
+
+  transition: background-color 180ms ease;
+}
+
+.notificationRow:last-child {
+  border-bottom: 0;
+}
+
+.notificationRow:hover {
+  background: #fffaf5;
 }
 
 .notificationItem {
   position: relative;
 
   width: 100%;
-
   display: flex;
   align-items: flex-start;
-
   gap: 0.75rem;
 
-  padding:
-    0.9rem
-    1rem;
+  padding: 0.9rem 1rem;
 
   color: inherit;
-
-  background: #ffffff;
+  background: transparent;
 
   border: 0;
 
-  border-bottom:
-    1px solid
-    rgb(57 59 62 / 7%);
-
   font-family: inherit;
-
   text-align: left;
-
   cursor: pointer;
 
-  transition:
-    background-color 150ms ease;
+  transition: background-color 150ms ease;
 }
 
-.notificationItem:last-child {
-  border-bottom: 0;
+.notificationRow .notificationItem {
+  flex: 1;
+  min-width: 0;
 }
 
 .notificationItem:hover {
@@ -463,29 +459,23 @@
 }
 
 .notificationItemUnread {
-  background:
-    rgb(234 117 26 / 5%);
+  background: rgba(234, 117, 26, 0.05);
 }
 
 .notificationItemUnread:hover {
-  background:
-    rgb(234 117 26 / 8%);
+  background: rgba(234, 117, 26, 0.08);
 }
 
 .notificationItemIcon {
   width: 32px;
   height: 32px;
-
   flex: 0 0 32px;
 
   display: grid;
   place-items: center;
 
-  color:
-    var(--color-brand-orange);
-
-  background:
-    var(--color-brand-orange-soft);
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
 
   border-radius: 50%;
 
@@ -495,35 +485,27 @@
 
 .notificationItemContent {
   min-width: 0;
-
   flex: 1;
 
   display: grid;
-
   gap: 0.2rem;
 }
 
 .notificationItemContent strong {
-  color:
-    var(--color-text-strong);
-
+  color: var(--color-text-strong, #292d30);
   font-size: 0.75rem;
   font-weight: 700;
-
   line-height: 1.3;
 }
 
 .notificationItemContent > span {
   display: -webkit-box;
-
   overflow: hidden;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary, #697178);
 
   font-size: 0.68rem;
   font-weight: 500;
-
   line-height: 1.4;
 
   -webkit-line-clamp: 2;
@@ -533,8 +515,7 @@
 .notificationItemContent small {
   margin-top: 0.1rem;
 
-  color:
-    rgb(57 59 62 / 55%);
+  color: rgba(57, 59, 62, 0.55);
 
   font-size: 0.61rem;
   font-weight: 500;
@@ -543,118 +524,201 @@
 .notificationUnreadDot {
   width: 8px;
   height: 8px;
-
   flex: 0 0 8px;
 
   margin-top: 0.35rem;
 
-  background:
-    var(--color-brand-orange);
-
+  background: var(--shell-orange);
   border-radius: 50%;
 }
 
+/* =========================================================
+   ELIMINAR NOTIFICACIÓN
+========================================================= */
+
+.notificationDeleteButton {
+  flex: 0 0 auto;
+
+  width: 42px;
+  min-height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color: var(--color-text-secondary, #697178);
+  background: transparent;
+
+  border: 0;
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.notificationDeleteButton:hover {
+  color: #b8462f;
+  background: #fff1eb;
+}
+
+.notificationDeleteButton:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.notificationDeleteButton svg {
+  width: 18px;
+  height: 18px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .notificationItem:focus-visible,
+.notificationDeleteButton:focus-visible,
 .notificationsMarkAll:focus-visible,
 .notificationsRetry:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
+  outline: 2px solid var(--shell-orange);
   outline-offset: -2px;
 }
 
-/* =========================
+/* =========================================================
+   INGEVIT 360 - APPSHELL
+   PARTE 2: PERFIL Y MENÚS DESPLEGABLES
+========================================================= */
+
+/* =========================================================
    RESUMEN DEL USUARIO
-   ========================= */
+========================================================= */
 
 .userSummaryButton {
   min-width: 0;
 
   display: flex;
   align-items: center;
-
   gap: 0.7rem;
 
-  padding:
-    0.3rem
-    0.35rem
-    0.3rem
-    0.3rem;
+  padding: 0.3rem 0.35rem 0.3rem 0.3rem;
 
   color: inherit;
-
   background: transparent;
 
-  border:
-    1px solid
-    transparent;
-
+  border: 1px solid transparent;
   border-radius: 12px;
 
   font: inherit;
-
   text-align: left;
+  cursor: pointer;
 
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease;
 }
 
 .userSummaryButton:hover {
-  background:
-    rgb(57 59 62 / 4%);
+  background: #f5f5f3;
+  border-color: rgba(57, 59, 62, 0.05);
 }
 
 .userSummaryButton:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
+  outline: 2px solid var(--shell-orange);
   outline-offset: 2px;
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
 
-  flex: 0 0 auto;
+
+/* ==========================================
+   CORRECCIÓN DEL AVATAR DE PERFIL
+========================================== */
+
+.userMenuWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar,
+.userDropdownAvatar {
+  position: relative;
 
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+
+  flex: 0 0 44px;
+
+  display: grid;
+  place-items: center;
 
   overflow: hidden;
 
-  color: #ffffff;
-
-  background:
-    var(--color-brand-charcoal-dark);
-
+  background: #f5f5f3;
+  border: 1px solid #e5e5e0;
   border-radius: 50%;
 
-  font-size: 0.8rem;
-  font-weight: 700;
-
-  letter-spacing: 0.04em;
+  box-shadow: none;
 }
 
-.avatarImage {
+.avatarImage,
+.avatar > img,
+.userDropdownAvatar img {
+  position: static;
+
+  display: block;
+
   width: 100%;
   height: 100%;
 
-  display: block;
+  max-width: 100%;
+  max-height: 100%;
 
   object-fit: cover;
   object-position: center;
 
   border-radius: 50%;
+  transform: none;
 }
+
+@media (max-width: 760px) {
+  .avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    flex-basis: 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  .avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 36px;
+    max-height: 36px;
+    flex-basis: 36px;
+  }
+}
+
+/* =========================================================
+   INFORMACIÓN DEL USUARIO
+========================================================= */
 
 .userInfo {
   min-width: 0;
 
   display: grid;
-
   gap: 0.1rem;
 
   line-height: 1.2;
@@ -662,11 +726,9 @@
 
 .userInfo strong {
   max-width: 180px;
-
   overflow: hidden;
 
-  color:
-    var(--color-text-strong);
+  color: var(--color-text-strong, #292d30);
 
   font-size: 0.82rem;
   font-weight: 700;
@@ -676,12 +738,15 @@
 }
 
 .userInfo span {
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary, #697178);
 
   font-size: 0.7rem;
   font-weight: 500;
 }
+
+/* =========================================================
+   INDICADOR DEL MENÚ
+========================================================= */
 
 .userMenuButton {
   display: grid;
@@ -692,8 +757,7 @@
   width: 30px;
   height: 30px;
 
-  color:
-    var(--color-brand-charcoal);
+  color: var(--color-brand-charcoal, #292d30);
 
   border-radius: 8px;
 
@@ -703,13 +767,9 @@
     transform 160ms ease;
 }
 
-.userSummaryButton:hover
-.userMenuButton {
-  color:
-    var(--color-brand-orange);
-
-  background:
-    rgb(234 117 26 / 7%);
+.userSummaryButton:hover .userMenuButton {
+  color: var(--shell-orange);
+  background: rgba(234, 117, 26, 0.07);
 }
 
 .userMenuButton svg {
@@ -717,7 +777,6 @@
   height: 18px;
 
   fill: none;
-
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
@@ -725,19 +784,15 @@
 }
 
 .userMenuButtonOpen {
-  color:
-    var(--color-brand-orange);
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
 
-  background:
-    var(--color-brand-orange-soft);
-
-  transform:
-    rotate(180deg);
+  transform: rotate(180deg);
 }
 
-/* =========================
-   MENÚ DESPLEGABLE USUARIO
-   ========================= */
+/* =========================================================
+   MENÚ DESPLEGABLE DEL USUARIO
+========================================================= */
 
 .userDropdown {
   position: absolute;
@@ -748,24 +803,17 @@
   z-index: 100;
 
   width: 290px;
-
   overflow: hidden;
 
   background: #ffffff;
 
-  border:
-    1px solid
-    rgb(57 59 62 / 10%);
-
-  border-radius: 14px;
+  border: 1px solid rgba(57, 59, 62, 0.1);
+  border-radius: 16px;
 
   box-shadow:
-    0 18px 45px
-    rgb(40 42 44 / 16%);
+    0 22px 60px rgba(32, 36, 40, 0.16);
 
-  animation:
-    shell-dropdown-in
-    150ms ease-out;
+  animation: shell-dropdown-in 220ms ease-out;
 }
 
 .userDropdown::before {
@@ -781,17 +829,15 @@
 
   background: #ffffff;
 
-  border-top:
-    1px solid
-    rgb(57 59 62 / 10%);
+  border-top: 1px solid rgba(57, 59, 62, 0.1);
+  border-left: 1px solid rgba(57, 59, 62, 0.1);
 
-  border-left:
-    1px solid
-    rgb(57 59 62 / 10%);
-
-  transform:
-    rotate(45deg);
+  transform: rotate(45deg);
 }
+
+/* =========================================================
+   CABECERA DEL MENÚ
+========================================================= */
 
 .userDropdownHeader {
   position: relative;
@@ -801,16 +847,21 @@
 
   display: flex;
   align-items: center;
-
   gap: 0.75rem;
 
   padding: 1rem;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #fcfaf7 100%
+    );
 }
 
 .userDropdownAvatar {
   width: 42px;
   height: 42px;
-
   flex: 0 0 42px;
 
   display: grid;
@@ -821,29 +872,45 @@
   color: #ffffff;
 
   background:
-    var(--color-brand-charcoal-dark);
+    linear-gradient(
+      145deg,
+      #3b3e40,
+      #25282a
+    );
 
+  border: 2px solid rgba(238, 128, 29, 0.14);
   border-radius: 50%;
 
   font-size: 0.76rem;
   font-weight: 700;
-
   letter-spacing: 0.04em;
 }
+
+.userDropdownAvatar img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  object-fit: cover;
+
+  border-radius: 50%;
+}
+
+/* =========================================================
+   IDENTIDAD EN EL MENÚ
+========================================================= */
 
 .userDropdownIdentity {
   min-width: 0;
 
   display: grid;
-
   gap: 0.15rem;
 }
 
 .userDropdownIdentity strong {
   overflow: hidden;
 
-  color:
-    var(--color-text-strong);
+  color: var(--color-text-strong, #292d30);
 
   font-size: 0.78rem;
   font-weight: 700;
@@ -855,8 +922,7 @@
 .userDropdownIdentity span {
   overflow: hidden;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary, #697178);
 
   font-size: 0.66rem;
   font-weight: 500;
@@ -865,94 +931,88 @@
   white-space: nowrap;
 }
 
+/* =========================================================
+   DIVISOR
+========================================================= */
+
 .userDropdownDivider {
   height: 1px;
 
-  margin:
-    0
-    0.75rem;
+  margin: 0 0.75rem;
 
-  background:
-    rgb(57 59 62 / 8%);
+  background: rgba(57, 59, 62, 0.08);
 }
+
+/* =========================================================
+   OPCIONES DEL MENÚ
+========================================================= */
 
 .userDropdownItem {
   width: calc(100% - 1rem);
-
   min-height: 44px;
 
   display: flex;
   align-items: center;
-
   gap: 0.7rem;
 
-  margin:
-    0.35rem
-    0.5rem;
+  margin: 0.35rem 0.5rem;
+  padding: 0.65rem 0.75rem;
 
-  padding:
-    0.65rem
-    0.75rem;
-
-  color:
-    var(--color-text);
-
+  color: var(--color-text, #34383b);
   background: transparent;
 
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
 
-  font-family:
-    "Inter",
-    "Segoe UI",
-    Arial,
-    sans-serif;
-
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   font-size: 0.74rem;
   font-weight: 600;
 
   text-align: left;
+  cursor: pointer;
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease;
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .userDropdownItem svg {
   width: 20px;
   height: 20px;
-
   flex: 0 0 auto;
 
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+
+  transition: transform 180ms ease;
 }
 
 .userDropdownItem:hover {
-  color:
-    var(--color-brand-orange);
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
 
-  background:
-    var(--color-brand-orange-soft);
+.userDropdownItem:hover svg {
+  transform: translateX(2px);
 }
 
 .userDropdownItem:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
+  outline: 2px solid var(--shell-orange);
   outline-offset: -2px;
 }
 
 .userDropdownItem:disabled {
   cursor: wait;
-
   opacity: 0.55;
 }
+
+/* =========================================================
+   CERRAR SESIÓN
+========================================================= */
 
 .userDropdownLogout {
   color: #a6372e;
@@ -960,107 +1020,122 @@
 
 .userDropdownLogout:hover {
   color: #8e2f28;
-
-  background:
-    rgb(166 55 46 / 8%);
+  background: rgba(166, 55, 46, 0.08);
 }
+
+/* =========================================================
+   ANIMACIONES DE MENÚS
+========================================================= */
 
 @keyframes shell-dropdown-in {
   from {
     opacity: 0;
-
-    transform:
-      translateY(-5px);
+    transform: translateY(-7px);
   }
 
   to {
     opacity: 1;
-
-    transform:
-      translateY(0);
+    transform: translateY(0);
   }
 }
 
-/* =========================
-   SIDEBAR
-   ========================= */
+@keyframes shell-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   INGEVIT 360 - APPSHELL
+   PARTE 3: SIDEBAR Y CONTENIDO PRINCIPAL
+========================================================= */
+
+/* =========================================================
+   MENÚ LATERAL
+========================================================= */
 
 .sidebar {
   grid-area: sidebar;
 
   position: sticky;
-  top: 78px;
+  top: 84px;
 
-  height:
-    calc(100vh - 78px);
-
-  height:
-    calc(100dvh - 78px);
+  height: calc(100vh - 84px);
+  height: calc(100dvh - 84px);
 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 
-  padding:
-    1.4rem
-    1rem
-    1.25rem;
+  padding: 1.4rem 1rem 1.25rem;
 
   background:
     linear-gradient(
-      180deg,
-      #2f3133 0%,
-      #393b3e 100%
+      165deg,
+      #292d30 0%,
+      #35383a 55%,
+      #292d30 100%
     );
 
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
 }
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
 
 .navigation {
   display: grid;
-
   gap: 0.5rem;
 }
 
 .navItem,
 .supportButton,
 .logoutButton {
+  position: relative;
+
   width: 100%;
   min-height: 50px;
 
   display: flex;
   align-items: center;
-
   gap: 0.85rem;
 
-  padding:
-    0.75rem
-    0.9rem;
+  padding: 0.75rem 0.9rem;
 
-  color:
-    rgb(255 255 255 / 82%);
-
+  color: rgba(255, 255, 255, 0.82);
   background: transparent;
 
   border: 0;
-  border-radius: 9px;
+  border-radius: 11px;
 
-  font-family:
-    "Inter",
-    "Segoe UI",
-    Arial,
-    sans-serif;
-
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   font-size: 0.84rem;
   font-weight: 600;
 
   text-align: left;
+  cursor: pointer;
 
   transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    transform 160ms ease;
+    color 200ms ease,
+    background-color 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
+
+/* =========================================================
+   ICONOS DE NAVEGACIÓN
+========================================================= */
 
 .navItem svg,
 .supportButton svg,
@@ -1071,579 +1146,341 @@
   height: 23px;
 
   fill: none;
-
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+
+  transition: transform 200ms ease;
 }
 
-.navItem:hover,
+/* =========================================================
+   EFECTOS HOVER
+========================================================= */
+
+.navItem:hover:not(.navItemActive),
 .supportButton:hover,
 .logoutButton:hover:not(:disabled) {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.09);
+}
 
-  background:
-    rgb(255 255 255 / 7%);
+.navItem:hover:not(.navItemActive) {
+  transform: translateX(3px);
+}
+
+.navItem:hover svg,
+.supportButton:hover svg {
+  transform: scale(1.08);
 }
 
 .navItem:active,
 .supportButton:active,
 .logoutButton:active:not(:disabled) {
-  transform:
-    translateY(1px);
+  transform: translateY(1px);
 }
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
 
 .navItem:focus-visible,
 .supportButton:focus-visible,
 .logoutButton:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
+  outline: 2px solid var(--shell-orange);
   outline-offset: 2px;
 }
 
+/* =========================================================
+   ELEMENTO ACTIVO
+========================================================= */
+
 .navItemActive {
-  color:
-    var(--color-brand-charcoal-dark);
+  color: #292d30;
 
   background:
     linear-gradient(
-      135deg,
-      #f6a42f 0%,
-      var(--color-brand-orange) 100%
+      115deg,
+      #f8a333 0%,
+      #ef801d 100%
     );
 
   box-shadow:
-    0 8px 20px
-    rgb(234 117 26 / 22%);
+    0 8px 22px rgba(238, 128, 29, 0.2);
 }
 
 .navItemActive:hover {
-  color:
-    var(--color-brand-charcoal-dark);
+  color: #292d30;
 
   background:
     linear-gradient(
-      135deg,
-      #f8ac3b 0%,
-      #ef7f22 100%
+      115deg,
+      #ffaf40 0%,
+      #f28a28 100%
     );
 }
 
-/* =========================
-   PARTE INFERIOR SIDEBAR
-   ========================= */
+.navItemActive svg {
+  stroke-width: 2;
+}
+
+/* =========================================================
+   PARTE INFERIOR DEL SIDEBAR
+========================================================= */
 
 .sidebarBottom {
   display: grid;
-
   gap: 0.45rem;
 
   padding-top: 1rem;
 
-  border-top:
-    1px solid
-    rgb(255 255 255 / 10%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .supportButton {
-  color:
-    rgb(255 255 255 / 80%);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .logoutButton {
-  color:
-    rgb(255 255 255 / 72%);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .logoutButton:hover:not(:disabled) {
   color: #ffffff;
-
-  background:
-    rgb(166 55 46 / 18%);
+  background: rgba(166, 55, 46, 0.18);
 }
 
 .logoutButton:disabled {
   cursor: wait;
-
   opacity: 0.55;
 }
 
-/* =========================
+/* =========================================================
    CONTENIDO PRINCIPAL
-   ========================= */
+========================================================= */
 
 .content {
   grid-area: content;
 
+  position: relative;
+  isolation: isolate;
+
   min-width: 0;
   min-height: 0;
 
-  padding:
-    clamp(1.5rem, 3vw, 2.4rem);
+  padding: clamp(1.5rem, 3vw, 2.4rem);
 
-  background:
-    #f7f7f5;
+  background-color: #faf9f6;
+
+  background-image:
+    repeating-radial-gradient(
+      ellipse 440px 260px at 100% 5%,
+      transparent 0,
+      transparent 27px,
+      rgba(84, 99, 78, 0.035) 28px,
+      transparent 29px,
+      transparent 42px
+    ),
+    repeating-radial-gradient(
+      ellipse 360px 240px at 0% 100%,
+      transparent 0,
+      transparent 30px,
+      rgba(84, 99, 78, 0.03) 31px,
+      transparent 32px,
+      transparent 47px
+    );
 }
 
-/* =========================
-   TABLET
-   ========================= */
+/* =========================================================
+   ANIMACIÓN DE ENTRADA DEL CONTENIDO
+========================================================= */
 
-@media (max-width: 1000px) {
-  .app {
-    grid-template-columns:
-      190px
-      minmax(0, 1fr);
-  }
-
-  .brandLogo {
-    height: 48px;
-
-    max-width: 185px;
-  }
-
-  .sidebar {
-    padding:
-      1.25rem
-      0.75rem
-      1rem;
-  }
-
-  .navItem,
-  .supportButton,
-  .logoutButton {
-    padding:
-      0.7rem
-      0.75rem;
-
-    gap: 0.7rem;
-
-    font-size: 0.8rem;
-  }
-
-  .userInfo strong {
-    max-width: 130px;
-  }
+.content > * {
+  animation: shell-content-enter 350ms ease-out both;
 }
 
-/* =========================
-   MÓVIL / TABLET PEQUEÑA
-   ========================= */
+/* =========================================================
+   INTERACCIONES SUAVES
+========================================================= */
 
-@media (max-width: 760px) {
-  .app {
-    display: block;
-
-    min-height: 100vh;
-    min-height: 100dvh;
-
-    padding-bottom: 72px;
-  }
-
-  .topbar {
-    position: sticky;
-
-    min-height: 68px;
-
-    padding:
-      0
-      1rem;
-  }
-
-  .brandLogo {
-    height: 42px;
-
-    max-width: 155px;
-  }
-
-  .userArea {
-    gap: 0.35rem;
-  }
-
-  .notificationButton {
-    width: 38px;
-    height: 38px;
-  }
-
-  .notificationBadge {
-    top: 1px;
-    right: 0;
-
-    min-width: 16px;
-    height: 16px;
-
-    font-size: 0.54rem;
-  }
-
-  .userSummaryButton {
-    gap: 0.35rem;
-
-    padding: 0.2rem;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-
-    font-size: 0.74rem;
-  }
-
-  .userInfo {
-    display: none;
-  }
-
-  .userMenuButton {
-    width: 26px;
-    height: 26px;
-  }
-
-  .userMenuButton svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .notificationsPanel {
-    position: fixed;
-
-    top: 76px;
-    right: 1rem;
-
-    width:
-      min(
-        360px,
-        calc(100vw - 2rem)
-      );
-  }
-
-  .notificationsPanel::before {
-    display: none;
-  }
-
-  .notificationsList {
-    max-height:
-      calc(100dvh - 180px);
-  }
-
-  .userDropdown {
-    position: fixed;
-
-    top: 76px;
-    right: 1rem;
-
-    width:
-      min(
-        290px,
-        calc(100vw - 2rem)
-      );
-  }
-
-  .userDropdown::before {
-    display: none;
-  }
-
-  .sidebar {
-    position: fixed;
-
-    z-index: 60;
-
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: auto;
-
-    width: 100%;
-    height: 72px;
-
-    display: block;
-
-    padding:
-      0.45rem
-      0.65rem;
-
-    background:
-      rgb(47 49 51 / 98%);
-
-    border-top:
-      1px solid
-      rgb(255 255 255 / 8%);
-
-    box-shadow:
-      0 -8px 30px
-      rgb(40 42 44 / 12%);
-
-    overflow: visible;
-  }
-
-  .navigation {
-    height: 100%;
-
-    display: grid;
-
-    grid-template-columns:
-      repeat(3, 1fr);
-
-    gap: 0.4rem;
-  }
-
-  .navItem {
-    min-height: 100%;
-
-    flex-direction: column;
-    justify-content: center;
-
-    gap: 0.15rem;
-
-    padding:
-      0.35rem
-      0.2rem;
-
-    border-radius: 8px;
-
-    font-size: 0.65rem;
-  }
-
-  .navItem svg {
-    width: 21px;
-    height: 21px;
-  }
-
-  .sidebarBottom {
-    display: none;
-  }
-
-  .content {
-    padding:
-      1.25rem
-      1rem
-      1.5rem;
-  }
+.sidebar button,
+.topbar button {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* =========================
-   MÓVIL PEQUEÑO
-   ========================= */
+/* =========================================================
+   SCROLLBAR DEL SIDEBAR
+========================================================= */
 
-@media (max-width: 420px) {
-  .topbar {
-    min-height: 64px;
-
-    padding:
-      0
-      0.75rem;
-  }
-
-  .brandLogo {
-    height: 38px;
-
-    max-width: 135px;
-  }
-
-  .notificationButton {
-    width: 36px;
-    height: 36px;
-  }
-
-  .avatar {
-    width: 36px;
-    height: 36px;
-
-    font-size: 0.68rem;
-  }
-
-  .userMenuButton {
-    width: 24px;
-    height: 24px;
-  }
-
-  .notificationsPanel {
-    top: 70px;
-    right: 0.75rem;
-
-    width:
-      calc(100vw - 1.5rem);
-  }
-
-  .notificationsHeader {
-    align-items: flex-start;
-
-    gap: 0.5rem;
-
-    padding:
-      0.85rem
-      0.9rem;
-  }
-
-  .notificationsMarkAll {
-    font-size: 0.6rem;
-  }
-
-  .notificationItem {
-    padding:
-      0.8rem
-      0.85rem;
-  }
-
-  .userDropdown {
-    top: 70px;
-    right: 0.75rem;
-
-    width:
-      min(
-        280px,
-        calc(100vw - 1.5rem)
-      );
-  }
-
-  .sidebar {
-    height: 68px;
-
-    padding:
-      0.4rem
-      0.45rem;
-  }
-
-  .navItem {
-    font-size: 0.61rem;
-  }
-
-  .navItem svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .content {
-    padding:
-      1rem
-      0.75rem
-      1.25rem;
-  }
+.sidebar::-webkit-scrollbar {
+  width: 5px;
 }
 
-/* =========================
-   REDUCIR MOVIMIENTO
-   ========================= */
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ==========================================
+   AVATAR DE USUARIO - DISEÑO LIMPIO
+========================================== */
+
+.avatar,
+.userDropdownAvatar {
+  background: #f5f5f3;
+  border: 1px solid #e9e9e5;
+  border-radius: 50%;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.avatarImage,
+.userDropdownAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.userSummaryButton:hover .avatar {
+  border-color: #deded9;
+  box-shadow: none;
+}
+
+/* =========================================================
+   INGEVIT 360 - IDENTIDAD NARANJA CORPORATIVA
+========================================================= */
+
+.app {
+  --shell-orange: #f58220;
+  --shell-orange-hover: #e66f10;
+  --shell-orange-soft: #fff1e5;
+  --shell-orange-border: rgba(245, 130, 32, 0.22);
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.brandText strong span {
+  color: var(--shell-orange);
+}
+
+/* =========================================================
+   MENÚ LATERAL
+========================================================= */
+
+.navItemActive {
+  color: #ffffff;
+
+  background: linear-gradient(
+    120deg,
+    #f79432 0%,
+    #f58220 100%
+  );
+
+  box-shadow:
+    0 6px 18px rgba(245, 130, 32, 0.2);
+}
+
+.navItemActive:hover {
+  color: #ffffff;
+
+  background: linear-gradient(
+    120deg,
+    #fa9c3e 0%,
+    #f58220 100%
+  );
+}
+
+.navItemActive svg {
+  color: #ffffff;
+}
+
+.navItem:hover:not(.navItemActive) {
+  background: rgba(245, 130, 32, 0.1);
+  color: #ffffff;
+}
+
+/* =========================================================
+   NOTIFICACIONES
+========================================================= */
+
+.notificationButton:hover,
+.notificationButtonActive {
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
+
+.notificationBadge {
+  background: var(--shell-orange);
+}
+
+.notificationItemIcon {
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
+
+.notificationUnreadDot {
+  background: var(--shell-orange);
+}
+
+.notificationsMarkAll {
+  color: var(--shell-orange);
+}
+
+.notificationsMarkAll:hover:not(:disabled) {
+  background: var(--shell-orange-soft);
+}
+
+.notificationsRetry {
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
+
+/* =========================================================
+   PERFIL
+========================================================= */
+
+.userMenuButtonOpen {
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
+
+.userDropdownItem:hover:not(.userDropdownLogout) {
+  color: var(--shell-orange);
+  background: var(--shell-orange-soft);
+}
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
+
+.navItem:focus-visible,
+.notificationButton:focus-visible,
+.userSummaryButton:focus-visible,
+.userDropdownItem:focus-visible,
+.supportButton:focus-visible {
+  outline-color: var(--shell-orange);
+}
+
+/* =========================================================
+   MOVIMIENTO REDUCIDO
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .notificationButton,
-  .notificationsMarkAll,
-  .notificationsRetry,
-  .notificationItem,
-  .userSummaryButton,
-  .userMenuButton,
-  .userDropdownItem,
+  .brandLogo,
   .navItem,
-  .supportButton,
-  .logoutButton {
+  .notificationButton,
+  .userSummaryButton {
     transition: none;
-  }
-
-  .notificationsPanel,
-  .userDropdown {
-    animation: none;
-  }
-}
-.notificationRow {
-  position: relative;
-
-  display: flex;
-
-  width: 100%;
-
-  border-bottom:
-    1px solid
-    rgb(57 59 62 / 7%);
-
-  background: #ffffff;
-}
-
-.notificationRow:last-child {
-  border-bottom: 0;
-}
-
-.notificationRow .notificationItem {
-  flex: 1;
-
-  min-width: 0;
-
-  border-bottom: 0;
-}
-
-.notificationDeleteButton {
-  flex: 0 0 auto;
-
-  width: 42px;
-
-  min-height: 100%;
-
-  display: grid;
-
-  place-items: center;
-
-  padding: 0;
-
-  color:
-    var(--color-text-secondary);
-
-  background:
-    transparent;
-
-  border: 0;
-
-  cursor: pointer;
-
-  transition:
-    color 160ms ease,
-    background-color 160ms ease;
-}
-
-.notificationDeleteButton:hover {
-  color: #b8462f;
-
-  background:
-    #fff1eb;
-}
-
-.notificationDeleteButton:focus-visible {
-  outline:
-    2px solid
-    var(--color-brand-orange);
-
-  outline-offset: -2px;
-}
-
-.notificationDeleteButton:disabled {
-  cursor: wait;
-
-  opacity: 0.45;
-}
-
-.notificationDeleteButton svg {
-  width: 18px;
-
-  height: 18px;
-
-  fill: none;
-
-  stroke: currentColor;
-
-  stroke-width: 1.8;
-
-  stroke-linecap: round;
-
-  stroke-linejoin: round;
-}
-
-@media (max-width: 420px) {
-  .notificationDeleteButton {
-    width: 38px;
-  }
-
-  .notificationDeleteButton svg {
-    width: 17px;
-
-    height: 17px;
   }
 }

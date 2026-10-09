@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useRef,
@@ -100,10 +101,6 @@ export function GoogleLoginButton({
   const [procesando, setProcesando] =
     useState(false);
 
-  /*
-   * Conservamos siempre la versión más reciente
-   * del callback sin reinicializar Google.
-   */
   useEffect(() => {
     onAutenticadoRef.current =
       onAutenticado;
@@ -111,8 +108,7 @@ export function GoogleLoginButton({
 
   useEffect(() => {
     const clientId =
-      import.meta.env
-        .VITE_GOOGLE_CLIENT_ID;
+      import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
       setError(
@@ -123,6 +119,9 @@ export function GoogleLoginButton({
     }
 
     let desmontado = false;
+    let rafId: number | null = null;
+
+    const contenedor = buttonContainer.current;
 
     async function manejarCredential(
       respuesta: GoogleCredentialResponse,
@@ -141,45 +140,31 @@ export function GoogleLoginButton({
         setError(
           'Google no devolvió una credencial válida.',
         );
-
         return;
       }
 
       procesandoRef.current = true;
-
       setProcesando(true);
       setError(null);
 
       try {
         const usuario =
-          await iniciarSesionGoogle(
-            credential,
-          );
+          await iniciarSesionGoogle(credential);
 
         if (desmontado) {
           return;
         }
 
-        /*
-         * El backend ya creó la cookie HttpOnly.
-         * Ahora actualizamos inmediatamente
-         * el estado del frontend.
-         */
-        onAutenticadoRef.current(
-          usuario,
-        );
+        onAutenticadoRef.current(usuario);
       } catch (errorSolicitud) {
         if (desmontado) {
           return;
         }
 
         if (
-          errorSolicitud instanceof
-          ApiError
+          errorSolicitud instanceof ApiError
         ) {
-          setError(
-            errorSolicitud.message,
-          );
+          setError(errorSolicitud.message);
         } else {
           setError(
             'No fue posible iniciar sesión con Google. Intenta nuevamente.',
@@ -198,53 +183,59 @@ export function GoogleLoginButton({
       if (
         desmontado ||
         !window.google ||
-        !buttonContainer.current
+        !contenedor
       ) {
         return;
       }
 
-      buttonContainer.current.innerHTML =
-        '';
-
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: manejarCredential,
-      });
-
       const anchoDisponible =
-        buttonContainer.current
-          .clientWidth;
+        Math.floor(contenedor.clientWidth);
+
+      if (anchoDisponible <= 0) {
+        return;
+      }
 
       const anchoBoton =
-        Math.min(
-          Math.max(
-            anchoDisponible,
-            220,
-          ),
-          360,
-        );
+        Math.min(anchoDisponible, 400);
+
+      contenedor.replaceChildren();
 
       window.google.accounts.id.renderButton(
-        buttonContainer.current,
+        contenedor,
         {
           type: 'standard',
           theme: 'outline',
           size: 'large',
           text: 'continue_with',
-          shape: 'rectangular',
+          shape: 'pill',
           width: anchoBoton,
           logo_alignment: 'left',
         },
       );
     }
 
-    const scriptExistente =
-      document.getElementById(
-        GOOGLE_SCRIPT_ID,
-      ) as HTMLScriptElement | null;
+    function programarRenderizado() {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        renderizarBoton();
+      });
+    }
 
     function manejarCarga() {
-      renderizarBoton();
+      if (desmontado || !window.google) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: manejarCredential,
+      });
+
+      programarRenderizado();
     }
 
     function manejarErrorCarga() {
@@ -255,58 +246,64 @@ export function GoogleLoginButton({
       }
     }
 
-    if (
-      scriptExistente &&
-      window.google
-    ) {
-      renderizarBoton();
+    const resizeObserver =
+      new ResizeObserver(() => {
+        programarRenderizado();
+      });
+
+    if (contenedor) {
+      resizeObserver.observe(contenedor);
+    }
+
+    const scriptExistente =
+      document.getElementById(
+        GOOGLE_SCRIPT_ID,
+      ) as HTMLScriptElement | null;
+
+    let script: HTMLScriptElement;
+
+    if (scriptExistente) {
+      script = scriptExistente;
     } else {
-      const script =
-        scriptExistente ??
-        document.createElement(
-          'script',
-        );
+      script = document.createElement('script');
 
-      if (!scriptExistente) {
-        script.id =
-          GOOGLE_SCRIPT_ID;
+      script.id = GOOGLE_SCRIPT_ID;
+      script.src = GOOGLE_SCRIPT_URL;
+      script.async = true;
+      script.defer = true;
 
-        script.src =
-          GOOGLE_SCRIPT_URL;
+      document.head.appendChild(script);
+    }
 
-        script.async = true;
-        script.defer = true;
+    script.addEventListener(
+      'load',
+      manejarCarga,
+    );
 
-        document.head.appendChild(
-          script,
-        );
-      }
+    script.addEventListener(
+      'error',
+      manejarErrorCarga,
+    );
 
-      script.addEventListener(
-        'load',
-        manejarCarga,
-      );
-
-      script.addEventListener(
-        'error',
-        manejarErrorCarga,
-      );
+    if (window.google) {
+      manejarCarga();
     }
 
     return () => {
       desmontado = true;
 
-      const script =
-        document.getElementById(
-          GOOGLE_SCRIPT_ID,
-        );
+      resizeObserver.disconnect();
 
-      script?.removeEventListener(
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+
+      script.removeEventListener(
         'load',
         manejarCarga,
       );
 
-      script?.removeEventListener(
+      script.removeEventListener(
         'error',
         manejarErrorCarga,
       );
@@ -319,13 +316,12 @@ export function GoogleLoginButton({
         className={
           procesando
             ? styles.disabled
-            : undefined
+            : styles.buttonWrapper
         }
+        aria-busy={procesando}
       >
         <div
-          className={
-            styles.googleButton
-          }
+          className={styles.googleButton}
           ref={buttonContainer}
         />
       </div>
@@ -335,8 +331,7 @@ export function GoogleLoginButton({
           className={styles.status}
           role="status"
         >
-          Iniciando sesión con
-          Google...
+          Iniciando sesión con Google...
         </p>
       )}
 
