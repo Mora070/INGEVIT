@@ -846,106 +846,106 @@ export function ProjectsMap({
    * ====================================================
    */
 
-  
-useEffect(() => {
-  const accessToken =
-    import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-  const contenedorMapa = mapContainer.current;
+  useEffect(() => {
+    const accessToken =
+      import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-  if (
-    !contenedorMapa ||
-    map.current ||
-    !accessToken
-  ) {
-    return;
-  }
+    const contenedorMapa = mapContainer.current;
 
-  mapboxgl.accessToken = accessToken;
-
-  const nuevoMapa = new mapboxgl.Map({
-    container: contenedorMapa,
-
-    style: 'mapbox://styles/mapbox/streets-v12',
-
-    center: CENTRO_INICIAL,
-
-    zoom: 4.5,
-
-    attributionControl: true,
-  });
-
-  nuevoMapa.addControl(
-    new mapboxgl.NavigationControl(),
-    'top-right',
-  );
-
-  map.current = nuevoMapa;
-
-  /*
-   * ============================================
-   * AJUSTE AUTOMÁTICO DEL TAMAÑO DEL MAPA
-   * ============================================
-   */
-
-  const observadorTamanio = new ResizeObserver(() => {
-    if (map.current !== nuevoMapa) {
+    if (
+      !contenedorMapa ||
+      map.current ||
+      !accessToken
+    ) {
       return;
     }
 
-    nuevoMapa.resize();
-  });
+    mapboxgl.accessToken = accessToken;
 
-  observadorTamanio.observe(contenedorMapa);
+    const nuevoMapa = new mapboxgl.Map({
+      container: contenedorMapa,
 
-  nuevoMapa.once('load', () => {
-    if (map.current === nuevoMapa) {
+      style: 'mapbox://styles/mapbox/streets-v12',
+
+      center: CENTRO_INICIAL,
+
+      zoom: 4.5,
+
+      attributionControl: true,
+    });
+
+    nuevoMapa.addControl(
+      new mapboxgl.NavigationControl(),
+      'top-right',
+    );
+
+    map.current = nuevoMapa;
+
+    /*
+     * ============================================
+     * AJUSTE AUTOMÁTICO DEL TAMAÑO DEL MAPA
+     * ============================================
+     */
+
+    const observadorTamanio = new ResizeObserver(() => {
+      if (map.current !== nuevoMapa) {
+        return;
+      }
+
       nuevoMapa.resize();
-    }
-  });
+    });
 
-  /*
-   * ============================================
-   * LIMPIEZA
-   * ============================================
-   */
+    observadorTamanio.observe(contenedorMapa);
 
-  return () => {
-    observadorTamanio.disconnect();
+    nuevoMapa.once('load', () => {
+      if (map.current === nuevoMapa) {
+        nuevoMapa.resize();
+      }
+    });
 
-    marcadores.current.forEach(
-      ({
-        marcador,
-        popup,
-      }) => {
-        popup.remove();
-        marcador.remove();
-      },
-    );
+    /*
+     * ============================================
+     * LIMPIEZA
+     * ============================================
+     */
 
-    marcadores.current = [];
+    return () => {
+      observadorTamanio.disconnect();
 
-    marcadoresIncidencias.current.forEach(
-      (marcador) => {
-        marcador.remove();
-      },
-    );
+      marcadores.current.forEach(
+        ({
+          marcador,
+          popup,
+        }) => {
+          popup.remove();
+          marcador.remove();
+        },
+      );
 
-    marcadoresIncidencias.current = [];
+      marcadores.current = [];
 
-    marcadorNuevaIncidencia.current?.remove();
+      marcadoresIncidencias.current.forEach(
+        (marcador) => {
+          marcador.remove();
+        },
+      );
 
-    marcadorNuevaIncidencia.current = null;
+      marcadoresIncidencias.current = [];
 
-    marcadorEdicionIncidencia.current?.remove();
+      marcadorNuevaIncidencia.current?.remove();
 
-    marcadorEdicionIncidencia.current = null;
+      marcadorNuevaIncidencia.current = null;
 
-    nuevoMapa.remove();
+      marcadorEdicionIncidencia.current?.remove();
 
-    map.current = null;
-  };
-}, []);
+      marcadorEdicionIncidencia.current = null;
+
+      nuevoMapa.remove();
+
+      map.current = null;
+    };
+  }, []);
 
 
   /*
@@ -3302,10 +3302,9 @@ useEffect(() => {
       {panelCapasAbierto &&
         proyectoSeleccionadoId && (
           <MapLayersPanel
-            key={`${proyectoSeleccionadoId}-${versionPanelCapas}`}
-            idProyecto={
-              proyectoSeleccionadoId
-            }
+            key={proyectoSeleccionadoId}
+            idProyecto={proyectoSeleccionadoId}
+            versionExterna={versionPanelCapas}
             onCerrar={() => {
               setPanelCapasAbierto(
                 false,

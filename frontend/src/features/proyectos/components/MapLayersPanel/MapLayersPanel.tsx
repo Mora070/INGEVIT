@@ -35,6 +35,8 @@ interface MapLayersPanelProps {
   onCapasChange?: (
     capas: CapaProyecto[],
   ) => void;
+
+  versionExterna?: number;
 }
 
 function obtenerEstadoTexto(
@@ -147,6 +149,7 @@ export function MapLayersPanel({
   onCerrar,
   onSubirCapa,
   onCapasChange,
+  versionExterna = 0,
 }: MapLayersPanelProps) {
   const [
     capas,
@@ -265,9 +268,9 @@ export function MapLayersPanel({
         capa,
       ) =>
         capa.estado_procesamiento ===
-          'PENDIENTE' ||
+        'PENDIENTE' ||
         capa.estado_procesamiento ===
-          'PROCESANDO',
+        'PROCESANDO',
     );
 
   /**
@@ -288,7 +291,7 @@ export function MapLayersPanel({
               capa,
             ) =>
               capa.id_capa ===
-              capaActualizada.id_capa
+                capaActualizada.id_capa
                 ? capaActualizada
                 : capa,
           );
@@ -323,12 +326,8 @@ export function MapLayersPanel({
       mostrarCargaInicial:
         boolean,
     ) {
-      if (
-        mostrarCargaInicial
-      ) {
-        setCargando(
-          true,
-        );
+      if (mostrarCargaInicial) {
+        setCargando((cargandoActual) => cargandoActual);
       }
 
       setError(
@@ -420,9 +419,9 @@ export function MapLayersPanel({
               capa,
             ) =>
               capa.estado_procesamiento ===
-                'PENDIENTE' ||
+              'PENDIENTE' ||
               capa.estado_procesamiento ===
-                'PROCESANDO',
+              'PROCESANDO',
           );
 
         if (
@@ -439,7 +438,7 @@ export function MapLayersPanel({
             );
         }
       } catch (
-        errorObtenido
+      errorObtenido
       ) {
         if (
           !activo
@@ -491,6 +490,7 @@ export function MapLayersPanel({
     idProyecto,
     onCapasChange,
     versionConsulta,
+    versionExterna,
   ]);
 
   /**
@@ -528,7 +528,7 @@ export function MapLayersPanel({
     if (
       guardandoId ||
       capa.estado_procesamiento !==
-        'LISTA'
+      'LISTA'
     ) {
       return;
     }
@@ -538,12 +538,12 @@ export function MapLayersPanel({
 
     const capaLocal:
       CapaProyecto =
-      {
-        ...capa,
+    {
+      ...capa,
 
-        visible:
-          !visibleAnterior,
-      };
+      visible:
+        !visibleAnterior,
+    };
 
     actualizarCapaLocal(
       capaLocal,
@@ -583,7 +583,7 @@ export function MapLayersPanel({
         actualizada,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       actualizarCapaLocal({
         ...capa,
@@ -649,7 +649,7 @@ export function MapLayersPanel({
         actualizada,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       const opacidadAnterior =
         opacidadesPersistidas.current.get(
@@ -670,13 +670,13 @@ export function MapLayersPanel({
                   actual,
                 ) =>
                   actual.id_capa ===
-                  capa.id_capa
+                    capa.id_capa
                     ? {
-                        ...actual,
+                      ...actual,
 
-                        opacidad:
-                          opacidadAnterior,
-                      }
+                      opacidad:
+                        opacidadAnterior,
+                    }
                     : actual,
               );
 
@@ -737,12 +737,12 @@ export function MapLayersPanel({
 
     const capaActualizada:
       CapaProyecto =
-      {
-        ...capa,
+    {
+      ...capa,
 
-        opacidad:
-          normalizada,
-      };
+      opacidad:
+        normalizada,
+    };
 
     actualizarCapaLocal(
       capaActualizada,
@@ -821,14 +821,14 @@ export function MapLayersPanel({
 
     const nuevoIndice =
       direccion ===
-      'arriba'
+        'arriba'
         ? indice - 1
         : indice + 1;
 
     if (
       nuevoIndice < 0 ||
       nuevoIndice >=
-        ordenadas.length
+      ordenadas.length
     ) {
       return;
     }
@@ -841,7 +841,7 @@ export function MapLayersPanel({
 
     copia[indice] =
       copia[
-        nuevoIndice
+      nuevoIndice
       ];
 
     copia[
@@ -903,7 +903,7 @@ export function MapLayersPanel({
             return (
               anterior &&
               anterior.orden !==
-                nueva.orden
+              nueva.orden
             );
           },
         );
@@ -964,7 +964,7 @@ export function MapLayersPanel({
         },
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       setCapas(
         estadoAnterior,
@@ -1004,7 +1004,7 @@ export function MapLayersPanel({
     if (
       reintentandoId ||
       capa.estado_procesamiento !==
-        'ERROR'
+      'ERROR'
     ) {
       return;
     }
@@ -1051,7 +1051,7 @@ export function MapLayersPanel({
           1,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -1199,7 +1199,7 @@ export function MapLayersPanel({
             </div>
           ) : error &&
             capas.length ===
-              0 ? (
+            0 ? (
             <div
               className={
                 styles.empty
@@ -1224,9 +1224,9 @@ export function MapLayersPanel({
               ) => {
                 const lista =
                   capa.estado_procesamiento ===
-                    'LISTA' &&
+                  'LISTA' &&
                   capa.teselas !==
-                    null;
+                  null;
 
                 const guardando =
                   guardandoId ===
@@ -1239,7 +1239,7 @@ export function MapLayersPanel({
                 const porcentaje =
                   Math.round(
                     capa.opacidad *
-                      100,
+                    100,
                   );
 
                 const esPrimera =
@@ -1251,7 +1251,7 @@ export function MapLayersPanel({
                 const esUltima =
                   capasOrdenadas[
                     capasOrdenadas.length -
-                      1
+                    1
                   ]?.id_capa ===
                   capa.id_capa;
 
@@ -1323,21 +1323,19 @@ export function MapLayersPanel({
                       </div>
 
                       <button
-                        className={`${styles.switch} ${
-                          capa.visible
-                            ? styles.switchActive
-                            : ''
-                        }`}
+                        className={`${styles.switch} ${capa.visible
+                          ? styles.switchActive
+                          : ''
+                          }`}
                         type="button"
                         role="switch"
                         aria-checked={
                           capa.visible
                         }
-                        aria-label={`${
-                          capa.visible
-                            ? 'Ocultar'
-                            : 'Mostrar'
-                        } ${capa.nombre}`}
+                        aria-label={`${capa.visible
+                          ? 'Ocultar'
+                          : 'Mostrar'
+                          } ${capa.nombre}`}
                         onClick={() => {
                           void cambiarVisibilidad(
                             capa,
@@ -1362,38 +1360,38 @@ export function MapLayersPanel({
 
                     {capa.estado_procesamiento ===
                       'ERROR' && (
-                      <button
-                        className={
-                          styles.retryButton
-                        }
-                        type="button"
-                        disabled={
-                          reintentando
-                        }
-                        onClick={() => {
-                          void reintentarCapa(
-                            capa,
-                          );
-                        }}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
+                        <button
+                          className={
+                            styles.retryButton
+                          }
+                          type="button"
+                          disabled={
+                            reintentando
+                          }
+                          onClick={() => {
+                            void reintentarCapa(
+                              capa,
+                            );
+                          }}
                         >
-                          <path d="M20 6v5h-5" />
+                          <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M20 6v5h-5" />
 
-                          <path d="M4 18v-5h5" />
+                            <path d="M4 18v-5h5" />
 
-                          <path d="M6.1 9A7 7 0 0 1 18.5 7" />
+                            <path d="M6.1 9A7 7 0 0 1 18.5 7" />
 
-                          <path d="M17.9 15A7 7 0 0 1 5.5 17" />
-                        </svg>
+                            <path d="M17.9 15A7 7 0 0 1 5.5 17" />
+                          </svg>
 
-                        {reintentando
-                          ? 'Reintentando...'
-                          : 'Reintentar procesamiento'}
-                      </button>
-                    )}
+                          {reintentando
+                            ? 'Reintentando...'
+                            : 'Reintentar procesamiento'}
+                        </button>
+                      )}
 
                     {capa.descripcion && (
                       <span
@@ -1558,7 +1556,7 @@ export function MapLayersPanel({
 
           {error &&
             capas.length >
-              0 && (
+            0 && (
               <div
                 className={
                   styles.empty
