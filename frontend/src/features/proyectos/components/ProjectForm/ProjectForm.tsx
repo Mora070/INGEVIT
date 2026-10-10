@@ -32,62 +32,62 @@ interface ProjectFormProps {
 
 interface FormularioProyecto {
   nombre:
-    string;
+  string;
 
   descripcion:
-    string;
+  string;
 
   direccion:
-    string;
+  string;
 
   contratante:
-    string;
+  string;
 
   fechaInicio:
-    string;
+  string;
 
   fechaFinalizacion:
-    string;
+  string;
 
   estadoProyecto:
-    EstadoProyecto;
+  EstadoProyecto;
 
   latitud:
-    number | null;
+  number | null;
 
   longitud:
-    number | null;
+  number | null;
 }
 
 const FORMULARIO_INICIAL:
   FormularioProyecto = {
-    nombre:
-      '',
+  nombre:
+    '',
 
-    descripcion:
-      '',
+  descripcion:
+    '',
 
-    direccion:
-      '',
+  direccion:
+    '',
 
-    contratante:
-      '',
+  contratante:
+    '',
 
-    fechaInicio:
-      '',
+  fechaInicio:
+    '',
 
-    fechaFinalizacion:
-      '',
+  fechaFinalizacion:
+    '',
 
-    estadoProyecto:
-      'ACTIVA',
+  estadoProyecto:
+    'ACTIVA',
 
-    latitud:
-      null,
+  latitud:
+    null,
 
-    longitud:
-      null,
-  };
+  longitud:
+    null,
+};
 
 export function ProjectForm({
   onCreado,
@@ -183,6 +183,21 @@ export function ProjectForm({
     );
   }
 
+
+  function actualizarDireccionManual(
+    nuevaDireccion: string,
+  ) {
+    setFormulario((anterior) => ({
+      ...anterior,
+      direccion: nuevaDireccion,
+      latitud: null,
+      longitud: null,
+    }));
+
+    setError(null);
+  }
+
+
   function limpiarUbicacion() {
     setFormulario(
       (
@@ -235,34 +250,31 @@ export function ProjectForm({
     if (
       formulario.fechaFinalizacion &&
       formulario.fechaFinalizacion <
-        formulario.fechaInicio
+      formulario.fechaInicio
     ) {
       return 'La fecha de finalización no puede ser anterior a la fecha de inicio.';
     }
 
     const tieneLatitud =
-      formulario.latitud !==
-      null;
+      formulario.latitud !== null &&
+      Number.isFinite(formulario.latitud);
 
     const tieneLongitud =
-      formulario.longitud !==
-      null;
+      formulario.longitud !== null &&
+      Number.isFinite(formulario.longitud);
 
-    if (
-      tieneLatitud !==
-      tieneLongitud
-    ) {
-      return 'La ubicación del proyecto está incompleta.';
+    if (!tieneLatitud || !tieneLongitud) {
+      return 'Ubicación del proyecto requerida. Selecciona un punto directamente en el mapa o, si ya tienes una dirección, pulsa "Buscar dirección" para colocar el marcador antes de crear el proyecto.';
     }
 
     if (
       formulario.latitud !==
-        null &&
+      null &&
       (
         formulario.latitud <
-          -90 ||
+        -90 ||
         formulario.latitud >
-          90
+        90
       )
     ) {
       return 'La latitud seleccionada no es válida.';
@@ -270,12 +282,12 @@ export function ProjectForm({
 
     if (
       formulario.longitud !==
-        null &&
+      null &&
       (
         formulario.longitud <
-          -180 ||
+        -180 ||
         formulario.longitud >
-          180
+        180
       )
     ) {
       return 'La longitud seleccionada no es válida.';
@@ -356,7 +368,7 @@ export function ProjectForm({
         proyecto,
       );
     } catch (
-      errorCapturado
+    errorCapturado
     ) {
       if (
         errorCapturado instanceof
@@ -515,14 +527,11 @@ export function ProjectForm({
               value={
                 formulario.direccion
               }
-              onChange={(
-                event,
-              ) =>
-                actualizarCampo(
-                  'direccion',
-                  event.target.value,
-                )
-              }
+
+              onChange={(event) => {
+                actualizarDireccionManual(event.target.value);
+              }}
+
               autoComplete="street-address"
               disabled={
                 guardando

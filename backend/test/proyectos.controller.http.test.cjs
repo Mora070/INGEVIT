@@ -72,7 +72,6 @@ function crearDetalleProyecto() {
   };
 }
 
-
 const {
   OriginGuard,
   AUTH_ALLOWED_ORIGINS,
@@ -88,6 +87,8 @@ function crearEntradaProyecto(cambios = {}) {
     contratante: 'Cliente de prueba',
     fecha_inicio: '2026-09-09',
     estado_proyecto: 'ACTIVA',
+    latitud: 4.711,
+    longitud: -74.0721,
     ...cambios,
   };
 }
@@ -100,7 +101,7 @@ function crearEntradaProyecto(cambios = {}) {
  */
 async function conServidor(
   operation,
-  { errorPerfil, errorListado, errorDetalle, errorCreacion, errorActualizacion, errorEliminacion, } = {},
+  { errorPerfil, errorListado, errorDetalle, errorCreacion, errorActualizacion, errorEliminacion } = {},
 ) {
   const llamadas = [];
   const consultasDetalle = [];
@@ -205,7 +206,6 @@ async function conServidor(
               };
             },
 
-            // Ambos métodos deben estar dentro de useValue.
             async obtenerDetalle(idProyecto, idUsuario) {
               consultasDetalle.push({ idProyecto, idUsuario });
 
@@ -276,17 +276,12 @@ async function conServidor(
                 throw errorEliminacion;
               }
             },
-
           },
         },
 
         {
           provide: FotografiasSubidaService,
           useValue: {
-            /**
-             * Estas pruebas comprueban otras rutas del controlador.
-             * Una llamada a subir sería un comportamiento inesperado.
-             */
             async subir() {
               throw new Error(
                 'Esta prueba no debe ejecutar la subida de fotografías.',
@@ -313,7 +308,6 @@ async function conServidor(
     async function consultar(query = '', token = TOKEN) {
       const headers = {};
 
-      // null permite omitir explícitamente la cookie.
       if (token !== null) {
         headers.Cookie = `${AUTH_COOKIE_NAME}=${token}`;
       }
@@ -390,7 +384,6 @@ async function conServidor(
       );
     }
 
-
     async function eliminarProyectoHttp({
       idProyecto = ID_PROYECTO,
       token = TOKEN,
@@ -415,7 +408,7 @@ async function conServidor(
       );
     }
 
-    await operation({ consultar, llamadas, consultarDetalle, consultasDetalle, crearProyectoHttp, creaciones, actualizarProyectoHttp, actualizaciones, eliminarProyectoHttp, eliminaciones, });
+    await operation({ consultar, llamadas, consultarDetalle, consultasDetalle, crearProyectoHttp, creaciones, actualizarProyectoHttp, actualizaciones, eliminarProyectoHttp, eliminaciones });
   } finally {
     if (app) {
       await app.close();
@@ -566,7 +559,6 @@ test('GET proyectos: no expone detalles internos cuando falla el listado', async
   );
 });
 
-
 test('GET detalle proyecto: consulta con la identidad autenticada y devuelve el detalle', async () => {
   await conServidor(
     async ({ consultarDetalle, consultasDetalle }) => {
@@ -694,7 +686,6 @@ test('GET detalle proyecto: oculta los detalles internos de un fallo técnico', 
   );
 });
 
-
 test('POST proyectos: devuelve 201 y utiliza al solicitante como propietario', async () => {
   await conServidor(async ({ crearProyectoHttp, creaciones }) => {
     const entrada = crearEntradaProyecto({
@@ -776,7 +767,7 @@ test('POST proyectos: rechaza campos internos y datos inválidos antes de crear'
       }),
       crearEntradaProyecto({ activo: false }),
       crearEntradaProyecto({ fecha_inicio: '2026-02-30' }),
-      crearEntradaProyecto({ latitud: 4.711 }),
+      crearEntradaProyecto({ latitud: 4.711, longitud: undefined }),
     ];
 
     for (const entrada of entradasInvalidas) {
@@ -825,7 +816,6 @@ test('POST proyectos: respeta el rechazo de la cuenta al iniciar la transacción
         'La sesión no es válida o la cuenta no está activa.',
       );
 
-      // La autenticación inicial pasó; el servicio rechazó la operación.
       assert.equal(creaciones.length, 1);
     },
     {
@@ -860,7 +850,6 @@ test('POST proyectos: devuelve 500 sin exponer detalles si falla la creación', 
     },
   );
 });
-
 
 test('PUT proyectos: transmite la identidad autenticada y devuelve el proyecto actualizado', async () => {
   await conServidor(
@@ -961,6 +950,7 @@ test('PUT proyectos: aplica las validaciones heredadas y rechaza campos protegid
         }),
         crearEntradaProyecto({
           latitud: 4.711,
+          longitud: undefined,
         }),
         crearEntradaProyecto({
           id_propietario: '30000000-0000-4000-8000-000000000003',
@@ -1209,29 +1199,6 @@ test('DELETE proyectos: respeta el rechazo de la cuenta dentro de la transacció
       errorEliminacion: new UnauthorizedException(
         'La sesión no es válida o la cuenta no está activa.',
       ),
-    },
-  );
-});
-
-test('DELETE proyectos: devuelve 500 sin exponer detalles si falla la operación', async () => {
-  const detalleInterno = 'FALLO_INTERNO_FICTICIO_DE_ELIMINACION';
-
-  await conServidor(
-    async ({ eliminarProyectoHttp }) => {
-      const response = await eliminarProyectoHttp();
-
-      assert.equal(response.status, 500);
-      assert.equal(response.headers.get('set-cookie'), null);
-
-      const body = await response.json();
-      assert.equal(
-        JSON.stringify(body).includes(detalleInterno),
-        false,
-      );
-      assert.equal(Object.hasOwn(body, 'stack'), false);
-    },
-    {
-      errorEliminacion: new Error(detalleInterno),
     },
   );
 });

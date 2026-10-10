@@ -16,7 +16,9 @@ import styles from './ProfilePage.module.css';
 
 interface ProfilePageProps {
   usuario: Usuario;
+  versionAvatar: number;
   onUsuarioActualizado: (usuario: Usuario) => void;
+  onAvatarActualizado: (usuario: Usuario) => void;
 }
 
 type TipoMensajeExito =
@@ -65,10 +67,7 @@ function obtenerNombreCompleto(
 }
 
 function obtenerMensajeExito(
-  tipo: Exclude<
-    TipoMensajeExito,
-    null
-  >,
+  tipo: Exclude<TipoMensajeExito, null>,
 ): {
   titulo: string;
   descripcion: string;
@@ -106,7 +105,9 @@ function obtenerMensajeExito(
 
 export function ProfilePage({
   usuario,
+  versionAvatar,
   onUsuarioActualizado,
+  onAvatarActualizado,
 }: ProfilePageProps) {
   const [
     editando,
@@ -126,14 +127,7 @@ export function ProfilePage({
   const [
     tipoMensajeExito,
     setTipoMensajeExito,
-  ] = useState<TipoMensajeExito>(
-    null,
-  );
-
-  const [
-    versionAvatar,
-    setVersionAvatar,
-  ] = useState(0);
+  ] = useState<TipoMensajeExito>(null);
 
   const temporizadorMensaje =
     useRef<number | null>(null);
@@ -152,26 +146,31 @@ export function ProfilePage({
       ? 'Administrador'
       : 'Usuario';
 
-  const urlAvatar =
-    usuario.foto_perfil_url
-      ? `${usuario.foto_perfil_url}?v=${versionAvatar}`
-      : null;
+  // Versión compartida con AppShell.
+  // Evita reutilizar la imagen anterior
+  // cuando el backend conserva la misma URL.
+  const urlAvatar = (() => {
+    if (!usuario.foto_perfil_url) {
+      return null;
+    }
+
+    const separador =
+      usuario.foto_perfil_url.includes('?')
+        ? '&'
+        : '?';
+
+    return `${usuario.foto_perfil_url}${separador}v=${versionAvatar}`;
+  })();
 
   useEffect(() => {
     return () => {
-      if (
-        temporizadorMensaje.current !==
-        null
-      ) {
+      if (temporizadorMensaje.current !== null) {
         window.clearTimeout(
           temporizadorMensaje.current,
         );
       }
 
-      if (
-        temporizadorRedireccion.current !==
-        null
-      ) {
+      if (temporizadorRedireccion.current !== null) {
         window.clearTimeout(
           temporizadorRedireccion.current,
         );
@@ -180,24 +179,17 @@ export function ProfilePage({
   }, []);
 
   function limpiarTemporizadorMensaje() {
-    if (
-      temporizadorMensaje.current !==
-      null
-    ) {
+    if (temporizadorMensaje.current !== null) {
       window.clearTimeout(
         temporizadorMensaje.current,
       );
 
-      temporizadorMensaje.current =
-        null;
+      temporizadorMensaje.current = null;
     }
   }
 
   function mostrarMensajeExito(
-    tipo: Exclude<
-      TipoMensajeExito,
-      null
-    >,
+    tipo: Exclude<TipoMensajeExito, null>,
   ) {
     limpiarTemporizadorMensaje();
 
@@ -206,9 +198,7 @@ export function ProfilePage({
     temporizadorMensaje.current =
       window.setTimeout(() => {
         setTipoMensajeExito(null);
-
-        temporizadorMensaje.current =
-          null;
+        temporizadorMensaje.current = null;
       }, 4000);
   }
 
@@ -245,30 +235,26 @@ export function ProfilePage({
       usuarioActualizado,
     );
 
-    mostrarMensajeExito(
-      'perfil',
-    );
+    mostrarMensajeExito('perfil');
   }
 
+  // Se ejecuta después de subir,
+  // reemplazar o eliminar una fotografía.
   function avatarActualizado(
     fotoPerfilUrl: string | null,
   ) {
-    setEditandoAvatar(false);
-
     const usuarioActualizado: Usuario = {
       ...usuario,
-      foto_perfil_url:
-        fotoPerfilUrl,
+      foto_perfil_url: fotoPerfilUrl,
     };
 
-    onUsuarioActualizado(
+    // Actualiza el usuario y la versión
+    // compartida del avatar en App.tsx.
+    onAvatarActualizado(
       usuarioActualizado,
     );
 
-    setVersionAvatar(
-      (versionActual) =>
-        versionActual + 1,
-    );
+    setEditandoAvatar(false);
 
     mostrarMensajeExito(
       fotoPerfilUrl
@@ -282,9 +268,7 @@ export function ProfilePage({
 
     setCambiandoPassword(false);
 
-    setTipoMensajeExito(
-      'password',
-    );
+    setTipoMensajeExito('password');
 
     temporizadorRedireccion.current =
       window.setTimeout(() => {
@@ -294,9 +278,7 @@ export function ProfilePage({
 
   const mensajeExito =
     tipoMensajeExito
-      ? obtenerMensajeExito(
-          tipoMensajeExito,
-        )
+      ? obtenerMensajeExito(tipoMensajeExito)
       : null;
 
   return (
@@ -357,9 +339,7 @@ export function ProfilePage({
                 className={styles.avatarOverlay}
                 aria-hidden="true"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                >
+                <svg viewBox="0 0 24 24">
                   <path d="M4 7h4l1.5-2h5L16 7h4v12H4Z" />
                   <circle
                     cx="12"
@@ -411,7 +391,6 @@ export function ProfilePage({
                       cy="8"
                       r="4"
                     />
-
                     <path d="M4 21a8 8 0 0 1 16 0" />
                   </svg>
                 </div>
@@ -508,7 +487,6 @@ export function ProfilePage({
                       height="10"
                       rx="2"
                     />
-
                     <path d="M8 11V7a4 4 0 0 1 8 0v4" />
                   </svg>
                 </div>
@@ -612,6 +590,7 @@ export function ProfilePage({
             role="dialog"
             aria-modal="true"
             aria-labelledby="edit-avatar-title"
+            onMouseDown={(event) => event.stopPropagation()}
           >
             <header className={styles.modalHeader}>
               <div>
@@ -635,10 +614,7 @@ export function ProfilePage({
                 onClick={cerrarEditorAvatar}
                 aria-label="Cerrar formulario"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
+                <svg viewBox="0 0 24 24">
                   <path d="M6 6l12 12" />
                   <path d="M18 6 6 18" />
                 </svg>
@@ -648,6 +624,7 @@ export function ProfilePage({
             <div className={styles.modalContent}>
               <ProfileAvatarEditor
                 usuario={usuario}
+                versionAvatar={versionAvatar}
                 onActualizado={avatarActualizado}
                 onCancelar={cerrarEditorAvatar}
               />
@@ -696,10 +673,7 @@ export function ProfilePage({
                 onClick={cerrarEdicion}
                 aria-label="Cerrar formulario"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
+                <svg viewBox="0 0 24 24">
                   <path d="M6 6l12 12" />
                   <path d="M18 6 6 18" />
                 </svg>
@@ -739,7 +713,7 @@ export function ProfilePage({
             <header className={styles.modalHeader}>
               <div>
                 <span className={styles.modalEyebrow}>
-                  Seguridad
+                  Mi Perfil
                 </span>
 
                 <h2 id="change-password-title">
@@ -758,10 +732,7 @@ export function ProfilePage({
                 onClick={cerrarCambioPassword}
                 aria-label="Cerrar formulario"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
+                <svg viewBox="0 0 24 24">
                   <path d="M6 6l12 12" />
                   <path d="M18 6 6 18" />
                 </svg>

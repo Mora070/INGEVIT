@@ -24,6 +24,8 @@ function crearEntrada(cambios = {}) {
     contratante: 'Cliente de prueba',
     fecha_inicio: '2026-09-09',
     estado_proyecto: 'ACTIVA',
+    latitud: 4.711,
+    longitud: -74.0721,
     ...cambios,
   };
 }
@@ -42,29 +44,48 @@ function comprobarEntradaRechazada(error) {
   return true;
 }
 
-test('CrearProyectoDto: acepta los campos obligatorios sin ubicación ni fecha final', async () => {
+test('CrearProyectoDto: acepta los campos obligatorios sin fecha final', async () => {
   const resultado = await validarProyecto(crearEntrada());
 
   assert.ok(resultado instanceof CrearProyectoDto);
   assert.equal(resultado.nombre, 'Proyecto de prueba');
   assert.equal(resultado.fecha_inicio, '2026-09-09');
   assert.equal(resultado.fecha_finalizacion, undefined);
-  assert.equal(resultado.latitud, undefined);
-  assert.equal(resultado.longitud, undefined);
+  assert.equal(resultado.latitud, 4.711);
+  assert.equal(resultado.longitud, -74.0721);
 });
 
-test('CrearProyectoDto: admite valores opcionales nulos', async () => {
+test('CrearProyectoDto: rechaza la creación sin ubicación geográfica', async () => {
+  await assert.rejects(
+    () =>
+      validarProyecto(
+        crearEntrada({ latitud: undefined, longitud: undefined }),
+      ),
+    comprobarEntradaRechazada,
+  );
+});
+
+test('CrearProyectoDto: admite fecha de finalización nula', async () => {
   const resultado = await validarProyecto(
     crearEntrada({
       fecha_finalizacion: null,
-      latitud: null,
-      longitud: null,
     }),
   );
 
   assert.equal(resultado.fecha_finalizacion, null);
-  assert.equal(resultado.latitud, null);
-  assert.equal(resultado.longitud, null);
+});
+
+test('CrearProyectoDto: rechaza latitud o longitud nulas', async () => {
+  for (const cambios of [
+    { latitud: null },
+    { longitud: null },
+    { latitud: null, longitud: null },
+  ]) {
+    await assert.rejects(
+      () => validarProyecto(crearEntrada(cambios)),
+      comprobarEntradaRechazada,
+    );
+  }
 });
 
 test('CrearProyectoDto: acepta los tres estados de trabajo', async () => {
@@ -172,12 +193,12 @@ test('CrearProyectoDto: admite coordenadas numéricas y sus límites', async () 
 
 test('CrearProyectoDto: rechaza una ubicación incompleta', async () => {
   const ubicacionesIncompletas = [
-    { latitud: 4.711 },
-    { longitud: -74.0721 },
+    { latitud: 4.711, longitud: undefined },
+    { latitud: undefined, longitud: -74.0721 },
     { latitud: 4.711, longitud: null },
     { latitud: null, longitud: -74.0721 },
-    { latitud: 0 },
-    { longitud: 0 },
+    { latitud: 0, longitud: undefined },
+    { latitud: undefined, longitud: 0 },
   ];
 
   for (const ubicacion of ubicacionesIncompletas) {

@@ -1,3 +1,4 @@
+
 import {
   useRef,
   useState,
@@ -10,6 +11,10 @@ import {
 import {
   useSesion,
 } from './features/auth/hooks/useSesion';
+
+import type {
+  Usuario,
+} from './features/auth/types/usuario';
 
 import {
   ProfilePage,
@@ -68,6 +73,13 @@ export default function App() {
     reintentar,
   } = useSesion();
 
+  // Versión centralizada de la fotografía.
+  // Se comparte entre AppShell y ProfilePage.
+  const [
+    versionAvatar,
+    setVersionAvatar,
+  ] = useState(0);
+
   const [
     vistaAnonima,
     setVistaAnonima,
@@ -92,10 +104,9 @@ export default function App() {
   const [
     navegacionProyecto,
     setNavegacionProyecto,
-  ] =
-    useState<NavegacionProyecto | null>(
-      null,
-    );
+  ] = useState<NavegacionProyecto | null>(
+    null,
+  );
 
   const [
     cerrando,
@@ -112,15 +123,35 @@ export default function App() {
   const salidaActiva =
     useRef(false);
 
+  /**
+   * Actualiza la sesión y fuerza una nueva
+   * versión visual de la fotografía.
+   *
+   * Esto permite actualizar inmediatamente
+   * el avatar aunque el backend devuelva
+   * exactamente la misma URL.
+   */
+  function actualizarAvatarUsuario(
+    usuarioActualizado: Usuario,
+  ) {
+    actualizarUsuario(
+      usuarioActualizado,
+    );
+
+    setVersionAvatar(
+      (versionActual) => versionActual + 1,
+    );
+  }
+
+  /**
+   * Cierre de sesión.
+   */
   async function salir() {
-    if (
-      salidaActiva.current
-    ) {
+    if (salidaActiva.current) {
       return;
     }
 
-    salidaActiva.current =
-      true;
+    salidaActiva.current = true;
 
     setCerrando(true);
     setErrorSalida(null);
@@ -128,149 +159,91 @@ export default function App() {
     try {
       await cerrarSesion();
 
-      actualizarUsuario(
-        null,
-      );
+      actualizarUsuario(null);
 
-      setVistaAnonima(
-        'login',
-      );
-
-      setSeccionWorkspace(
-        'inicio',
-      );
-
-      setProyectoSeleccionadoId(
-        null,
-      );
-
-      setNavegacionProyecto(
-        null,
-      );
+      setVersionAvatar(0);
+      setVistaAnonima('login');
+      setSeccionWorkspace('inicio');
+      setProyectoSeleccionadoId(null);
+      setNavegacionProyecto(null);
     } catch (error) {
       if (
-        error instanceof
-        ApiError &&
-        error.status ===
-        401
+        error instanceof ApiError &&
+        error.status === 401
       ) {
-        actualizarUsuario(
-          null,
-        );
+        actualizarUsuario(null);
 
-        setVistaAnonima(
-          'login',
-        );
-
-        setSeccionWorkspace(
-          'inicio',
-        );
-
-        setProyectoSeleccionadoId(
-          null,
-        );
-
-        setNavegacionProyecto(
-          null,
-        );
+        setVersionAvatar(0);
+        setVistaAnonima('login');
+        setSeccionWorkspace('inicio');
+        setProyectoSeleccionadoId(null);
+        setNavegacionProyecto(null);
       } else {
         setErrorSalida(
           'No pudimos cerrar la sesión. Inténtalo nuevamente.',
         );
       }
     } finally {
-      salidaActiva.current =
-        false;
-
-      setCerrando(
-        false,
-      );
+      salidaActiva.current = false;
+      setCerrando(false);
     }
   }
 
+  /**
+   * Navegación de autenticación.
+   */
   function mostrarLogin() {
-    setVistaAnonima(
-      'login',
-    );
+    setVistaAnonima('login');
   }
 
   function mostrarRegistro() {
-    setVistaAnonima(
-      'registro',
-    );
+    setVistaAnonima('registro');
   }
 
   function mostrarRecuperacion() {
-    setVistaAnonima(
-      'recuperacion',
-    );
+    setVistaAnonima('recuperacion');
   }
 
+  /**
+   * Navegación del workspace.
+   */
   function mostrarInicio() {
-    setSeccionWorkspace(
-      'inicio',
-    );
-
-    setProyectoSeleccionadoId(
-      null,
-    );
-
-    setNavegacionProyecto(
-      null,
-    );
+    setSeccionWorkspace('inicio');
+    setProyectoSeleccionadoId(null);
+    setNavegacionProyecto(null);
   }
 
   function mostrarProyectos() {
-    setSeccionWorkspace(
-      'proyectos',
-    );
-
-    setProyectoSeleccionadoId(
-      null,
-    );
-
-    setNavegacionProyecto(
-      null,
-    );
+    setSeccionWorkspace('proyectos');
+    setProyectoSeleccionadoId(null);
+    setNavegacionProyecto(null);
   }
 
   function mostrarPerfil() {
-    setSeccionWorkspace(
-      'perfil',
-    );
-
-    setProyectoSeleccionadoId(
-      null,
-    );
-
-    setNavegacionProyecto(
-      null,
-    );
+    setSeccionWorkspace('perfil');
+    setProyectoSeleccionadoId(null);
+    setNavegacionProyecto(null);
   }
 
+  /**
+   * Abrir un proyecto.
+   */
   function abrirProyecto(
     idProyecto: string,
   ) {
-    setSeccionWorkspace(
-      'proyectos',
-    );
-
-    setProyectoSeleccionadoId(
-      idProyecto,
-    );
-
-    setNavegacionProyecto(
-      null,
-    );
+    setSeccionWorkspace('proyectos');
+    setProyectoSeleccionadoId(idProyecto);
+    setNavegacionProyecto(null);
   }
 
+  /**
+   * Abrir el recurso relacionado
+   * con una notificación.
+   */
   function abrirNotificacion(
-    notificacion:
-      Notificacion,
+    notificacion: Notificacion,
   ) {
-    setSeccionWorkspace(
-      'proyectos',
-    );
+    setSeccionWorkspace('proyectos');
 
     setProyectoSeleccionadoId(
       notificacion.id_proyecto,
@@ -292,24 +265,19 @@ export default function App() {
     });
   }
 
+  /**
+   * Regresar al listado de proyectos.
+   */
   function volverAProyectos() {
-    setProyectoSeleccionadoId(
-      null,
-    );
-
-    setNavegacionProyecto(
-      null,
-    );
-
-    setSeccionWorkspace(
-      'proyectos',
-    );
+    setProyectoSeleccionadoId(null);
+    setNavegacionProyecto(null);
+    setSeccionWorkspace('proyectos');
   }
 
-  if (
-    estado.tipo ===
-    'cargando'
-  ) {
+  /**
+   * Comprobación inicial de sesión.
+   */
+  if (estado.tipo === 'cargando') {
     return (
       <main className="contenido">
         <section
@@ -328,29 +296,26 @@ export default function App() {
     );
   }
 
-  if (
-    estado.tipo ===
-    'error'
-  ) {
+  /**
+   * Error al comprobar sesión.
+   */
+  if (estado.tipo === 'error') {
     return (
       <main className="contenido">
         <section className="tarjeta estado">
           <h1>
-            No pudimos comprobar tu
-            sesión
+            No pudimos comprobar tu sesión
           </h1>
 
           <p className="texto-secundario">
-            Comprueba la conexión e
-            inténtalo nuevamente.
+            Comprueba la conexión e inténtalo
+            nuevamente.
           </p>
 
           <button
             className="boton principal"
             type="button"
-            onClick={
-              reintentar
-            }
+            onClick={reintentar}
           >
             Reintentar
           </button>
@@ -359,77 +324,53 @@ export default function App() {
     );
   }
 
-  if (
-    estado.tipo ===
-    'anonima'
-  ) {
-    if (
-      vistaAnonima ===
-      'registro'
-    ) {
+  /**
+   * Usuario sin sesión.
+   */
+  if (estado.tipo === 'anonima') {
+    if (vistaAnonima === 'registro') {
       return (
         <RegisterPage
-          onIrLogin={
-            mostrarLogin
-          }
+          onIrLogin={mostrarLogin}
         />
       );
     }
 
-    if (
-      vistaAnonima ===
-      'recuperacion'
-    ) {
+    if (vistaAnonima === 'recuperacion') {
       return (
         <RecoveryPage
-          onVolverLogin={
-            mostrarLogin
-          }
+          onVolverLogin={mostrarLogin}
         />
       );
     }
 
     return (
       <LoginPage
-        onAutenticado={
-          actualizarUsuario
-        }
-        onIrRegistro={
-          mostrarRegistro
-        }
-        onIrRecuperacion={
-          mostrarRecuperacion
-        }
+        onAutenticado={actualizarUsuario}
+        onIrRegistro={mostrarRegistro}
+        onIrRecuperacion={mostrarRecuperacion}
       />
     );
   }
 
+  /**
+   * Workspace autenticado.
+   *
+   * AppShell y ProfilePage reciben
+   * el mismo usuario y la misma
+   * versión de fotografía.
+   */
   return (
     <AppShell
-      usuario={
-        estado.usuario
-      }
-      seccionActiva={
-        seccionWorkspace
-      }
-      onIrInicio={
-        mostrarInicio
-      }
-      onIrProyectos={
-        mostrarProyectos
-      }
-      onIrPerfil={
-        mostrarPerfil
-      }
-      onAbrirNotificacion={
-        abrirNotificacion
-      }
-      onCerrarSesion={
-        salir
-      }
-      cerrandoSesion={
-        cerrando
-      }
+      usuario={estado.usuario}
+      versionAvatar={versionAvatar}
+      seccionActiva={seccionWorkspace}
+      onIrInicio={mostrarInicio}
+      onIrProyectos={mostrarProyectos}
+      onIrPerfil={mostrarPerfil}
+      onAbrirNotificacion={abrirNotificacion}
+      onCerrarSesion={salir}
+      cerrandoSesion={cerrando}
     >
       {errorSalida && (
         <p
@@ -440,53 +381,46 @@ export default function App() {
         </p>
       )}
 
-      {seccionWorkspace ===
-        'inicio' && (
-          <HomePage />
-        )}
+      {seccionWorkspace === 'inicio' && (
+        <HomePage
+          usuario={estado.usuario}
+          versionAvatar={versionAvatar}
+        />
+      )}
 
-      {seccionWorkspace ===
-        'proyectos' &&
-        proyectoSeleccionadoId ===
-        null && (
+      {seccionWorkspace === 'proyectos' &&
+        proyectoSeleccionadoId === null && (
           <ProjectsPage
-            onAbrirProyecto={
-              abrirProyecto
-            }
+            onAbrirProyecto={abrirProyecto}
           />
         )}
 
-      {seccionWorkspace ===
-        'proyectos' &&
-        proyectoSeleccionadoId !==
-        null && (
+      {seccionWorkspace === 'proyectos' &&
+        proyectoSeleccionadoId !== null && (
           <ProjectDetailPage
-            idProyecto={
-              proyectoSeleccionadoId
-            }
+            idProyecto={proyectoSeleccionadoId}
             idUsuarioActual={
               estado.usuario.id_usuario
             }
             navegacionInicial={
               navegacionProyecto
             }
-            onVolver={
-              volverAProyectos
-            }
+            onVolver={volverAProyectos}
           />
         )}
 
-      {seccionWorkspace ===
-        'perfil' && (
-          <ProfilePage
-            usuario={
-              estado.usuario
-            }
-            onUsuarioActualizado={
-              actualizarUsuario
-            }
-          />
-        )}
+      {seccionWorkspace === 'perfil' && (
+        <ProfilePage
+          usuario={estado.usuario}
+          versionAvatar={versionAvatar}
+          onUsuarioActualizado={
+            actualizarUsuario
+          }
+          onAvatarActualizado={
+            actualizarAvatarUsuario
+          }
+        />
+      )}
     </AppShell>
   );
 }

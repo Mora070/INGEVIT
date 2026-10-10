@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -37,6 +36,8 @@ export type SeccionWorkspace =
 
 interface AppShellProps {
   usuario: Usuario;
+
+  versionAvatar?: number | string;
 
   seccionActiva:
   SeccionWorkspace;
@@ -198,6 +199,7 @@ function formatearFechaNotificacion(
 
 export function AppShell({
   usuario,
+  versionAvatar,
   seccionActiva,
   children,
   onIrInicio,
@@ -299,28 +301,18 @@ export function AppShell({
       usuario,
     );
 
-  const avatarUrl =
-    useMemo(
-      () => {
-        if (
-          !usuario.foto_perfil_url
-        ) {
-          return null;
-        }
+const avatarUrl = (() => {
+  if (!usuario.foto_perfil_url) {
+    return null;
+  }
 
-        const separador =
-          usuario.foto_perfil_url.includes(
-            '?',
-          )
-            ? '&'
-            : '?';
+  const separador =
+    usuario.foto_perfil_url.includes('?')
+      ? '&'
+      : '?';
 
-        return `${usuario.foto_perfil_url}${separador}v=${Date.now()}`;
-      },
-      [
-        usuario.foto_perfil_url,
-      ],
-    );
+  return `${usuario.foto_perfil_url}${separador}v=${versionAvatar}`;
+})();
 
   useEffect(
     () => {
@@ -1510,89 +1502,13 @@ export function AppShell({
             </svg>
 
             <span>
-              Mi Perfil
+              Perfil
             </span>
           </button>
         </nav>
-
-        <div
-          className={
-            styles.sidebarBottom
-          }
-        >
-          <button
-            className={
-              styles.supportButton
-            }
-            type="button"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-              />
-
-              <path
-                d="M9.5 9a2.5 2.5 0 1 1 4.2 1.82C12.8 11.55 12 12.2 12 14"
-              />
-
-              <path
-                d="M12 18h.01"
-              />
-            </svg>
-
-            <span>
-              Soporte
-            </span>
-          </button>
-
-          <button
-            className={
-              styles.logoutButton
-            }
-            type="button"
-            onClick={
-              onCerrarSesion
-            }
-            disabled={
-              cerrandoSesion
-            }
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M10 17l5-5-5-5"
-              />
-
-              <path
-                d="M15 12H3"
-              />
-
-              <path
-                d="M14 4h6v16h-6"
-              />
-            </svg>
-
-            <span>
-              {cerrandoSesion
-                ? 'Cerrando...'
-                : 'Cerrar sesión'}
-            </span>
-          </button>
-        </div>
       </aside>
 
-      <main
-        className={
-          styles.content
-        }
-      >
+      <main className={styles.mainContent}>
         {children}
       </main>
     </div>

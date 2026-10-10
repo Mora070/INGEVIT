@@ -6,6 +6,16 @@ import {
 import { useProyectos } from '../../../proyectos/hooks/useProyectos';
 import { ProjectsMap } from '../../../proyectos/components/ProjectsMap/ProjectsMap';
 import styles from './HomePage.module.css';
+
+import type {
+  Usuario,
+} from '../../../auth/types/usuario';
+
+interface HomePageProps {
+  usuario: Usuario;
+  versionAvatar: number;
+}
+
 type FiltroEstado =
   | 'TODOS'
   | 'ACTIVA'
@@ -114,7 +124,21 @@ function formatearUltimaActualizacion(
       ).format(valor),
   };
 }
-export function HomePage() {
+function versionarAvatar(url: string | null, version: number): string | null {
+  if (!url) return null;
+  if (/^(data:|blob:)/i.test(url)) return url;
+
+  const indiceFragmento = url.indexOf('#');
+  const base = indiceFragmento === -1 ? url : url.slice(0, indiceFragmento);
+  const fragmento = indiceFragmento === -1 ? '' : url.slice(indiceFragmento);
+  const separador = base.includes('?')
+    ? (base.endsWith('?') || base.endsWith('&') ? '' : '&')
+    : '?';
+
+  return `${base}${separador}v=${version}${fragmento}`;
+}
+
+export function HomePage({ usuario, versionAvatar }: HomePageProps) {
   const [
     busqueda,
     setBusqueda,
@@ -156,7 +180,7 @@ export function HomePage() {
   const limite = 20;
   const {
     cargando,
-    proyectos,
+    proyectos: proyectosOriginales,
     total,
     totalPaginas,
     error,
@@ -239,6 +263,25 @@ export function HomePage() {
   }, [
     mapaAmpliado,
   ]);
+  // La sesión contiene la foto vigente, incluso cuando se ha eliminado.
+  const proyectos = useMemo(
+    () => proyectosOriginales.map((proyecto) => ({
+      ...proyecto,
+      equipo: proyecto.equipo.map((participante) =>
+        participante.id_usuario === usuario.id_usuario
+          ? {
+              ...participante,
+              foto_perfil_url: versionarAvatar(
+                usuario.foto_perfil_url ?? null,
+                versionAvatar,
+              ),
+            }
+          : participante,
+      ),
+    })),
+    [proyectosOriginales, usuario.id_usuario, usuario.foto_perfil_url, versionAvatar],
+  );
+
   const proyectosFiltrados =
     useMemo(() => {
       return proyectos.filter(

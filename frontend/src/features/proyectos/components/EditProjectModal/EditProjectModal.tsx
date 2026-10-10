@@ -195,19 +195,17 @@ export function EditProjectModal({
         fechaFinalizacion >=
         fechaInicio;
 
+
     const coordenadasValidas =
-        (
-            latitud === null &&
-            longitud === null
-        ) ||
-        (
-            latitud !== null &&
-            longitud !== null &&
-            latitud >= -90 &&
-            latitud <= 90 &&
-            longitud >= -180 &&
-            longitud <= 180
-        );
+        latitud !== null &&
+        longitud !== null &&
+        Number.isFinite(latitud) &&
+        Number.isFinite(longitud) &&
+        latitud >= -90 &&
+        latitud <= 90 &&
+        longitud >= -180 &&
+        longitud <= 180;
+
 
     const formularioValido =
         nombreValido &&
@@ -519,13 +517,17 @@ export function EditProjectModal({
                                 value={
                                     direccion
                                 }
-                                onChange={(
-                                    event,
-                                ) => {
-                                    setDireccion(
-                                        event.target.value,
-                                    );
+
+                                onChange={(event) => {
+                                    setDireccion(event.target.value);
+
+                                    // La dirección cambió manualmente.
+                                    // La ubicación anterior debe confirmarse de nuevo.
+                                    setLatitud(null);
+                                    setLongitud(null);
+                                    setError(null);
                                 }}
+
                                 disabled={
                                     guardando
                                 }
@@ -697,7 +699,7 @@ export function EditProjectModal({
                             }
                             role="alert"
                         >
-                            La ubicación seleccionada no es válida.
+                            Debes seleccionar una ubicación para guardar el proyecto. Haz doble clic en el mapa o utiliza «Buscar dirección» para colocar el marcador.
                         </div>
                     )}
 

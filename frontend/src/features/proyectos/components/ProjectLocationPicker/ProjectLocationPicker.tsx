@@ -53,9 +53,9 @@ const CENTRO_INICIAL: [
   number,
   number,
 ] = [
-  -74.2973,
-  4.5709,
-];
+    -74.2973,
+    4.5709,
+  ];
 
 export function ProjectLocationPicker({
   direccion,
@@ -154,9 +154,9 @@ export function ProjectLocationPicker({
         center:
           tieneCoordenadas
             ? [
-                longitud,
-                latitud,
-              ]
+              longitud,
+              latitud,
+            ]
             : CENTRO_INICIAL,
 
         zoom:
@@ -771,6 +771,7 @@ export function ProjectLocationPicker({
             <path d="M20 12h2" />
           </svg>
 
+
           <span>
             {obteniendoUbicacion
               ? 'Obteniendo ubicación...'
@@ -779,11 +780,31 @@ export function ProjectLocationPicker({
         </button>
       </div>
 
+      {/* Aviso cuando el proyecto no tiene marcador */}
+      {!tieneUbicacion && (
+        <div
+          className={styles.locationNotice}
+          role="status"
+        >
+          <strong>
+            Ubicación obligatoria
+          </strong>
+
+          <p>
+            Para guardar el proyecto debes colocar
+            un marcador en el mapa. Haz doble clic
+            sobre la ubicación deseada o escribe
+            una dirección y pulsa «Buscar dirección».
+          </p>
+        </div>
+      )}
+
       <div
         className={
           styles.mapWrapper
         }
       >
+
         {!tokenConfigurado && (
           <div
             className={
@@ -901,4 +922,7 @@ export function ProjectLocationPicker({
       </p>
     </div>
   );
+
+
 }
+

@@ -5,7 +5,13 @@ import {
 } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
+/*
 import { ProyectosRepository } from '../proyectos/proyectos.repository';
+*/
+
+import {
+  ProyectoAccesoRepository,
+} from '../../common/repositories/proyecto-acceso.repository';
 import { ActividadesRepository } from '../actividades/actividades.repository';
 
 import { CapasRepository } from './capas.repository';
@@ -15,10 +21,8 @@ import type {
 } from './dto/actualizar-configuracion-capa.dto';
 
 /**
- * Modifica la configuración compartida exclusivamente como propietario.
- *
- * Reutiliza el orden de bloqueos de gestión del proyecto:
- * cuenta del propietario -> proyecto -> capa.
+ * Modifica la configuración compartida para el propietario
+ * o un colaborador activo del proyecto.
  *
  * El cambio y el historial se confirman juntos.
  */
@@ -26,10 +30,11 @@ import type {
 export class CapasConfiguracionService {
   constructor(
     private readonly database: DatabaseService,
-    private readonly proyectos: ProyectosRepository,
+    /*private readonly proyectos: ProyectosRepository,*/
+    private readonly acceso: ProyectoAccesoRepository,
     private readonly capas: CapasRepository,
     private readonly actividades: ActividadesRepository,
-  ) {}
+  ) { }
 
   async actualizar(
     idProyecto: string,
@@ -38,24 +43,13 @@ export class CapasConfiguracionService {
     datos: ActualizarConfiguracionCapaDto,
   ) {
     return this.database.withTransaction(async (client) => {
-      const activo = await this.proyectos.bloquearPropietarioActivo(
-        client,
-        idUsuario,
-      );
-
-      if (!activo) {
-        throw new UnauthorizedException(
-          'La sesión no es válida o la cuenta no está activa.',
-        );
-      }
-
-      const proyecto = await this.proyectos.bloquearEditablePorPropietario(
+      const disponible = await this.acceso.bloquearDisponible(
         client,
         idProyecto,
         idUsuario,
       );
 
-      if (!proyecto) {
+      if (!disponible) {
         throw new NotFoundException(
           'El proyecto no está disponible para gestionar capas.',
         );
