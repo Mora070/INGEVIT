@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useRef,
@@ -27,34 +26,16 @@ interface GoogleAccountsId {
     parent: HTMLElement,
     options: {
       type?: 'standard' | 'icon';
-
-      theme?:
-        | 'outline'
-        | 'filled_blue'
-        | 'filled_black';
-
-      size?:
-        | 'large'
-        | 'medium'
-        | 'small';
-
+      theme?: 'outline' | 'filled_blue' | 'filled_black';
+      size?: 'large' | 'medium' | 'small';
       text?:
         | 'signin_with'
         | 'signup_with'
         | 'continue_with'
         | 'signin';
-
-      shape?:
-        | 'rectangular'
-        | 'pill'
-        | 'circle'
-        | 'square';
-
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
       width?: number;
-
-      logo_alignment?:
-        | 'left'
-        | 'center';
+      logo_alignment?: 'left' | 'center';
     },
   ) => void;
 }
@@ -72,13 +53,10 @@ declare global {
 }
 
 interface GoogleLoginButtonProps {
-  onAutenticado: (
-    usuario: Usuario,
-  ) => void;
+  onAutenticado: (usuario: Usuario) => void;
 }
 
-const GOOGLE_SCRIPT_ID =
-  'google-identity-services';
+const GOOGLE_SCRIPT_ID = 'google-identity-services';
 
 const GOOGLE_SCRIPT_URL =
   'https://accounts.google.com/gsi/client';
@@ -89,21 +67,14 @@ export function GoogleLoginButton({
   const buttonContainer =
     useRef<HTMLDivElement | null>(null);
 
-  const procesandoRef =
-    useRef(false);
+  const procesandoRef = useRef(false);
+  const onAutenticadoRef = useRef(onAutenticado);
 
-  const onAutenticadoRef =
-    useRef(onAutenticado);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  const [procesando, setProcesando] =
-    useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [procesando, setProcesando] = useState(false);
 
   useEffect(() => {
-    onAutenticadoRef.current =
-      onAutenticado;
+    onAutenticadoRef.current = onAutenticado;
   }, [onAutenticado]);
 
   useEffect(() => {
@@ -111,35 +82,29 @@ export function GoogleLoginButton({
       import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      setError(
-        'Google no está configurado en este entorno.',
-      );
-
+      setError('Google no está configurado en este entorno.');
       return;
     }
 
     let desmontado = false;
     let rafId: number | null = null;
 
+    // Conserva el ancho entre llamadas del ResizeObserver.
+    let ultimoAnchoRenderizado: number | null = null;
+
     const contenedor = buttonContainer.current;
 
     async function manejarCredential(
       respuesta: GoogleCredentialResponse,
     ) {
-      if (
-        desmontado ||
-        procesandoRef.current
-      ) {
+      if (desmontado || procesandoRef.current) {
         return;
       }
 
-      const credential =
-        respuesta.credential;
+      const credential = respuesta.credential;
 
       if (!credential) {
-        setError(
-          'Google no devolvió una credencial válida.',
-        );
+        setError('Google no devolvió una credencial válida.');
         return;
       }
 
@@ -161,9 +126,7 @@ export function GoogleLoginButton({
           return;
         }
 
-        if (
-          errorSolicitud instanceof ApiError
-        ) {
+        if (errorSolicitud instanceof ApiError) {
           setError(errorSolicitud.message);
         } else {
           setError(
@@ -197,6 +160,14 @@ export function GoogleLoginButton({
 
       const anchoBoton =
         Math.min(anchoDisponible, 400);
+
+      // Ignora cambios de altura y avisos con el mismo ancho.
+      if (anchoBoton === ultimoAnchoRenderizado) {
+        return;
+      }
+
+      // Registrar antes de modificar el DOM evita el ciclo.
+      ultimoAnchoRenderizado = anchoBoton;
 
       contenedor.replaceChildren();
 
@@ -246,19 +217,17 @@ export function GoogleLoginButton({
       }
     }
 
-    const resizeObserver =
-      new ResizeObserver(() => {
-        programarRenderizado();
-      });
+    const resizeObserver = new ResizeObserver(() => {
+      programarRenderizado();
+    });
 
     if (contenedor) {
       resizeObserver.observe(contenedor);
     }
 
-    const scriptExistente =
-      document.getElementById(
-        GOOGLE_SCRIPT_ID,
-      ) as HTMLScriptElement | null;
+    const scriptExistente = document.getElementById(
+      GOOGLE_SCRIPT_ID,
+    ) as HTMLScriptElement | null;
 
     let script: HTMLScriptElement;
 
@@ -275,15 +244,8 @@ export function GoogleLoginButton({
       document.head.appendChild(script);
     }
 
-    script.addEventListener(
-      'load',
-      manejarCarga,
-    );
-
-    script.addEventListener(
-      'error',
-      manejarErrorCarga,
-    );
+    script.addEventListener('load', manejarCarga);
+    script.addEventListener('error', manejarErrorCarga);
 
     if (window.google) {
       manejarCarga();
@@ -298,15 +260,8 @@ export function GoogleLoginButton({
         cancelAnimationFrame(rafId);
       }
 
-      script.removeEventListener(
-        'load',
-        manejarCarga,
-      );
-
-      script.removeEventListener(
-        'error',
-        manejarErrorCarga,
-      );
+      script.removeEventListener('load', manejarCarga);
+      script.removeEventListener('error', manejarErrorCarga);
     };
   }, []);
 
@@ -327,19 +282,13 @@ export function GoogleLoginButton({
       </div>
 
       {procesando && (
-        <p
-          className={styles.status}
-          role="status"
-        >
+        <p className={styles.status} role="status">
           Iniciando sesión con Google...
         </p>
       )}
 
       {error && (
-        <p
-          className={styles.error}
-          role="alert"
-        >
+        <p className={styles.error} role="alert">
           {error}
         </p>
       )}
