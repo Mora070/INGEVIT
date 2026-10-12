@@ -1,3 +1,4 @@
+
 import {
   BadRequestException,
   Injectable,
@@ -44,6 +45,19 @@ import type {
  * - una panorámica
  *
  * Nunca ambas al mismo tiempo.
+ *
+ * También pueden asociarse a una capa:
+ *
+ * - id_capa != null:
+ *   La incidencia pertenece a una capa
+ *   específica del proyecto.
+ *
+ * - id_capa = null:
+ *   La incidencia es general del mapa.
+ *
+ * Cuando una capa se elimina, PostgreSQL
+ * elimina automáticamente sus incidencias
+ * asociadas mediante ON DELETE CASCADE.
  */
 @Injectable()
 export class IncidenciasMapaCreacionService {
@@ -162,8 +176,53 @@ export class IncidenciasMapaCreacionService {
         }
 
         /*
+         * Determinamos si la incidencia
+         * pertenece a una capa específica.
+         *
+         * Si el frontend no envía id_capa,
+         * la incidencia será general del mapa.
+         */
+        const idCapa =
+          datos.id_capa ?? null;
+
+        /*
+         * Si se recibe una capa, verificamos:
+         *
+         * - que exista;
+         * - que pertenezca al proyecto;
+         * - que esté lista para utilizarse.
+         *
+         * La comprobación se realiza dentro
+         * de la misma transacción de creación.
+         */
+        if (
+          idCapa !== null
+        ) {
+          const capaDisponible =
+            await this.incidencias
+              .existeCapaListaParaIncidencia(
+                client,
+                idProyecto,
+                idCapa,
+              );
+
+          if (
+            !capaDisponible
+          ) {
+            throw new NotFoundException(
+              'La capa no está disponible en este proyecto.',
+            );
+          }
+        }
+
+        /*
          * La ubicación siempre procede
          * del punto marcado por el usuario.
+         *
+         * id_capa establece la asociación
+         * que PostgreSQL utilizará para
+         * eliminar las incidencias cuando
+         * se elimine su capa.
          */
         const incidencia =
           await this.incidencias.crearEnMapa(
@@ -197,6 +256,9 @@ export class IncidenciasMapaCreacionService {
               id_panoramica:
                 datos.id_panoramica ??
                 null,
+
+              id_capa:
+                idCapa,
             },
           );
 
@@ -215,6 +277,15 @@ export class IncidenciasMapaCreacionService {
             'vinculada a una panorámica 360°';
         }
 
+        /*
+         * Registramos la asociación
+         * con una capa cuando exista.
+         */
+        const detalleCapa =
+          incidencia.id_capa
+            ? `, asociada a la capa ${incidencia.id_capa}`
+            : ', sin capa asociada';
+
         await this.actividades.crear(
           client,
           {
@@ -227,7 +298,7 @@ export class IncidenciasMapaCreacionService {
               'INCIDENCIA_CREADA',
 
             mensaje:
-              `Incidencia ${incidencia.id_incidencia} creada en el mapa, ${detalleActividad}.`,
+              `Incidencia ${incidencia.id_incidencia} creada en el mapa, ${detalleActividad}${detalleCapa}.`,
           },
         );
 

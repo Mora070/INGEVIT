@@ -594,6 +594,7 @@ export function ProjectsMap({
    * ====================================================
    */
 
+
   function limpiarNuevaIncidencia() {
     setTipoNuevaIncidencia(
       'TEXTO',
@@ -627,11 +628,27 @@ export function ProjectsMap({
       null,
     );
 
+    /*
+     * Limpiamos la asociación temporal
+     * con la capa seleccionada.
+     *
+     * Evita que una incidencia nueva
+     * herede la capa de la anterior.
+     */
+    idCapaNuevaIncidenciaRef.current =
+      null;
+
+    /*
+     * Eliminamos el marcador temporal
+     * utilizado para seleccionar
+     * la ubicación.
+     */
     marcadorNuevaIncidencia.current?.remove();
 
     marcadorNuevaIncidencia.current =
       null;
   }
+
 
   function cerrarPanelIncidencia() {
     setPanelIncidenciaAbierto(
@@ -2098,6 +2115,20 @@ export function ProjectsMap({
           evento.lngLat.lng,
       };
 
+      const idCapaDetectada =
+        obtenerCapaVisibleEnPunto(
+          punto.latitud,
+          punto.longitud,
+        );
+
+      console.debug(
+        '[INGEVIT] Capa detectada para la incidencia:',
+        idCapaDetectada,
+      );
+
+      idCapaNuevaIncidenciaRef.current =
+        idCapaDetectada;
+
       setPuntoNuevaIncidencia(
         punto,
       );
@@ -2221,6 +2252,11 @@ export function ProjectsMap({
    */
 
   async function guardarNuevaIncidencia() {
+
+    console.log('INCIDENCIA - CAPA AL GUARDAR:', {
+      id_capa: idCapaNuevaIncidenciaRef.current,
+    });
+
     if (
       !proyectoSeleccionadoId ||
       guardandoIncidencia
@@ -2234,94 +2270,96 @@ export function ProjectsMap({
     const descripcion =
       descripcionIncidencia.trim();
 
-    if (
-      !titulo
-    ) {
+    if (!titulo) {
       setErrorIncidencia(
         'Escribe un título para la incidencia.',
       );
-
       return;
     }
 
-    if (
-      !descripcion
-    ) {
+    if (!descripcion) {
       setErrorIncidencia(
         'Escribe una descripción para la incidencia.',
       );
+      return;
+    }
 
+    if (!puntoNuevaIncidencia) {
+      setErrorIncidencia(
+        'Haz clic sobre el mapa para seleccionar la ubicación de la incidencia.',
+      );
+      return;
+    }
+
+    /*
+     * Recuperamos la capa que fue detectada
+     * cuando el usuario seleccionó el punto.
+     *
+     * null significa que la incidencia
+     * es general del mapa.
+     */
+    const idCapaIncidencia =
+      idCapaNuevaIncidenciaRef.current;
+
+    /*
+     * Comprobamos los recursos multimedia
+     * antes de iniciar el guardado.
+     */
+    if (
+      tipoNuevaIncidencia === 'FOTOGRAFIA' &&
+      !fotografiaSeleccionadaId
+    ) {
+      setErrorIncidencia(
+        'Selecciona una fotografía de la galería.',
+      );
       return;
     }
 
     if (
-      !puntoNuevaIncidencia
+      tipoNuevaIncidencia === 'PANORAMICA' &&
+      !panoramicaSeleccionadaId
     ) {
       setErrorIncidencia(
-        'Haz clic sobre el mapa para seleccionar la ubicación de la incidencia.',
+        'Selecciona una panorámica 360°.',
       );
-
       return;
     }
 
     try {
-      setGuardandoIncidencia(
-        true,
-      );
+      setGuardandoIncidencia(true);
+      setErrorIncidencia(null);
 
-      setErrorIncidencia(
-        null,
-      );
+      let nuevaIncidencia: IncidenciaMapa;
 
-      let nuevaIncidencia:
-        IncidenciaMapa;
-
-      if (
-        tipoNuevaIncidencia ===
-        'TEXTO'
-      ) {
+      if (tipoNuevaIncidencia === 'TEXTO') {
         nuevaIncidencia =
           await crearIncidenciaMapa(
             proyectoSeleccionadoId,
             {
               titulo,
-
               descripcion,
-
-              prioridad:
-                prioridadIncidencia,
+              prioridad: prioridadIncidencia,
 
               latitud:
                 puntoNuevaIncidencia.latitud,
 
               longitud:
                 puntoNuevaIncidencia.longitud,
+
+              id_capa:
+                idCapaIncidencia,
             },
           );
       } else if (
-        tipoNuevaIncidencia ===
-        'FOTOGRAFIA'
+        tipoNuevaIncidencia === 'FOTOGRAFIA'
       ) {
-        if (
-          !fotografiaSeleccionadaId
-        ) {
-          setErrorIncidencia(
-            'Selecciona una fotografía de la galería.',
-          );
-
-          return;
-        }
-
         nuevaIncidencia =
           await crearIncidenciaMapa(
             proyectoSeleccionadoId,
             {
               titulo,
-
               descripcion,
-
-              prioridad:
-                prioridadIncidencia,
+              prioridad: prioridadIncidencia,
 
               latitud:
                 puntoNuevaIncidencia.latitud,
@@ -2330,30 +2368,20 @@ export function ProjectsMap({
                 puntoNuevaIncidencia.longitud,
 
               id_fotografia:
-                fotografiaSeleccionadaId,
+                fotografiaSeleccionadaId!,
+
+              id_capa:
+                idCapaIncidencia,
             },
           );
       } else {
-        if (
-          !panoramicaSeleccionadaId
-        ) {
-          setErrorIncidencia(
-            'Selecciona una panorámica 360°.',
-          );
-
-          return;
-        }
-
         nuevaIncidencia =
           await crearIncidenciaMapa(
             proyectoSeleccionadoId,
             {
               titulo,
-
               descripcion,
-
-              prioridad:
-                prioridadIncidencia,
+              prioridad: prioridadIncidencia,
 
               latitud:
                 puntoNuevaIncidencia.latitud,
@@ -2362,30 +2390,38 @@ export function ProjectsMap({
                 puntoNuevaIncidencia.longitud,
 
               id_panoramica:
-                panoramicaSeleccionadaId,
+                panoramicaSeleccionadaId!,
+
+              id_capa:
+                idCapaIncidencia,
             },
           );
       }
 
+      /*
+       * Actualizamos las incidencias
+       * mostradas en el mapa.
+       */
       setIncidenciasMapa(
-        (
-          actuales,
-        ) => [
-            nuevaIncidencia,
-            ...actuales.filter(
-              (
-                incidencia,
-              ) =>
-                incidencia.id_incidencia !==
-                nuevaIncidencia.id_incidencia,
-            ),
-          ],
+        (actuales) => [
+          nuevaIncidencia,
+          ...actuales.filter(
+            (incidencia) =>
+              incidencia.id_incidencia !==
+              nuevaIncidencia.id_incidencia,
+          ),
+        ],
       );
 
+      /*
+       * Cerramos el panel y limpiamos
+       * la asociación temporal.
+       */
       cerrarPanelIncidencia();
-    } catch (
-    error
-    ) {
+
+      idCapaNuevaIncidenciaRef.current =
+        null;
+    } catch (error) {
       console.error(
         'No fue posible crear la incidencia.',
         error,
@@ -2397,11 +2433,10 @@ export function ProjectsMap({
           : 'No fue posible crear la incidencia.',
       );
     } finally {
-      setGuardandoIncidencia(
-        false,
-      );
+      setGuardandoIncidencia(false);
     }
   }
+
 
   /*
    * ====================================================
@@ -2631,6 +2666,98 @@ export function ProjectsMap({
         false,
       );
     }
+  }
+
+  const idCapaNuevaIncidenciaRef =
+    useRef<string | null>(null);
+
+  function obtenerCapaVisibleEnPunto(
+    latitud: number,
+    longitud: number,
+  ): string | null {
+    const mapaActual = map.current;
+
+    if (!mapaActual) {
+      return null;
+    }
+
+    console.log('DIAGNÓSTICO DE CAPAS', {
+      latitud,
+      longitud,
+      capas: capasMapa.map((capa) => ({
+        id_capa: capa.id_capa,
+        estado: capa.estado_procesamiento,
+        visible: capa.visible,
+        opacidad: capa.opacidad,
+        bbox: capa.bbox,
+        teselas: capa.teselas,
+        existeEnMapbox: Boolean(
+          mapaActual.getLayer(
+            obtenerLayerId(capa.id_capa),
+          ),
+        ),
+        boundsCache: capa.teselas
+          ? tileJsonCache.current.get(
+            `${capa.id_capa}:${capa.teselas.version}`,
+          )?.bounds
+          : null,
+      })),
+    });
+
+
+    const capasCandidatas = [...capasMapa]
+      .filter((capa) => {
+        if (
+          capa.estado_procesamiento !== 'LISTA' ||
+          !capa.teselas ||
+          !capa.visible ||
+          capa.opacidad <= 0
+        ) {
+          return false;
+        }
+
+        const layerId = obtenerLayerId(capa.id_capa);
+
+        if (!mapaActual.getLayer(layerId)) {
+          return false;
+        }
+
+        if (
+          mapaActual.getLayoutProperty(
+            layerId,
+            'visibility',
+          ) === 'none'
+        ) {
+          return false;
+        }
+
+        const limites =
+          capa.bbox ??
+          tileJsonCache.current.get(
+            `${capa.id_capa}:${capa.teselas.version}`,
+          )?.bounds;
+
+        if (!limites) {
+          return false;
+        }
+
+        const [oeste, sur, este, norte] = limites;
+
+        return (
+          longitud >= oeste &&
+          longitud <= este &&
+          latitud >= sur &&
+          latitud <= norte
+        );
+      })
+      .sort((a, b) => b.orden - a.orden);
+
+    console.log(
+      'CAPA DETECTADA:',
+      capasCandidatas[0]?.id_capa ?? null,
+    );
+
+    return capasCandidatas[0]?.id_capa ?? null;
   }
 
   /*
@@ -3299,6 +3426,8 @@ export function ProjectsMap({
           </div>
         )}
 
+
+
       {panelCapasAbierto &&
         proyectoSeleccionadoId && (
           <MapLayersPanel
@@ -3306,20 +3435,114 @@ export function ProjectsMap({
             idProyecto={proyectoSeleccionadoId}
             versionExterna={versionPanelCapas}
             onCerrar={() => {
-              setPanelCapasAbierto(
-                false,
-              );
+              setPanelCapasAbierto(false);
             }}
             onSubirCapa={() => {
-              setModalSubirCapaAbierto(
-                true,
-              );
+              setModalSubirCapaAbierto(true);
             }}
             onCapasChange={
               setCapasMapa
             }
+
+            onCapaEliminada={async (idCapa) => {
+              /*
+               * La capa ya fue eliminada por el backend.
+               * PostgreSQL también eliminó sus incidencias
+               * asociadas mediante ON DELETE CASCADE.
+               */
+
+              if (
+                idCapaNuevaIncidenciaRef.current === idCapa
+              ) {
+                idCapaNuevaIncidenciaRef.current = null;
+              }
+
+              /*
+               * Actualizamos inmediatamente las incidencias
+               * que ya conocemos como asociadas a la capa.
+               */
+              setIncidenciasMapa((actuales) =>
+                actuales.filter(
+                  (incidencia) =>
+                    incidencia.id_capa !== idCapa,
+                ),
+              );
+
+              /*
+               * Consultamos nuevamente PostgreSQL para
+               * obtener la lista definitiva de incidencias.
+               */
+              try {
+                const idProyecto = proyectoSeleccionadoId;
+
+                const primeraPagina =
+                  await listarIncidenciasMapa(
+                    idProyecto,
+                    {
+                      pagina: 1,
+                      limite: 100,
+                    },
+                  );
+
+                let incidencias = [
+                  ...primeraPagina.incidencias,
+                ];
+
+                for (
+                  let pagina = 2;
+                  pagina <= primeraPagina.total_paginas;
+                  pagina += 1
+                ) {
+                  const respuesta =
+                    await listarIncidenciasMapa(
+                      idProyecto,
+                      {
+                        pagina,
+                        limite: 100,
+                      },
+                    );
+
+                  incidencias = [
+                    ...incidencias,
+                    ...respuesta.incidencias,
+                  ];
+                }
+
+                /*
+                 * Sincronizamos los marcadores con
+                 * las incidencias que siguen existiendo.
+                 */
+                setIncidenciasMapa(incidencias);
+
+                /*
+                 * Si estaba abierto el detalle de una
+                 * incidencia eliminada, lo cerramos.
+                 */
+                setIncidenciaSeleccionada((actual) => {
+                  if (!actual) {
+                    return null;
+                  }
+
+                  return (
+                    incidencias.find(
+                      (incidencia) =>
+                        incidencia.id_incidencia ===
+                        actual.id_incidencia,
+                    ) ?? null
+                  );
+                });
+              } catch (error) {
+                console.error(
+                  'No fue posible sincronizar las incidencias después de eliminar la ortofoto.',
+                  error,
+                );
+              }
+            }}
+
           />
         )}
+
+
 
       {incidenciaSeleccionada &&
         proyectoSeleccionadoId && (

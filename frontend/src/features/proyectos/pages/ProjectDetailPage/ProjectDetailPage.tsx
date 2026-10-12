@@ -413,6 +413,43 @@ export function ProjectDetailPage({
     [],
   );
 
+  const [filtroFechaFotografias, setFiltroFechaFotografias] =
+    useState<'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado'>(
+      'todas',
+    );
+
+  const [fechaDesdeFotografias, setFechaDesdeFotografias] =
+    useState('');
+
+  const [fechaHastaFotografias, setFechaHastaFotografias] =
+    useState('');
+
+  const [filtroFechaResumen, setFiltroFechaResumen] =
+    useState<'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado'>(
+      'todas',
+    );
+
+  const [fechaDesdeResumen, setFechaDesdeResumen] =
+    useState('');
+
+  const [fechaHastaResumen, setFechaHastaResumen] =
+    useState('');
+
+  // FILTRO DE FECHAS - PLANOS
+  const [filtroFechaPlanos, setFiltroFechaPlanos] =
+    useState<'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado'>('todas');
+
+  const [fechaDesdePlanos, setFechaDesdePlanos] = useState('');
+  const [fechaHastaPlanos, setFechaHastaPlanos] = useState('');
+
+  // FILTRO DE FECHAS - PANORÁMICAS 360°
+  const [filtroFechaPanoramicas, setFiltroFechaPanoramicas] =
+    useState<'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado'>('todas');
+
+  const [fechaDesdePanoramicas, setFechaDesdePanoramicas] = useState('');
+  const [fechaHastaPanoramicas, setFechaHastaPanoramicas] = useState('');
+
+
   const [
     panoramicas,
     setPanoramicas,
@@ -2007,11 +2044,154 @@ export function ProjectDetailPage({
     ) ??
     null;
 
-  const fotografiasRecientes =
-    fotografias.slice(
-      0,
-      4,
-    );
+  const filtrarFotografiasPorFecha = (
+    lista: FotografiaProyecto[],
+    filtro: 'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado',
+    desde: string,
+    hasta: string,
+  ) => {
+    const ahora = new Date();
+
+    return [...lista]
+      .filter((fotografia) => {
+        const fecha = new Date(fotografia.fecha_subida);
+
+        if (Number.isNaN(fecha.getTime())) {
+          return false;
+        }
+
+        if (filtro === 'todas') {
+          return true;
+        }
+
+        if (filtro === 'hoy') {
+          return fecha.toDateString() === ahora.toDateString();
+        }
+
+        if (filtro === '7dias' || filtro === '30dias') {
+          const inicio = new Date(ahora);
+
+          inicio.setDate(
+            inicio.getDate() - (filtro === '7dias' ? 7 : 30),
+          );
+
+          return fecha >= inicio && fecha <= ahora;
+        }
+
+        if (filtro === 'personalizado') {
+          if (desde) {
+            const fechaDesde = new Date(`${desde}T00:00:00`);
+
+            if (fecha < fechaDesde) return false;
+          }
+
+          if (hasta) {
+            const fechaHasta = new Date(`${hasta}T23:59:59.999`);
+
+            if (fecha > fechaHasta) return false;
+          }
+        }
+
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.fecha_subida).getTime() -
+          new Date(a.fecha_subida).getTime(),
+      );
+  };
+
+
+
+  const fotografiasFiltradas = filtrarFotografiasPorFecha(
+    fotografias,
+    filtroFechaFotografias,
+    fechaDesdeFotografias,
+    fechaHastaFotografias,
+  );
+
+  const fotografiasResumenFiltradas = filtrarFotografiasPorFecha(
+    fotografias,
+    filtroFechaResumen,
+    fechaDesdeResumen,
+    fechaHastaResumen,
+  );
+
+  const fotografiasRecientes = fotografiasResumenFiltradas.slice(0, 4);
+
+  // FILTRAR ARCHIVOS POR FECHA DE SUBIDA
+  const filtrarArchivosPorFecha = <T extends { fecha_subida: string }>(
+    lista: T[],
+    filtro: 'todas' | 'hoy' | '7dias' | '30dias' | 'personalizado',
+    desde: string,
+    hasta: string,
+  ): T[] => {
+    const ahora = new Date();
+
+    return [...lista]
+      .filter((archivo) => {
+        const fecha = new Date(archivo.fecha_subida);
+
+        if (Number.isNaN(fecha.getTime())) {
+          return false;
+        }
+
+        if (filtro === 'todas') {
+          return true;
+        }
+
+        if (filtro === 'hoy') {
+          return fecha.toDateString() === ahora.toDateString();
+        }
+
+        if (filtro === '7dias' || filtro === '30dias') {
+          const inicio = new Date(ahora);
+
+          inicio.setDate(
+            inicio.getDate() - (filtro === '7dias' ? 7 : 30),
+          );
+
+          return fecha >= inicio && fecha <= ahora;
+        }
+
+        if (filtro === 'personalizado') {
+          if (desde) {
+            const fechaDesde = new Date(`${desde}T00:00:00`);
+
+            if (fecha < fechaDesde) return false;
+          }
+
+          if (hasta) {
+            const fechaHasta = new Date(`${hasta}T23:59:59.999`);
+
+            if (fecha > fechaHasta) return false;
+          }
+        }
+
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.fecha_subida).getTime() -
+          new Date(a.fecha_subida).getTime(),
+      );
+  };
+
+  // PLANOS FILTRADOS
+  const planosFiltrados = filtrarArchivosPorFecha(
+    planos,
+    filtroFechaPlanos,
+    fechaDesdePlanos,
+    fechaHastaPlanos,
+  );
+
+  // PANORÁMICAS FILTRADAS
+  const panoramicasFiltradas = filtrarArchivosPorFecha(
+    panoramicas,
+    filtroFechaPanoramicas,
+    fechaDesdePanoramicas,
+    fechaHastaPanoramicas,
+  );
 
   return (
     <>
@@ -2633,6 +2813,157 @@ export function ProjectDetailPage({
                   </button>
                 </div>
 
+                {/* FILTRO DE FECHAS - FOTOGRAFÍAS RECIENTES */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    padding: '16px 22px 6px',
+                    marginBottom: '16px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <select
+                      aria-label="Filtrar fotografías recientes por fecha"
+                      value={filtroFechaResumen}
+                      onChange={(evento) => {
+                        setFiltroFechaResumen(
+                          evento.target.value as
+                          | 'todas'
+                          | 'hoy'
+                          | '7dias'
+                          | '30dias'
+                          | 'personalizado',
+                        );
+                      }}
+                      style={{
+                        height: '38px',
+                        padding: '0 12px',
+                        border: '1px solid #dce3ea',
+                        borderRadius: '8px',
+                        backgroundColor: '#ffffff',
+                        color: '#475569',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        width: '190px',
+                        maxWidth: '100%',
+                        outlineOffset: '2px',
+                      }}
+                    >
+                      <option value="todas">Todas las fechas</option>
+                      <option value="hoy">Hoy</option>
+                      <option value="7dias">Últimos 7 días</option>
+                      <option value="30dias">Últimos 30 días</option>
+                      <option value="personalizado">
+                        Rango personalizado
+                      </option>
+                    </select>
+
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        color: '#94a3b8',
+                      }}
+                    >
+                      Más recientes primero
+                    </span>
+                  </div>
+
+                  {filtroFechaResumen === 'personalizado' && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '14px',
+                        paddingTop: '6px',
+                      }}
+                    >
+                      {/* FECHA DESDE */}
+                      <label
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          color: '#475569',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Desde
+
+                        <input
+                          type="date"
+                          value={fechaDesdeResumen}
+                          max={fechaHastaResumen || undefined}
+                          onChange={(evento) => {
+                            setFechaDesdeResumen(evento.target.value);
+                          }}
+                          style={{
+                            width: '165px',
+                            height: '42px',
+                            padding: '0 12px',
+                            border: '1px solid #dce3ea',
+                            borderRadius: '10px',
+                            backgroundColor: '#ffffff',
+                            color: '#334155',
+                            fontSize: '13px',
+                            boxSizing: 'border-box',
+                            colorScheme: 'light',
+                          }}
+                        />
+                      </label>
+
+                      {/* FECHA HASTA */}
+                      <label
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          color: '#475569',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Hasta
+
+                        <input
+                          type="date"
+                          value={fechaHastaResumen}
+                          min={fechaDesdeResumen || undefined}
+                          onChange={(evento) => {
+                            setFechaHastaResumen(evento.target.value);
+                          }}
+                          style={{
+                            width: '165px',
+                            height: '42px',
+                            padding: '0 12px',
+                            border: '1px solid #dce3ea',
+                            borderRadius: '10px',
+                            backgroundColor: '#ffffff',
+                            color: '#334155',
+                            fontSize: '13px',
+                            boxSizing: 'border-box',
+                            colorScheme: 'light',
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
                 {cargandoFotografias ? (
                   <div
                     className={
@@ -2648,7 +2979,9 @@ export function ProjectDetailPage({
                       styles.emptySection
                     }
                   >
-                    Todavía no hay fotografías en este proyecto.
+                    {fotografias.length === 0
+                      ? 'Todavía no hay fotografías en este proyecto.'
+                      : 'No hay fotografías para el período seleccionado.'}
                   </div>
                 ) : (
                   <div
@@ -2803,6 +3136,172 @@ export function ProjectDetailPage({
                   Subir fotografía
                 </button>
               </div>
+              {/* FILTRO DE FECHAS - GALERÍA FOTOGRAFÍAS */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  padding: '16px 22px 6px',
+                  marginBottom: '16px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <select
+                    aria-label="Filtrar galería de fotografías por fecha"
+                    value={filtroFechaFotografias}
+                    onChange={(evento) => {
+                      setFiltroFechaFotografias(
+                        evento.target.value as
+                        | 'todas'
+                        | 'hoy'
+                        | '7dias'
+                        | '30dias'
+                        | 'personalizado',
+                      );
+                    }}
+                    style={{
+                      height: '38px',
+                      padding: '0 12px',
+                      border: '1px solid #dce3ea',
+                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      color: '#475569',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      width: '190px',
+                      maxWidth: '100%',
+                      outlineOffset: '2px',
+                    }}
+                  >
+                    <option value="todas">
+                      Todas las fechas
+                    </option>
+
+                    <option value="hoy">
+                      Hoy
+                    </option>
+
+                    <option value="7dias">
+                      Últimos 7 días
+                    </option>
+
+                    <option value="30dias">
+                      Últimos 30 días
+                    </option>
+
+                    <option value="personalizado">
+                      Rango personalizado
+                    </option>
+                  </select>
+
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#94a3b8',
+                    }}
+                  >
+                    Más recientes primero
+                  </span>
+                </div>
+
+                {filtroFechaFotografias === 'personalizado' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '14px',
+                      paddingTop: '6px',
+                    }}
+                  >
+                    {/* FECHA DESDE */}
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Desde
+
+                      <input
+                        type="date"
+                        value={fechaDesdeFotografias}
+                        max={fechaHastaFotografias || undefined}
+                        onChange={(evento) => {
+                          setFechaDesdeFotografias(
+                            evento.target.value,
+                          );
+                        }}
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+
+                    {/* FECHA HASTA */}
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Hasta
+
+                      <input
+                        type="date"
+                        value={fechaHastaFotografias}
+                        min={fechaDesdeFotografias || undefined}
+                        onChange={(evento) => {
+                          setFechaHastaFotografias(
+                            evento.target.value,
+                          );
+                        }}
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
 
               {cargandoFotografias ? (
                 <div
@@ -2827,7 +3326,7 @@ export function ProjectDetailPage({
                     styles.galleryGrid
                   }
                 >
-                  {fotografias.map(
+                  {fotografiasFiltradas.map(
                     (
                       fotografia,
                     ) => (
@@ -3028,6 +3527,135 @@ export function ProjectDetailPage({
                 </button>
               </div>
 
+              {/* FILTRO DE FECHAS - PLANOS */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  padding: '16px 22px 6px',
+                  marginBottom: '16px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <select
+                    aria-label="Filtrar planos por fecha"
+                    value={filtroFechaPlanos}
+                    onChange={(e) =>
+                      setFiltroFechaPlanos(
+                        e.target.value as typeof filtroFechaPlanos,
+                      )
+                    }
+                    style={{
+                      height: '38px',
+                      padding: '0 12px',
+                      border: '1px solid #dce3ea',
+                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      color: '#475569',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      width: '190px',
+                      maxWidth: '100%',
+                      outlineOffset: '2px',
+                    }}
+                  >
+                    <option value="todas">Todas las fechas</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="7dias">Últimos 7 días</option>
+                    <option value="30dias">Últimos 30 días</option>
+                    <option value="personalizado">Rango personalizado</option>
+                  </select>
+
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    Más recientes primero
+                  </span>
+                </div>
+
+                {filtroFechaPlanos === 'personalizado' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '14px',
+                      paddingTop: '6px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Desde
+                      <input
+                        type="date"
+                        value={fechaDesdePlanos}
+                        onChange={(e) => setFechaDesdePlanos(e.target.value)}
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Hasta
+                      <input
+                        type="date"
+                        value={fechaHastaPlanos}
+                        onChange={(e) => setFechaHastaPlanos(e.target.value)}
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               {cargandoPlanos ? (
                 <div
                   className={
@@ -3036,14 +3664,16 @@ export function ProjectDetailPage({
                 >
                   Cargando planos...
                 </div>
-              ) : planos.length ===
+              ) : planosFiltrados.length ===
                 0 ? (
                 <div
                   className={
                     styles.emptySection
                   }
                 >
-                  Todavía no hay planos PDF en este proyecto.
+                  {planos.length === 0
+                    ? 'Todavía no hay planos PDF en este proyecto.'
+                    : 'No hay planos para el período seleccionado.'}
                 </div>
               ) : (
                 <div
@@ -3051,7 +3681,7 @@ export function ProjectDetailPage({
                     styles.galleryGrid
                   }
                 >
-                  {planos.map(
+                  {planosFiltrados.map(
                     (
                       plano,
                     ) => (
@@ -3340,6 +3970,139 @@ export function ProjectDetailPage({
                 </button>
               </div>
 
+              {/* FILTRO DE FECHAS - PANORÁMICAS 360° */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  padding: '16px 22px 6px',
+                  marginBottom: '16px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <select
+                    aria-label="Filtrar panorámicas por fecha"
+                    value={filtroFechaPanoramicas}
+                    onChange={(e) =>
+                      setFiltroFechaPanoramicas(
+                        e.target.value as typeof filtroFechaPanoramicas,
+                      )
+                    }
+                    style={{
+                      height: '38px',
+                      padding: '0 12px',
+                      border: '1px solid #dce3ea',
+                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      color: '#475569',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      width: '190px',
+                      maxWidth: '100%',
+                      outlineOffset: '2px',
+                    }}
+                  >
+                    <option value="todas">Todas las fechas</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="7dias">Últimos 7 días</option>
+                    <option value="30dias">Últimos 30 días</option>
+                    <option value="personalizado">Rango personalizado</option>
+                  </select>
+
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    Más recientes primero
+                  </span>
+                </div>
+
+                {filtroFechaPanoramicas === 'personalizado' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '14px',
+                      paddingTop: '6px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Desde
+                      <input
+                        type="date"
+                        value={fechaDesdePanoramicas}
+                        onChange={(e) =>
+                          setFechaDesdePanoramicas(e.target.value)
+                        }
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: '#475569',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Hasta
+                      <input
+                        type="date"
+                        value={fechaHastaPanoramicas}
+                        onChange={(e) =>
+                          setFechaHastaPanoramicas(e.target.value)
+                        }
+                        style={{
+                          width: '165px',
+                          height: '42px',
+                          padding: '0 12px',
+                          border: '1px solid #dce3ea',
+                          borderRadius: '10px',
+                          backgroundColor: '#ffffff',
+                          color: '#334155',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                          colorScheme: 'light',
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               {cargandoPanoramicas ? (
                 <div
                   className={
@@ -3348,14 +4111,16 @@ export function ProjectDetailPage({
                 >
                   Cargando panorámicas...
                 </div>
-              ) : panoramicas.length ===
+              ) : panoramicasFiltradas.length ===
                 0 ? (
                 <div
                   className={
                     styles.emptySection
                   }
                 >
-                  Todavía no hay panorámicas 360° en este proyecto.
+                  {panoramicas.length === 0
+                    ? 'Todavía no hay panorámicas 360° en este proyecto.'
+                    : 'No hay panorámicas para el período seleccionado.'}
                 </div>
               ) : (
                 <div
@@ -3363,7 +4128,7 @@ export function ProjectDetailPage({
                     styles.galleryGrid
                   }
                 >
-                  {panoramicas.map(
+                  {panoramicasFiltradas.map(
                     (
                       panoramica,
                     ) => (

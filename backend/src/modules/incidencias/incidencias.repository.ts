@@ -1,3 +1,4 @@
+
 import {
   Injectable,
 } from '@nestjs/common';
@@ -106,6 +107,12 @@ export interface IncidenciaRow {
  * - id_fotografia = null
  * - id_panoramica contiene
  *   el recurso relacionado
+ *
+ * CAPA:
+ * - id_capa contiene el identificador
+ *   de una capa válida del proyecto.
+ * - id_capa = null identifica una
+ *   incidencia general del mapa.
  */
 export interface CrearIncidenciaMapaInput {
   id_proyecto:
@@ -133,6 +140,9 @@ export interface CrearIncidenciaMapaInput {
   string | null;
 
   id_panoramica:
+  string | null;
+
+  id_capa:
   string | null;
 }
 
@@ -197,6 +207,9 @@ export interface IncidenciaMapaRow
 
   id_panoramica:
   string | null;
+
+  id_capa:
+  string | null;
 }
 
 /**
@@ -237,7 +250,8 @@ export interface ActualizarIncidenciaInput {
  *
  * No modifica:
  * - creador;
- * - fecha de creación.
+ * - fecha de creación;
+ * - capa asociada.
  */
 export interface ActualizarIncidenciaMapaInput
   extends ActualizarIncidenciaInput {
@@ -484,19 +498,84 @@ export class IncidenciasRepository {
   }
 
   /**
+   * Comprueba que una capa geográfica
+   * exista, pertenezca al proyecto
+   * y esté lista para utilizarse.
+   *
+   * FOR KEY SHARE protege la referencia
+   * mientras se crea la incidencia
+   * dentro de la misma transacción.
+   *
+   * Devuelve false cuando no existe
+   * una capa válida para asociar.
+   */
+  async existeCapaListaParaIncidencia(
+    client:
+      PoolClient,
+
+    idProyecto:
+      string,
+
+    idCapa:
+      string,
+  ): Promise<boolean> {
+    const resultado =
+      await client.query<{
+        id_capa: string;
+      }>(
+        `
+          SELECT id_capa
+          FROM obra.capas
+          WHERE id_proyecto = $1::uuid
+            AND id_capa = $2::uuid
+            AND estado_procesamiento = 'LISTA'
+          FOR KEY SHARE
+        `,
+        [
+          idProyecto,
+          idCapa,
+        ],
+      );
+
+    if (
+      resultado.rowCount === 0 &&
+      resultado.rows.length === 0
+    ) {
+      return false;
+    }
+
+    if (
+      resultado.rowCount !== 1 ||
+      resultado.rows.length !== 1 ||
+      resultado.rows[0]?.id_capa !== idCapa
+    ) {
+      throw new Error(
+        'La consulta de la capa devolvió un resultado inesperado.',
+      );
+    }
+
+    return true;
+  }
+
+  /**
    * Crea una incidencia geográfica
    * directamente en el mapa.
    *
    * El servicio debe haber:
    * - comprobado acceso al proyecto;
    * - validado la relación multimedia;
-   * - determinado la ubicación.
+   * - determinado la ubicación;
+   * - validado la capa asociada,
+   *   cuando corresponda.
    *
    * El repositorio conserva:
    * - sin plano;
    * - sin página;
    * - sin coordenadas X/Y;
    * - ubicación geográfica obligatoria.
+   *
+   * id_capa puede ser null cuando
+   * la incidencia es general del mapa.
    */
   async crearEnMapa(
     client:
@@ -520,6 +599,7 @@ export class IncidenciasRepository {
             longitud,
             id_fotografia,
             id_panoramica,
+            id_capa,
             id_plano,
             numero_pagina,
             coordenada_x,
@@ -536,6 +616,7 @@ export class IncidenciasRepository {
             $7::numeric,
             $8::uuid,
             $9::uuid,
+            $10::uuid,
             NULL,
             NULL,
             NULL,
@@ -558,6 +639,7 @@ export class IncidenciasRepository {
             longitud,
             id_fotografia,
             id_panoramica,
+            id_capa,
             fecha_creacion
         `,
         [
@@ -570,6 +652,7 @@ export class IncidenciasRepository {
           datos.longitud,
           datos.id_fotografia,
           datos.id_panoramica,
+          datos.id_capa,
         ],
       );
 
@@ -753,7 +836,6 @@ export class IncidenciasRepository {
     return true;
   }
 
-
   /**
    * Obtiene una incidencia ubicada
    * directamente sobre el mapa.
@@ -801,6 +883,7 @@ export class IncidenciasRepository {
             longitud,
             id_fotografia,
             id_panoramica,
+            id_capa,
             fecha_creacion
           FROM obra.incidencias
           WHERE id_proyecto = $1::uuid
@@ -853,7 +936,8 @@ export class IncidenciasRepository {
    *
    * Conserva:
    * - creador;
-   * - fecha.
+   * - fecha;
+   * - capa asociada.
    */
   async actualizarDatosEnMapa(
     client:
@@ -905,6 +989,7 @@ export class IncidenciasRepository {
             longitud,
             id_fotografia,
             id_panoramica,
+            id_capa,
             fecha_creacion
         `,
         [

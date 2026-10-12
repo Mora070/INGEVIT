@@ -1,3 +1,4 @@
+
 import {
   IsEnum,
   IsNotEmpty,
@@ -36,6 +37,17 @@ import {
  *    - Proporciona id_panoramica.
  *    - No proporciona id_fotografia.
  *    - El usuario selecciona la ubicación en el mapa.
+ *
+ * Asociación con capas:
+ *
+ * - Si existe una capa geográfica visible en el punto,
+ *   el frontend envía su id_capa.
+ *
+ * - Si no existe ninguna capa aplicable,
+ *   id_capa puede omitirse o enviarse como null.
+ *
+ * - El backend comprobará que la capa exista
+ *   y pertenezca al proyecto.
  *
  * El proyecto procede de la ruta.
  * El creador procede exclusivamente de la sesión autenticada.
@@ -177,4 +189,32 @@ export class CrearIncidenciaMapaDto {
     },
   )
   id_panoramica?: string;
+
+  /**
+   * Capa geográfica asociada a la incidencia.
+   *
+   * El frontend detecta automáticamente
+   * la capa visible superior en el punto
+   * seleccionado por el usuario.
+   *
+   * Si no hay ninguna capa aplicable,
+   * la incidencia será general del mapa.
+   *
+   * El servicio verificará que la capa
+   * exista y pertenezca al mismo proyecto.
+   *
+   * PostgreSQL mantiene la relación
+   * mediante una clave foránea y elimina
+   * las incidencias asociadas cuando
+   * se elimina su capa.
+   */
+  @IsOptional()
+  @IsUUID(
+    '4',
+    {
+      message:
+        'El identificador de la capa debe ser un UUID válido.',
+    },
+  )
+  id_capa?: string | null;
 }

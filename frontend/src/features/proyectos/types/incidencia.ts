@@ -1,3 +1,4 @@
+
 export type EstadoIncidencia =
   | 'PENDIENTE'
   | 'EN_PROCESO'
@@ -55,8 +56,21 @@ export interface IncidenciaPlano {
  *   id_fotografia = null
  *   id_panoramica != null
  *
+ * Asociación con capas:
+ *
+ * - id_capa != null:
+ *   La incidencia pertenece a una capa
+ *   específica del proyecto.
+ *
+ * - id_capa = null:
+ *   La incidencia es general del mapa.
+ *
  * La ubicación pertenece siempre
  * a la incidencia.
+ *
+ * Cuando se elimina una capa, PostgreSQL
+ * elimina sus incidencias asociadas
+ * mediante ON DELETE CASCADE.
  */
 export interface IncidenciaMapa {
   id_incidencia: string;
@@ -88,6 +102,8 @@ export interface IncidenciaMapa {
   id_fotografia: string | null;
 
   id_panoramica: string | null;
+
+  id_capa: string | null;
 
   fecha_creacion: string;
 }
@@ -130,6 +146,14 @@ export interface IncidenciasMapaPaginadas {
  * creada directamente en el mapa.
  *
  * Todas requieren ubicación.
+ *
+ * id_capa es opcional para mantener
+ * compatibilidad con las incidencias
+ * generales del mapa.
+ *
+ * Si se proporciona, el backend valida
+ * que la capa pertenezca al proyecto
+ * y esté disponible.
  */
 interface DatosBaseCrearIncidenciaMapa {
   titulo: string;
@@ -141,6 +165,8 @@ interface DatosBaseCrearIncidenciaMapa {
   latitud: number;
 
   longitud: number;
+
+  id_capa?: string | null;
 }
 
 /**
@@ -148,6 +174,9 @@ interface DatosBaseCrearIncidenciaMapa {
  *
  * El usuario selecciona manualmente
  * la ubicación sobre el mapa.
+ *
+ * Puede asociarse a una capa visible
+ * o permanecer como incidencia general.
  */
 export interface DatosCrearIncidenciaMapaTexto
   extends DatosBaseCrearIncidenciaMapa {
@@ -163,6 +192,9 @@ export interface DatosCrearIncidenciaMapaTexto
  * La fotografía no aporta la ubicación.
  * El usuario también selecciona el punto
  * directamente sobre el mapa.
+ *
+ * La incidencia puede asociarse
+ * a una capa del proyecto.
  */
 export interface DatosCrearIncidenciaMapaFotografia
   extends DatosBaseCrearIncidenciaMapa {
@@ -178,6 +210,9 @@ export interface DatosCrearIncidenciaMapaFotografia
  * La panorámica no aporta la ubicación.
  * El usuario también selecciona el punto
  * directamente sobre el mapa.
+ *
+ * La incidencia puede asociarse
+ * a una capa del proyecto.
  */
 export interface DatosCrearIncidenciaMapaPanoramica
   extends DatosBaseCrearIncidenciaMapa {

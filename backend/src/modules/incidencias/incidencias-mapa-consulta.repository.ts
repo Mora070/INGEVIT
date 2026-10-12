@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
@@ -37,6 +38,18 @@ export interface IncidenciasMapaConsultadas {
  * - Panorámica:
  *   id_fotografia = null
  *   id_panoramica != null
+ *
+ * Asociación con capas:
+ *
+ * - id_capa != null:
+ *   La incidencia pertenece a una capa del proyecto.
+ *
+ * - id_capa = null:
+ *   La incidencia es general del mapa.
+ *
+ * La eliminación de una capa elimina sus incidencias
+ * asociadas mediante la relación ON DELETE CASCADE
+ * definida en PostgreSQL.
  */
 @Injectable()
 export class IncidenciasMapaConsultaRepository {
@@ -98,6 +111,7 @@ export class IncidenciasMapaConsultaRepository {
               incidencia.longitud,
               incidencia.id_fotografia,
               incidencia.id_panoramica,
+              incidencia.id_capa,
               incidencia.fecha_creacion
             FROM obra.incidencias AS incidencia
             JOIN disponible
@@ -136,6 +150,7 @@ export class IncidenciasMapaConsultaRepository {
             seleccion.longitud,
             seleccion.id_fotografia,
             seleccion.id_panoramica,
+            seleccion.id_capa,
             seleccion.fecha_creacion,
             conteo.total
 
@@ -255,6 +270,9 @@ export class IncidenciasMapaConsultaRepository {
 
         id_panoramica:
           fila.id_panoramica,
+
+        id_capa:
+          fila.id_capa,
 
         fecha_creacion:
           fila.fecha_creacion,

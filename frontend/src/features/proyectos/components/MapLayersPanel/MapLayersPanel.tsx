@@ -25,6 +25,7 @@ import {
 
 import styles from './MapLayersPanel.module.css';
 
+
 interface MapLayersPanelProps {
   idProyecto: string;
 
@@ -36,8 +37,13 @@ interface MapLayersPanelProps {
     capas: CapaProyecto[],
   ) => void;
 
+  onCapaEliminada?: (
+    idCapa: string,
+  ) => void;
+
   versionExterna?: number;
 }
+
 
 function obtenerEstadoTexto(
   capa: CapaProyecto,
@@ -149,7 +155,8 @@ export function MapLayersPanel({
   onCerrar,
   onSubirCapa,
   onCapasChange,
-  versionExterna = 0,
+  onCapaEliminada,
+  versionExterna,
 }: MapLayersPanelProps) {
   const [
     capas,
@@ -1080,20 +1087,16 @@ export function MapLayersPanel({
    * ProjectsMap también elimine
    * su raster/source.
    */
+
   function capaEliminada(
     idCapa: string,
   ) {
     setCapas(
-      (
-        actuales,
-      ) => {
+      (actuales) => {
         const nuevas =
           actuales.filter(
-            (
-              capa,
-            ) =>
-              capa.id_capa !==
-              idCapa,
+            (capa) =>
+              capa.id_capa !== idCapa,
           );
 
         onCapasChange?.(
@@ -1113,9 +1116,7 @@ export function MapLayersPanel({
         idCapa,
       );
 
-    if (
-      temporizador
-    ) {
+    if (temporizador) {
       clearTimeout(
         temporizador,
       );
@@ -1125,6 +1126,14 @@ export function MapLayersPanel({
       );
     }
 
+    /*
+     * Notificamos que la eliminación
+     * fue confirmada por el backend.
+     */
+    onCapaEliminada?.(
+      idCapa,
+    );
+
     setCapaEliminando(
       null,
     );
@@ -1133,6 +1142,7 @@ export function MapLayersPanel({
       null,
     );
   }
+
 
   return (
     <>

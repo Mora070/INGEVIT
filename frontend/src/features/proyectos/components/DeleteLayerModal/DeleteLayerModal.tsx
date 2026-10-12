@@ -53,7 +53,7 @@ export function DeleteLayerModal({
     ) {
       if (
         event.key ===
-          'Escape' &&
+        'Escape' &&
         !eliminando
       ) {
         onCerrar();
@@ -115,7 +115,7 @@ export function DeleteLayerModal({
         capa.id_capa,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -144,7 +144,7 @@ export function DeleteLayerModal({
   ) {
     if (
       event.target ===
-        event.currentTarget &&
+      event.currentTarget &&
       !eliminando
     ) {
       onCerrar();
@@ -255,8 +255,11 @@ export function DeleteLayerModal({
               </strong>
 
               <span>
-                Se eliminarán la configuración y las teselas
-                asociadas a esta ortofoto.
+                Se eliminarán permanentemente la ortofoto,
+                sus teselas y todas las incidencias asociadas
+                a esta capa. Las incidencias de otras capas
+                y las incidencias generales del mapa
+                permanecerán intactas.
               </span>
             </div>
           </div>
