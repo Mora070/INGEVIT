@@ -113,38 +113,87 @@ const CENTRO_INICIAL: [
     4.5709,
   ];
 
+
 function crearContenidoPopup(
-  proyecto:
-    Proyecto,
+  proyecto: Proyecto,
 ): HTMLElement {
-  const contenedor =
-    document.createElement(
-      'div',
-    );
+  const contenedor = document.createElement('div');
+  contenedor.className = styles.projectPopup;
 
-  const nombre =
-    document.createElement(
-      'strong',
-    );
+  // Encabezado del proyecto
+  const encabezado = document.createElement('div');
+  encabezado.className = styles.projectPopupHeader;
 
-  const direccion =
-    document.createElement(
-      'p',
-    );
+  const icono = document.createElement('div');
+  icono.className = styles.projectPopupIcon;
 
-  nombre.textContent =
-    proyecto.nombre;
+  icono.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round"
+      aria-hidden="true">
+      <path d="M3 21h18"/>
+      <path d="M5 21V7l8-4v18"/>
+      <path d="M13 9h6v12"/>
+      <path d="M8 9h2M8 13h2M8 17h2"/>
+      <path d="M16 13h1M16 17h1"/>
+    </svg>
+  `;
 
+  const informacion = document.createElement('div');
+  informacion.className = styles.projectPopupHeading;
+
+  const etiqueta = document.createElement('span');
+  etiqueta.className = styles.projectPopupLabel;
+  etiqueta.textContent = 'PROYECTO INGEVIT';
+
+  const nombre = document.createElement('h3');
+  nombre.className = styles.projectPopupTitle;
+  nombre.textContent = proyecto.nombre;
+
+  informacion.append(etiqueta, nombre);
+  encabezado.append(icono, informacion);
+
+  // Ubicación del proyecto
+  const ubicacion = document.createElement('div');
+  ubicacion.className = styles.projectPopupLocation;
+
+  const iconoUbicacion = document.createElement('span');
+  iconoUbicacion.className = styles.projectPopupLocationIcon;
+
+  iconoUbicacion.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round"
+      aria-hidden="true">
+      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/>
+      <circle cx="12" cy="10" r="2.5"/>
+    </svg>
+  `;
+
+  const direccion = document.createElement('p');
   direccion.textContent =
-    proyecto.direccion;
+    proyecto.direccion?.trim() || 'Dirección no disponible';
 
-  contenedor.append(
-    nombre,
-    direccion,
-  );
+  ubicacion.append(iconoUbicacion, direccion);
+
+  // Pie corporativo
+  const pie = document.createElement('div');
+  pie.className = styles.projectPopupFooter;
+
+  const marca = document.createElement('span');
+  marca.textContent = 'INGEVIT 360';
+
+  const indicador = document.createElement('span');
+  indicador.textContent = '● Ubicación del proyecto';
+
+  pie.append(marca, indicador);
+
+  contenedor.append(encabezado, ubicacion, pie);
 
   return contenedor;
 }
+
 
 function obtenerSourceId(
   idCapa: string,
@@ -1042,31 +1091,79 @@ export function ProjectsMap({
           return;
         }
 
+        console.log('[INGEVIT] Coordenadas del proyecto:', {
+          nombre: proyecto.nombre,
+          latitud: proyecto.latitud,
+          longitud: proyecto.longitud,
+        });
         const popup =
           new mapboxgl.Popup({
-            offset:
-              18,
+            offset: 8,
+            anchor: 'bottom',
+            maxWidth: '320px',
+            className: 'ingevit-project-popup',
+            closeButton: true,
+            closeOnClick: false,
           }).setDOMContent(
-            crearContenidoPopup(
-              proyecto,
-            ),
+            crearContenidoPopup(proyecto),
           );
+
+
+        // Marcador personalizado INGEVIT 360.
+        const elementoMarcador =
+          document.createElement('div');
+
+        elementoMarcador.className =
+          styles.projectMapMarker;
+
+        elementoMarcador.setAttribute(
+          'aria-label',
+          `Proyecto: ${proyecto.nombre}`,
+        );
+
+        elementoMarcador.innerHTML = `
+          <div class="${styles.projectMapMarkerInner}">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l8-4v18"/>
+              <path d="M13 9h6v12"/>
+              <path d="M8 9h2M8 13h2M8 17h2"/>
+              <path d="M16 13h1M16 17h1"/>
+            </svg>
+          </div>
+        `;
 
         const marcador =
           new mapboxgl.Marker({
-            color:
-              '#ea751a',
+            element: elementoMarcador,
+            anchor: 'bottom',
           })
             .setLngLat([
               proyecto.longitud,
               proyecto.latitud,
             ])
-            .setPopup(
-              popup,
-            )
-            .addTo(
-              mapaActual,
-            );
+            .setPopup(popup)
+            .addTo(mapaActual);
+
+
+        // Mantener una sola ventana de proyecto abierta.
+        popup.on('open', () => {
+          marcadores.current.forEach(
+            ({ popup: otroPopup }) => {
+              if (otroPopup !== popup) {
+                otroPopup.remove();
+              }
+            },
+          );
+        });
 
         marcadores.current.push({
           idProyecto:

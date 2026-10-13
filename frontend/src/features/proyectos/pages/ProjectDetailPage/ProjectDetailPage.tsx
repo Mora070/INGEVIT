@@ -5,9 +5,9 @@ import {
 } from 'react';
 
 import {
+  eliminarProyecto,
   obtenerProyecto,
 } from '../../api/proyectos.api';
-
 import {
   eliminarFotografiaProyecto,
   establecerPortadaProyecto,
@@ -396,6 +396,23 @@ export function ProjectDetailPage({
   navegacionInicial = null,
   onVolver,
 }: ProjectDetailPageProps) {
+
+  // Control de eliminación lógica del proyecto.
+  const [
+    mostrandoEliminarProyecto,
+    setMostrandoEliminarProyecto,
+  ] = useState(false);
+
+  const [
+    eliminandoProyecto,
+    setEliminandoProyecto,
+  ] = useState(false);
+
+  const [
+    errorEliminarProyecto,
+    setErrorEliminarProyecto,
+  ] = useState<string | null>(null);
+
   const [
     proyecto,
     setProyecto,
@@ -1962,6 +1979,40 @@ export function ProjectDetailPage({
     }
   }
 
+
+  async function confirmarEliminarProyecto() {
+    if (
+      !proyecto ||
+      proyecto.id_propietario !== idUsuarioActual ||
+      eliminandoProyecto
+    ) {
+      return;
+    }
+
+    setEliminandoProyecto(true);
+    setErrorEliminarProyecto(null);
+
+    try {
+      await eliminarProyecto(idProyecto);
+
+      setMostrandoEliminarProyecto(false);
+
+      onVolver();
+    } catch (errorObtenido) {
+      if (errorObtenido instanceof ApiError) {
+        setErrorEliminarProyecto(
+          errorObtenido.message,
+        );
+      } else {
+        setErrorEliminarProyecto(
+          'No fue posible eliminar el proyecto. Inténtalo nuevamente.',
+        );
+      }
+    } finally {
+      setEliminandoProyecto(false);
+    }
+  }
+
   if (
     cargando
   ) {
@@ -2656,6 +2707,33 @@ export function ProjectDetailPage({
                   </svg>
 
                   Agregar colaborador
+                </button>
+
+
+                <button
+                  className={styles.secondaryButton}
+                  type="button"
+                  onClick={() => {
+                    setErrorEliminarProyecto(null);
+                    setMostrandoEliminarProyecto(true);
+                  }}
+                  style={{
+                    color: '#b42318',
+                    borderColor: '#f0b4ae',
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 7h16" />
+                    <path d="M10 4h4" />
+                    <path d="M6 7l1 13h10l1-13" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                  </svg>
+
+                  Eliminar proyecto
                 </button>
               </>
             )}
@@ -4608,6 +4686,138 @@ export function ProjectDetailPage({
             void confirmarEliminacionContenido();
           }}
         />
+      )}
+
+
+      {mostrandoEliminarProyecto && esPropietario && (
+        <div
+          role="presentation"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-eliminar-proyecto"
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              background: '#ffffff',
+              borderRadius: '16px',
+              padding: '28px',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.22)',
+            }}
+          >
+            <h2
+              id="titulo-eliminar-proyecto"
+              style={{
+                margin: '0 0 14px',
+                color: '#991b1b',
+                fontSize: '22px',
+              }}
+            >
+              ¿Eliminar proyecto?
+            </h2>
+
+            <p style={{ color: '#334155', lineHeight: 1.6 }}>
+              Estás a punto de eliminar el proyecto:
+            </p>
+
+            <p
+              style={{
+                fontWeight: 700,
+                color: '#0f172a',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {proyecto.nombre}
+            </p>
+
+            <p style={{ color: '#64748b', lineHeight: 1.6 }}>
+              El proyecto dejará de estar disponible en el sistema.
+              Esta operación es una eliminación lógica:
+              los registros y archivos no se borrarán físicamente.
+            </p>
+
+            {errorEliminarProyecto && (
+              <p
+                role="alert"
+                style={{
+                  color: '#b42318',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  padding: '12px',
+                }}
+              >
+                {errorEliminarProyecto}
+              </p>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginTop: '24px',
+              }}
+            >
+              <button
+                type="button"
+                disabled={eliminandoProyecto}
+                onClick={() => {
+                  setMostrandoEliminarProyecto(false);
+                  setErrorEliminarProyecto(null);
+                }}
+                style={{
+                  padding: '11px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  cursor: eliminandoProyecto
+                    ? 'not-allowed'
+                    : 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                disabled={eliminandoProyecto}
+                onClick={() => {
+                  void confirmarEliminarProyecto();
+                }}
+                style={{
+                  padding: '11px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #b42318',
+                  background: '#b42318',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  cursor: eliminandoProyecto
+                    ? 'not-allowed'
+                    : 'pointer',
+                  opacity: eliminandoProyecto ? 0.7 : 1,
+                }}
+              >
+                {eliminandoProyecto
+                  ? 'Eliminando...'
+                  : 'Eliminar proyecto'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

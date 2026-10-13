@@ -117,6 +117,30 @@ export function actualizarProyecto(
   );
 }
 
+
+/**
+ * Elimina lógicamente un proyecto.
+ *
+ * El backend comprueba que el usuario autenticado
+ * sea el propietario del proyecto.
+ *
+ * Respuesta esperada: 204 No Content.
+ */
+export async function eliminarProyecto(
+  idProyecto: string,
+): Promise<void> {
+  await http<void>(
+    `/api/proyectos/${encodeURIComponent(
+      idProyecto,
+    )}`,
+    {
+      method: 'DELETE',
+    },
+  );
+}
+
+
+
 export function listarParticipantesProyecto(
   idProyecto: string,
 ): Promise<ParticipanteProyecto[]> {
@@ -133,9 +157,9 @@ export async function agregarColaboradorProyecto(
 ): Promise<void> {
   const datos:
     DatosAgregarColaborador = {
-      id_usuario:
-        idUsuario,
-    };
+    id_usuario:
+      idUsuario,
+  };
 
   await http<void>(
     `/api/proyectos/${encodeURIComponent(
