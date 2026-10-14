@@ -12,7 +12,7 @@ export class NotificacionesLecturaService {
   constructor(
     private readonly repository:
       NotificacionesLecturaRepository,
-  ) {}
+  ) { }
 
   async contarNoLeidas(
     idUsuario: string,
@@ -64,5 +64,22 @@ export class NotificacionesLecturaService {
         'La notificación no existe o ya fue eliminada.',
       );
     }
+  }
+
+  /**
+ * Elimina todas las notificaciones
+ * del usuario autenticado.
+ *
+ * Incluye notificaciones leídas
+ * y no leídas.
+ *
+ * Retorna la cantidad eliminada.
+ */
+  async eliminarTodas(
+    idUsuario: string,
+  ): Promise<number> {
+    return this.repository.eliminarTodas(
+      idUsuario,
+    );
   }
 }

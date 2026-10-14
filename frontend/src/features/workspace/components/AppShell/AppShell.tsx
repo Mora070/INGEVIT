@@ -15,6 +15,7 @@ import type {
 import {
   comprobarVigenciaNotificacion,
   eliminarNotificacion,
+  eliminarTodasNotificaciones,
   listarNotificaciones,
   marcarNotificacionLeida,
   marcarTodasNotificacionesLeidas,
@@ -268,6 +269,16 @@ export function AppShell({
     );
 
   const [
+    eliminandoTodas,
+    setEliminandoTodas,
+  ] = useState(false);
+
+  const [
+    confirmarBorradoTodas,
+    setConfirmarBorradoTodas,
+  ] = useState(false);
+
+  const [
     eliminandoNotificacionId,
     setEliminandoNotificacionId,
   ] =
@@ -301,18 +312,18 @@ export function AppShell({
       usuario,
     );
 
-const avatarUrl = (() => {
-  if (!usuario.foto_perfil_url) {
-    return null;
-  }
+  const avatarUrl = (() => {
+    if (!usuario.foto_perfil_url) {
+      return null;
+    }
 
-  const separador =
-    usuario.foto_perfil_url.includes('?')
-      ? '&'
-      : '?';
+    const separador =
+      usuario.foto_perfil_url.includes('?')
+        ? '&'
+        : '?';
 
-  return `${usuario.foto_perfil_url}${separador}v=${versionAvatar}`;
-})();
+    return `${usuario.foto_perfil_url}${separador}v=${versionAvatar}`;
+  })();
 
   useEffect(
     () => {
@@ -473,6 +484,24 @@ const avatarUrl = (() => {
     },
     [],
   );
+
+  useEffect(() => {
+    if (!confirmarBorradoTodas) {
+      return;
+    }
+
+    function manejarEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !eliminandoTodas) {
+        setConfirmarBorradoTodas(false);
+      }
+    }
+
+    window.addEventListener('keydown', manejarEscape);
+
+    return () => {
+      window.removeEventListener('keydown', manejarEscape);
+    };
+  }, [confirmarBorradoTodas, eliminandoTodas]);
 
   async function cargarNotificaciones() {
     setCargandoNotificaciones(
@@ -832,6 +861,41 @@ const avatarUrl = (() => {
     }
   }
 
+  async function borrarTodasNotificaciones() {
+    if (
+      eliminandoTodas ||
+      eliminandoNotificacionId ||
+      marcandoTodas ||
+      notificaciones.length === 0
+    ) {
+      return;
+    }
+
+
+
+    setEliminandoTodas(true);
+    setErrorNotificaciones('');
+
+    try {
+      await eliminarTodasNotificaciones();
+
+      setNotificaciones([]);
+      setTotalNoLeidas(0);
+
+      // Cerrar el modal después de eliminar correctamente.
+      setConfirmarBorradoTodas(false);
+    } catch {
+      setErrorNotificaciones(
+        'No fue posible borrar todas las notificaciones.',
+      );
+
+      // Cerrar el modal para mostrar el error en el panel.
+      setConfirmarBorradoTodas(false);
+    } finally {
+      setEliminandoTodas(false);
+    }
+  }
+
   function abrirPerfilDesdeMenu() {
     setMenuUsuarioAbierto(
       false,
@@ -1168,10 +1232,157 @@ const avatarUrl = (() => {
                     )}
                   </div>
                 )}
+
+                {!cargandoNotificaciones &&
+                  notificaciones.length > 0 && (
+                    <div
+                      className={
+                        styles.notificationsFooter
+                      }
+                    >
+                      <button
+                        type="button"
+                        className={
+                          styles.notificationsClearAll
+                        }
+                        disabled={
+                          eliminandoTodas ||
+                          Boolean(eliminandoNotificacionId) ||
+                          marcandoTodas
+                        }
+                        onClick={() => {
+                          if (
+                            eliminandoTodas ||
+                            eliminandoNotificacionId ||
+                            marcandoTodas
+                          ) {
+                            return;
+                          }
+
+                          setConfirmarBorradoTodas(true);
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M4 7h16" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                          <path d="M6 7l1 13h10l1-13" />
+                          <path d="M9 7V4h6v3" />
+                        </svg>
+
+                        <span>
+                          {eliminandoTodas
+                            ? 'Borrando...'
+                            : 'Borrar todas'}
+                        </span>
+                      </button>
+                    </div>
+                  )}
               </section>
             )}
           </div>
+          {confirmarBorradoTodas && (
+            <div
+              className={styles.confirmDeleteOverlay}
+              role="presentation"
+              onMouseDown={(event) => {
+                if (
+                  event.target === event.currentTarget &&
+                  !eliminandoTodas
+                ) {
+                  setConfirmarBorradoTodas(false);
+                }
+              }}
+            >
+              <div
+                className={styles.confirmDeleteModal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="confirmDeleteTitle"
+                aria-describedby="confirmDeleteDescription"
+              >
+                <button
+                  type="button"
+                  className={styles.confirmDeleteClose}
+                  aria-label="Cerrar confirmación"
+                  onClick={() => {
+                    setConfirmarBorradoTodas(false);
+                  }}
+                >
+                  ×
+                </button>
 
+                <div className={styles.confirmDeleteIcon}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 7h16" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M6 7l1 13h10l1-13" />
+                    <path d="M9 7V4h6v3" />
+                  </svg>
+                </div>
+
+                <h2 id="confirmDeleteTitle">
+                  Borrar todas las notificaciones
+                </h2>
+
+                <p id="confirmDeleteDescription">
+                  ¿Deseas borrar todas tus notificaciones?
+                  <span>
+                    Se eliminarán las notificaciones leídas
+                    y no leídas de tu cuenta.
+                  </span>
+                </p>
+
+                <div className={styles.confirmDeleteWarning}>
+                  <span aria-hidden="true">!</span>
+                  Esta acción no se puede deshacer.
+                </div>
+
+                <div className={styles.confirmDeleteActions}>
+                  <button
+                    type="button"
+                    className={styles.confirmDeleteCancel}
+                    disabled={eliminandoTodas}
+                    onClick={() => {
+                      setConfirmarBorradoTodas(false);
+                    }}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.confirmDeleteAccept}
+                    disabled={eliminandoTodas}
+                    onClick={() => {
+                      void borrarTodasNotificaciones();
+                    }}
+                  >
+                    {eliminandoTodas
+                      ? 'Borrando...'
+                      : 'Borrar todas'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <div
             className={
               styles.userMenuWrapper

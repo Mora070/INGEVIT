@@ -9,7 +9,7 @@ export class NotificacionesLecturaRepository {
   constructor(
     private readonly database:
       DatabaseService,
-  ) {}
+  ) { }
 
   async contarNoLeidas(
     idUsuario: string,
@@ -106,7 +106,7 @@ export class NotificacionesLecturaRepository {
       Number(
         resultado.rows[0]
           ?.total ??
-          '0',
+        '0',
       );
 
     if (
@@ -114,7 +114,7 @@ export class NotificacionesLecturaRepository {
         total,
       ) ||
       total <
-        0
+      0
     ) {
       throw new Error(
         'El conteo de notificaciones no leídas es inválido.',
@@ -216,6 +216,39 @@ export class NotificacionesLecturaRepository {
     return (
       resultado.rowCount ===
       1
+    );
+  }
+
+  /**
+ * Elimina todas las notificaciones
+ * pertenecientes al usuario autenticado.
+ *
+ * Incluye notificaciones leídas y no leídas,
+ * sin importar la página del listado.
+ *
+ * No modifica los proyectos, incidencias
+ * ni los recursos que originaron los avisos.
+ */
+  async eliminarTodas(
+    idUsuario: string,
+  ): Promise<number> {
+    const resultado =
+      await this.database.query(
+        `
+          DELETE FROM obra.notificaciones
+
+          WHERE
+            id_receptor =
+              $1::uuid
+        `,
+        [
+          idUsuario,
+        ],
+      );
+
+    return (
+      resultado.rowCount ??
+      0
     );
   }
 }

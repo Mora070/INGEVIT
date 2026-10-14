@@ -32,7 +32,9 @@ interface MapLayersPanelProps {
   onCerrar: () => void;
 
   onSubirCapa: () => void;
-
+  onEnfocarCapa: (
+    capa: CapaProyecto,
+  ) => void;
   onCapasChange?: (
     capas: CapaProyecto[],
   ) => void;
@@ -154,6 +156,7 @@ export function MapLayersPanel({
   idProyecto,
   onCerrar,
   onSubirCapa,
+  onEnfocarCapa,
   onCapasChange,
   onCapaEliminada,
   versionExterna,
@@ -1306,13 +1309,34 @@ export function MapLayersPanel({
                             styles.layerText
                           }
                         >
-                          <strong
-                            title={
-                              capa.nombre
+                          <button
+                            type="button"
+                            title={`Ir a la ubicación de ${capa.nombre}`}
+                            aria-label={`Enfocar en el mapa la capa ${capa.nombre}`}
+                            onClick={() => {
+                              onEnfocarCapa(capa);
+                            }}
+                            disabled={
+                              capa.estado_procesamiento !== 'LISTA'
                             }
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: 0,
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'inherit',
+                              font: 'inherit',
+                              fontWeight: 700,
+                              textAlign: 'left',
+                              cursor:
+                                capa.estado_procesamiento === 'LISTA'
+                                  ? 'pointer'
+                                  : 'not-allowed',
+                            }}
                           >
                             {capa.nombre}
-                          </strong>
+                          </button>
 
                           <span
                             title={

@@ -28,7 +28,7 @@ export class NotificacionesLecturaController {
   constructor(
     private readonly service:
       NotificacionesLecturaService,
-  ) {}
+  ) { }
 
   @Get('no-leidas/conteo')
   async contarNoLeidas(
@@ -121,6 +121,41 @@ export class NotificacionesLecturaController {
 
     return {
       actualizadas,
+    };
+  }
+
+  /**
+ * Elimina todas las notificaciones
+ * del usuario autenticado.
+ *
+ * No afecta las notificaciones
+ * pertenecientes a otros usuarios.
+ */
+  @Delete()
+  async eliminarTodas(
+    @Req()
+    request: AuthRequest,
+  ): Promise<{
+    eliminadas: number;
+  }> {
+    const usuario =
+      request.usuario;
+
+    if (
+      !usuario
+    ) {
+      throw new UnauthorizedException(
+        'La sesión no es válida o ha expirado.',
+      );
+    }
+
+    const eliminadas =
+      await this.service.eliminarTodas(
+        usuario.id_usuario,
+      );
+
+    return {
+      eliminadas,
     };
   }
 

@@ -21,7 +21,7 @@ export interface Notificacion {
   nombre_proyecto: string;
 
   id_incidencia:
-    string | null;
+  string | null;
 
   tipo: string;
 
@@ -30,23 +30,23 @@ export interface Notificacion {
   mensaje: string;
 
   destino:
-    DestinoNotificacion | null;
+  DestinoNotificacion | null;
 
   id_recurso:
-    string | null;
+  string | null;
 
   leida: boolean;
 
   fecha_leida:
-    string | null;
+  string | null;
 
   fecha_creacion:
-    string;
+  string;
 }
 
 export interface ListaNotificacionesResponse {
   notificaciones:
-    Notificacion[];
+  Notificacion[];
 
   pagina: number;
 
@@ -120,6 +120,24 @@ export function eliminarNotificacion(
     {
       method:
         'DELETE',
+    },
+  );
+}
+
+/**
+ * Elimina todas las notificaciones
+ * del usuario autenticado.
+ *
+ * Incluye las leídas y no leídas,
+ * sin importar la página del listado.
+ */
+export function eliminarTodasNotificaciones() {
+  return http<{
+    eliminadas: number;
+  }>(
+    '/api/notificaciones',
+    {
+      method: 'DELETE',
     },
   );
 }

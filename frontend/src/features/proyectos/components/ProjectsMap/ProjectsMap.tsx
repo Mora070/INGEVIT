@@ -368,6 +368,18 @@ export function ProjectsMap({
     false,
   );
 
+  /*
+ * Controla las dos etapas de creación
+ * de incidencias en dispositivos móviles.
+ *
+ * false: seleccionar ubicación en el mapa.
+ * true: mostrar formulario de incidencia.
+ */
+  const [
+    formularioIncidenciaMovilVisible,
+    setFormularioIncidenciaMovilVisible,
+  ] = useState(false);
+
   const [
     capasMapa,
     setCapasMapa,
@@ -700,9 +712,9 @@ export function ProjectsMap({
 
 
   function cerrarPanelIncidencia() {
-    setPanelIncidenciaAbierto(
-      false,
-    );
+    setPanelIncidenciaAbierto(false);
+
+    setFormularioIncidenciaMovilVisible(false);
 
     limpiarNuevaIncidencia();
   }
@@ -3486,25 +3498,20 @@ export function ProjectsMap({
               }
               type="button"
               onClick={() => {
-                setPanelCapasAbierto(
-                  false,
-                );
+                setPanelCapasAbierto(false);
 
                 cerrarDetalleIncidencia();
 
-                setPanelIncidenciaAbierto(
-                  (
-                    actual,
-                  ) => {
-                    if (
-                      actual
-                    ) {
-                      limpiarNuevaIncidencia();
-                    }
+                if (panelIncidenciaAbierto) {
+                  cerrarPanelIncidencia();
+                  return;
+                }
 
-                    return !actual;
-                  },
-                );
+                // Iniciar siempre en la etapa de selección
+                // de ubicación para dispositivos móviles.
+                setFormularioIncidenciaMovilVisible(false);
+
+                setPanelIncidenciaAbierto(true);
               }}
               aria-expanded={
                 panelIncidenciaAbierto
@@ -3531,6 +3538,49 @@ export function ProjectsMap({
             key={proyectoSeleccionadoId}
             idProyecto={proyectoSeleccionadoId}
             versionExterna={versionPanelCapas}
+            onEnfocarCapa={(capa) => {
+              const mapaActual = map.current;
+
+              if (
+                !mapaActual ||
+                capa.estado_procesamiento !== 'LISTA'
+              ) {
+                return;
+              }
+
+              const tileJson = capa.teselas
+                ? tileJsonCache.current.get(
+                  `${capa.id_capa}:${capa.teselas.version}`,
+                )
+                : undefined;
+
+              const limites =
+                capa.bbox ??
+                tileJson?.bounds;
+
+              if (!limites) {
+                return;
+              }
+
+              mapaActual.stop();
+
+              mapaActual.fitBounds(
+                [
+                  [limites[0], limites[1]],
+                  [limites[2], limites[3]],
+                ],
+                {
+                  padding: {
+                    top: 60,
+                    right: 390,
+                    bottom: 60,
+                    left: 60,
+                  },
+                  maxZoom: 19,
+                  duration: 1200,
+                },
+              );
+            }}
             onCerrar={() => {
               setPanelCapasAbierto(false);
             }}
@@ -4288,10 +4338,57 @@ export function ProjectsMap({
         )}
 
       {panelIncidenciaAbierto &&
+        proyectoSeleccionadoId &&
+        !formularioIncidenciaMovilVisible && (
+          <div
+            className={styles.incidentMobileLocationBar}
+            role="status"
+          >
+            <div className={styles.incidentMobileLocationText}>
+              <strong>
+                {puntoNuevaIncidencia
+                  ? 'Ubicación seleccionada'
+                  : 'Selecciona la ubicación'}
+              </strong>
+
+              <span>
+                {puntoNuevaIncidencia
+                  ? 'Puedes continuar o tocar otro punto del mapa.'
+                  : 'Toca el mapa donde se encuentra la incidencia.'}
+              </span>
+            </div>
+
+            <div className={styles.incidentMobileLocationActions}>
+              <button
+                type="button"
+                className={styles.incidentCancelButton}
+                onClick={cerrarPanelIncidencia}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className={styles.incidentSaveButton}
+                disabled={!puntoNuevaIncidencia}
+                onClick={() => {
+                  setFormularioIncidenciaMovilVisible(true);
+                }}
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+      {panelIncidenciaAbierto &&
         proyectoSeleccionadoId && (
           <aside
             className={
-              styles.incidentPanel
+              `${styles.incidentPanel} ${!formularioIncidenciaMovilVisible
+                ? styles.incidentPanelMobileHidden
+                : ''
+              }`
             }
             aria-label="Nueva incidencia"
           >
@@ -4327,6 +4424,18 @@ export function ProjectsMap({
                 ×
               </button>
             </div>
+
+            {formularioIncidenciaMovilVisible && (
+              <button
+                type="button"
+                className={styles.incidentMobileChangeLocation}
+                onClick={() => {
+                  setFormularioIncidenciaMovilVisible(false);
+                }}
+              >
+                ← Cambiar ubicación
+              </button>
+            )}
 
             <div
               className={
