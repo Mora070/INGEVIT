@@ -22,8 +22,8 @@ import type {
 const ANCHO_MINIMO = 2048;
 const ALTO_MINIMO = 1024;
 
-const PROPORCION_MINIMA = 1.98;
-const PROPORCION_MAXIMA = 2.02;
+const PROPORCION_MINIMA = 1.85;
+const PROPORCION_MAXIMA = 2.15;
 
 export interface PanoramicaInspeccionada {
   formato: 'jpeg' | 'png' | 'webp';

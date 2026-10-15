@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -28,8 +29,8 @@ import {
 } from './panoramicas.repository';
 
 import {
-  inspeccionarPanoramica,
-} from './utils/inspeccionar-panoramica';
+  normalizarPanoramica,
+} from './utils/normalizar-panoramica';
 
 import {
   mapearPanoramica,
@@ -71,11 +72,16 @@ export class PanoramicasSubidaService {
     datos: SubirPanoramicaDto,
     contenido: Buffer,
   ): Promise<PanoramicaResponse> {
+
+    /*
+     * ====================================================
+     * 1. VERIFICAR ACCESO AL PROYECTO
+     * ====================================================
+     */
+
     const disponible =
       await this.database.withTransaction(
-        (
-          client,
-        ) =>
+        (client) =>
           this.acceso.bloquearDisponible(
             client,
             idProyecto,
@@ -83,26 +89,59 @@ export class PanoramicasSubidaService {
           ),
       );
 
-    if (
-      !disponible
-    ) {
+    if (!disponible) {
       throw new NotFoundException(
         'El proyecto no está disponible.',
       );
     }
 
-    const inspeccion =
-      await inspeccionarPanoramica(
+    /*
+     * ====================================================
+     * 2. VALIDAR Y NORMALIZAR LA PANORÁMICA
+     * ====================================================
+     *
+     * El normalizador:
+     *
+     * - Inspecciona el contenido real de la imagen.
+     * - Comprueba formato, resolución y proporción.
+     * - Conserva imágenes que ya son 2:1.
+     * - Ajusta las imágenes compatibles a 2:1.
+     * - No estira ni deforma la fotografía.
+     * - Verifica el resultado generado.
+     *
+     * El archivo resultante será el que se almacene.
+     */
+
+    const panoramicaNormalizada =
+      await normalizarPanoramica(
         contenido,
       );
 
+    /*
+     * ====================================================
+     * 3. ALMACENAR PANORÁMICA NORMALIZADA
+     * ====================================================
+     *
+     * Se conserva el coordinador de persistencia
+     * existente, incluyendo su gestión de transacciones
+     * y limpieza ante errores.
+     */
+
     return this.persistencia.guardarYRegistrar(
-      contenido,
-      inspeccion.formato,
+      panoramicaNormalizada.contenido,
+      panoramicaNormalizada.formato,
+
       async (
         client,
         clave,
       ) => {
+
+        /*
+         * ================================================
+         * 4. VOLVER A VERIFICAR ACCESO
+         * ================================================
+         */
+
         const sigueDisponible =
           await this.acceso.bloquearDisponible(
             client,
@@ -110,18 +149,28 @@ export class PanoramicasSubidaService {
             idUsuario,
           );
 
-        if (
-          !sigueDisponible
-        ) {
+        if (!sigueDisponible) {
           throw new NotFoundException(
             'El proyecto no está disponible.',
           );
         }
 
+        /*
+         * ================================================
+         * 5. CONSTRUIR URL DEL ARCHIVO
+         * ================================================
+         */
+
         const nombreArchivo =
           clave.slice(
             'panoramicas/'.length,
           );
+
+        /*
+         * ================================================
+         * 6. REGISTRAR PANORÁMICA EN POSTGRESQL
+         * ================================================
+         */
 
         const panoramica =
           await this.panoramicas.crear(
@@ -143,9 +192,15 @@ export class PanoramicasSubidaService {
                 clave,
 
               mime_type:
-                inspeccion.mimeType,
+                panoramicaNormalizada.mimeType,
             },
           );
+
+        /*
+         * ================================================
+         * 7. REGISTRAR ACTIVIDAD
+         * ================================================
+         */
 
         await this.actividades.crear(
           client,
@@ -162,6 +217,12 @@ export class PanoramicasSubidaService {
               `Panorámica ${panoramica.id_panoramica} subida.`,
           },
         );
+
+        /*
+         * ================================================
+         * 8. NOTIFICAR A LOS PARTICIPANTES
+         * ================================================
+         */
 
         await this.notificaciones.crearParaParticipantesProyecto(
           client,
@@ -191,6 +252,12 @@ export class PanoramicasSubidaService {
               panoramica.id_panoramica,
           },
         );
+
+        /*
+         * ================================================
+         * 9. DEVOLVER RESPUESTA
+         * ================================================
+         */
 
         return mapearPanoramica(
           panoramica,

@@ -29,10 +29,10 @@ interface UploadPanoramaModalProps {
    * Ya no intervienen en la subida.
    */
   latitudProyecto?:
-    number | null;
+  number | null;
 
   longitudProyecto?:
-    number | null;
+  number | null;
 
   onCerrar: () => void;
 
@@ -46,13 +46,13 @@ interface ValidacionImagen {
   valida: boolean;
 
   ancho:
-    number | null;
+  number | null;
 
   alto:
-    number | null;
+  number | null;
 
   mensaje:
-    string | null;
+  string | null;
 }
 
 const ANCHO_MINIMO =
@@ -61,11 +61,8 @@ const ANCHO_MINIMO =
 const ALTO_MINIMO =
   1024;
 
-const PROPORCION_MINIMA =
-  1.98;
-
-const PROPORCION_MAXIMA =
-  2.02;
+const PROPORCION_MINIMA = 1.85;
+const PROPORCION_MAXIMA = 2.15;
 
 const TIPOS_PERMITIDOS = [
   'image/jpeg',
@@ -239,9 +236,9 @@ async function validarDimensionesImagen(
         alto,
       ) ||
       ancho <
-        1 ||
+      1 ||
       alto <
-        1
+      1
     ) {
       return {
         valida:
@@ -258,9 +255,9 @@ async function validarDimensionesImagen(
 
     if (
       ancho <
-        ANCHO_MINIMO ||
+      ANCHO_MINIMO ||
       alto <
-        ALTO_MINIMO
+      ALTO_MINIMO
     ) {
       return {
         valida:
@@ -281,9 +278,9 @@ async function validarDimensionesImagen(
 
     const esDosAUno =
       proporcion >=
-        PROPORCION_MINIMA &&
+      PROPORCION_MINIMA &&
       proporcion <=
-        PROPORCION_MAXIMA;
+      PROPORCION_MAXIMA;
 
     if (
       !esDosAUno
@@ -467,7 +464,7 @@ export function UploadPanoramaModal({
     ) => {
       if (
         event.key ===
-          'Escape' &&
+        'Escape' &&
         !subiendo
       ) {
         onCerrar();
@@ -545,7 +542,7 @@ export function UploadPanoramaModal({
         panoramica,
       );
     } catch (
-      errorObtenido
+    errorObtenido
     ) {
       if (
         errorObtenido instanceof
@@ -574,7 +571,7 @@ export function UploadPanoramaModal({
   ) {
     if (
       event.target ===
-        event.currentTarget &&
+      event.currentTarget &&
       !subiendo
     ) {
       onCerrar();
@@ -751,7 +748,7 @@ export function UploadPanoramaModal({
                   {validacion.ancho !==
                     null &&
                     validacion.alto !==
-                      null &&
+                    null &&
                     ` · ${validacion.ancho} × ${validacion.alto}px`}
                 </small>
               </div>
