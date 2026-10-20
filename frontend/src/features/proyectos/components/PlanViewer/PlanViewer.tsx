@@ -1,18 +1,11 @@
 import {
   useEffect,
-  useMemo,
+  useCallback,
   useRef,
   useState,
 } from 'react';
 
-import {
-  Document,
-  Page,
-  pdfjs,
-} from 'react-pdf';
-
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+import { AutodeskCanvas } from './AutodeskCanvas';
 
 import type {
   PlanoProyecto,
@@ -40,12 +33,6 @@ import {
 
 import styles from './PlanViewer.module.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc =
-  new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).toString();
-
 interface PlanViewerProps {
   plano: PlanoProyecto;
 
@@ -64,7 +51,7 @@ interface PosicionNuevaIncidencia {
 export function PlanViewer({
   plano,
   incidenciaInicialId = null,
-  onCerrar,
+  onCerrar: cerrarVisor,
 }: PlanViewerProps) {
   const [
     numeroPaginas,
@@ -76,21 +63,9 @@ export function PlanViewer({
     setPaginaActual,
   ] = useState(1);
 
-  const [
-    escala,
-    setEscala,
-  ] = useState(1);
-
-  const [
-    cargandoDocumento,
-    setCargandoDocumento,
-  ] = useState(true);
-
-  const [
-    cargandoIncidencias,
-    setCargandoIncidencias,
-  ] = useState(false);
-
+  const [midiendo, setMidiendo] = useState(false);
+  const [pendiente, setPendiente] = useState(false);
+  const [revisionIncidencias, setRevisionIncidencias] = useState(0);
   const [
     incidencias,
     setIncidencias,
@@ -129,15 +104,6 @@ export function PlanViewer({
     string | null
   >(null);
 
-  const escalaMinima =
-    0.6;
-
-  const escalaMaxima =
-    2;
-
-  const incrementoEscala =
-    0.2;
-
   const puedeAnterior =
     paginaActual > 1;
 
@@ -150,16 +116,10 @@ export function PlanViewer({
       ? `${paginaActual} de ${numeroPaginas}`
       : 'Cargando...';
 
-  const escalaPorcentaje =
-    useMemo(
-      () =>
-        Math.round(
-          escala * 100,
-        ),
-      [
-        escala,
-      ],
-    );
+  const onCerrar = useCallback(() => {
+    if (pendiente) { setError('Hay mediciones sin guardar. Espera el guardado o resuelve el aviso de sincronización.'); return; }
+    cerrarVisor();
+  }, [cerrarVisor, pendiente]);
 
   useEffect(() => {
     function manejarEscape(
@@ -177,7 +137,7 @@ export function PlanViewer({
        * su propio Escape.
        */
       if (
-        posicionNuevaIncidencia ||
+        midiendo || posicionNuevaIncidencia ||
         incidenciaSeleccionada
       ) {
         return;
@@ -208,6 +168,7 @@ export function PlanViewer({
       );
     };
   }, [
+    midiendo,
     incidenciaSeleccionada,
     modoCrearIncidencia,
     onCerrar,
@@ -233,9 +194,7 @@ export function PlanViewer({
       true;
 
     async function cargarIncidencias() {
-      setCargandoIncidencias(
-        true,
-      );
+
 
       setError(
         null,
@@ -292,14 +251,6 @@ export function PlanViewer({
         setIncidencias(
           [],
         );
-      } finally {
-        if (
-          activa
-        ) {
-          setCargandoIncidencias(
-            false,
-          );
-        }
       }
     }
 
@@ -314,6 +265,7 @@ export function PlanViewer({
         false;
     };
   }, [
+    revisionIncidencias,
     numeroPaginas,
     paginaActual,
     plano.id_plano,
@@ -465,7 +417,7 @@ export function PlanViewer({
 
   function paginaAnterior() {
     if (
-      !puedeAnterior
+      !puedeAnterior || pendiente
     ) {
       return;
     }
@@ -480,7 +432,7 @@ export function PlanViewer({
 
   function paginaSiguiente() {
     if (
-      !puedeSiguiente
+      !puedeSiguiente || pendiente
     ) {
       return;
     }
@@ -490,111 +442,6 @@ export function PlanViewer({
         actual,
       ) =>
         actual + 1,
-    );
-  }
-
-  function disminuirZoom() {
-    setEscala(
-      (
-        actual,
-      ) =>
-        Math.max(
-          escalaMinima,
-          Number(
-            (
-              actual -
-              incrementoEscala
-            ).toFixed(
-              1,
-            ),
-          ),
-        ),
-    );
-  }
-
-  function aumentarZoom() {
-    setEscala(
-      (
-        actual,
-      ) =>
-        Math.min(
-          escalaMaxima,
-          Number(
-            (
-              actual +
-              incrementoEscala
-            ).toFixed(
-              1,
-            ),
-          ),
-        ),
-    );
-  }
-
-  function seleccionarPuntoIncidencia(
-    event:
-      React.MouseEvent<
-        HTMLDivElement
-      >,
-  ) {
-    if (
-      !modoCrearIncidencia
-    ) {
-      return;
-    }
-
-    const rect =
-      event.currentTarget
-        .getBoundingClientRect();
-
-    if (
-      rect.width <= 0 ||
-      rect.height <= 0
-    ) {
-      return;
-    }
-
-    const coordenadaX =
-      (event.clientX -
-        rect.left) /
-      rect.width;
-
-    const coordenadaY =
-      (event.clientY -
-        rect.top) /
-      rect.height;
-
-    const xNormalizada =
-      Math.min(
-        1,
-        Math.max(
-          0,
-          coordenadaX,
-        ),
-      );
-
-    const yNormalizada =
-      Math.min(
-        1,
-        Math.max(
-          0,
-          coordenadaY,
-        ),
-      );
-
-    setPosicionNuevaIncidencia({
-      numeroPagina:
-        paginaActual,
-
-      coordenadaX:
-        xNormalizada,
-
-      coordenadaY:
-        yNormalizada,
-    });
-
-    setModoCrearIncidencia(
-      false,
     );
   }
 
@@ -682,20 +529,6 @@ export function PlanViewer({
     );
   }
 
-  function obtenerClaseMarcador(
-    _incidencia:
-      IncidenciaPlano,
-  ): string {
-    /*
-     * De momento todos conservan
-     * el estilo base.
-     *
-     * En el siguiente paso podemos
-     * diferenciar color según estado
-     * o prioridad.
-     */
-    return styles.incidentMarker;
-  }
 
   return (
     <>
@@ -733,7 +566,7 @@ export function PlanViewer({
               </strong>
 
               <span>
-                Documento PDF
+                Plano · Autodesk Viewer
               </span>
             </div>
 
@@ -829,57 +662,6 @@ export function PlanViewer({
                 </button>
               </div>
 
-              <div
-                className={
-                  styles.zoomControls
-                }
-              >
-                <button
-                  className={
-                    styles.controlButton
-                  }
-                  type="button"
-                  onClick={
-                    disminuirZoom
-                  }
-                  disabled={
-                    escala <=
-                    escalaMinima
-                  }
-                  aria-label="Alejar"
-                >
-                  −
-                </button>
-
-                <span
-                  className={
-                    styles.zoomValue
-                  }
-                >
-                  {
-                    escalaPorcentaje
-                  }
-                  %
-                </span>
-
-                <button
-                  className={
-                    styles.controlButton
-                  }
-                  type="button"
-                  onClick={
-                    aumentarZoom
-                  }
-                  disabled={
-                    escala >=
-                    escalaMaxima
-                  }
-                  aria-label="Acercar"
-                >
-                  +
-                </button>
-              </div>
-
               <a
                 className={
                   styles.actionButton
@@ -941,170 +723,23 @@ export function PlanViewer({
               </div>
             )}
 
-            <div
-              className={
-                styles.pdfScroll
-              }
-            >
-              <Document
-                file={
-                  plano.url
-                }
-                loading={
-                  <div
-                    className={
-                      styles.loading
-                    }
-                  >
-                    <div
-                      className={
-                        styles.spinner
-                      }
-                    />
-
-                    <span>
-                      Cargando plano...
-                    </span>
-                  </div>
-                }
-                error={
-                  <div
-                    className={
-                      styles.error
-                    }
-                  >
-                    <strong>
-                      No fue posible mostrar el PDF
-                    </strong>
-
-                    <span>
-                      Intenta abrir el documento en una pestaña nueva.
-                    </span>
-                  </div>
-                }
-                onLoadSuccess={({
-                  numPages,
-                }) => {
-                  setNumeroPaginas(
-                    numPages,
-                  );
-
-                  setPaginaActual(
-                    (
-                      actual,
-                    ) =>
-                      Math.min(
-                        Math.max(
-                          actual,
-                          1,
-                        ),
-                        numPages,
-                      ),
-                  );
-
-                  setCargandoDocumento(
-                    false,
-                  );
-
-                  setError(
-                    null,
-                  );
-                }}
-                onLoadError={() => {
-                  setCargandoDocumento(
-                    false,
-                  );
-
-                  setError(
-                    'No fue posible cargar el PDF.',
-                  );
-                }}
-              >
-                <div
-                  className={`${styles.pageStage} ${modoCrearIncidencia
-                    ? styles.pageStageSelecting
-                    : ''
-                    }`}
-                  onClick={
-                    seleccionarPuntoIncidencia
-                  }
-                >
-                  <Page
-                    pageNumber={
-                      paginaActual
-                    }
-                    scale={
-                      escala
-                    }
-                    renderAnnotationLayer={
-                      false
-                    }
-                    renderTextLayer={
-                      false
-                    }
-                  />
-
-                  {!cargandoDocumento &&
-                    incidencias.map(
-                      (
-                        incidencia,
-                      ) => (
-                        <button
-                          key={
-                            incidencia.id_incidencia
-                          }
-                          className={
-                            obtenerClaseMarcador(
-                              incidencia,
-                            )
-                          }
-                          type="button"
-                          style={{
-                            left:
-                              `${incidencia.coordenada_x * 100}%`,
-
-                            top:
-                              `${incidencia.coordenada_y * 100}%`,
-                          }}
-                          title={
-                            incidencia.titulo
-                          }
-                          aria-label={`Incidencia: ${incidencia.titulo}`}
-                          onClick={(
-                            event,
-                          ) => {
-                            event.stopPropagation();
-
-                            setModoCrearIncidencia(
-                              false,
-                            );
-
-                            setPosicionNuevaIncidencia(
-                              null,
-                            );
-
-                            setIncidenciaSeleccionada(
-                              incidencia,
-                            );
-                          }}
-                        >
-                          !
-                        </button>
-                      ),
-                    )}
-
-                  {cargandoIncidencias && (
-                    <div
-                      className={
-                        styles.incidentLoading
-                      }
-                    >
-                      Cargando incidencias...
-                    </div>
-                  )}
-                </div>
-              </Document>
-            </div>
+            <AutodeskCanvas
+              key={plano.id_plano + ':' + paginaActual}
+              plano={plano} pagina={paginaActual} incidencias={incidencias}
+              crearIncidencia={modoCrearIncidencia}
+              onPaginas={setNumeroPaginas}
+              onPendiente={setPendiente}
+              onActualizarIncidencias={() => setRevisionIncidencias(v => v + 1)}
+              onMedir={activo => { setMidiendo(activo); if (activo) setModoCrearIncidencia(false); }}
+              onPunto={(x, y) => {
+                setPosicionNuevaIncidencia({numeroPagina: paginaActual, coordenadaX: x, coordenadaY: y});
+                setModoCrearIncidencia(false);
+              }}
+              onSeleccionar={incidencia => {
+                setModoCrearIncidencia(false); setPosicionNuevaIncidencia(null);
+                setIncidenciaSeleccionada(incidencia);
+              }}
+            />
           </div>
         </section>
       </div>

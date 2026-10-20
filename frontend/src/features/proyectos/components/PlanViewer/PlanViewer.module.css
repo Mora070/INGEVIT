@@ -538,3 +538,12 @@
     padding: 0;
   }
 }
+.autodeskStage { position: absolute; inset: 0; overflow: hidden; }
+.autodeskHost { position: absolute; inset: 0; }
+.autodeskPins { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+.autodeskPins button { pointer-events: auto; }
+.syncStatus { position: absolute; top: 12px; left: 12px; max-width: min(460px, calc(100% - 24px)); z-index: 5; display: flex; flex-wrap: wrap; gap: 6px; padding: 9px 12px; border-radius: 10px; color: #263744; background: rgba(255,255,255,.96); box-shadow: 0 2px 8px #0002; font-size: 12px; }
+.syncStatus span { width: 100%; }
+.syncStatus button { border: 1px solid #ccd5dc; border-radius: 5px; padding: 5px 8px; background: white; cursor: pointer; }
+.syncStatus [role="alert"] { color: #a12424; }
+.viewerBlocker { position: absolute; inset: 0; z-index: 4; background: #e8eaed88; }

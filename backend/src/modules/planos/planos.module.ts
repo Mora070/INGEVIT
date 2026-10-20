@@ -1,3 +1,5 @@
+import { PlanosMedicionesController } from './planos-mediciones.controller';
+import { PlanosMedicionesService } from './planos-mediciones.service';
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../../database/database.module';
@@ -92,6 +94,7 @@ import {
   ],
 
   controllers: [
+    PlanosMedicionesController,
     PlanosController,
     PlanosSubidaController,
     PlanosDescargaController,
@@ -100,6 +103,7 @@ import {
   ],
 
   providers: [
+    PlanosMedicionesService,
     ProyectoAccesoRepository,
 
     PlanosConsultaRepository,

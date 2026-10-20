@@ -6,6 +6,7 @@ import {
 } from 'rxjs';
 
 export type TipoEventoProyecto =
+  | 'MEDICIONES'
   | 'FOTOGRAFIAS'
   | 'PANORAMICAS'
   | 'PLANOS'

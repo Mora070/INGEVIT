@@ -25,6 +25,7 @@ type PayloadProyecto = {
   id_usuario?: string;
   id_proyecto?: string;
   recurso?:
+  | 'MEDICIONES'
   | 'FOTOGRAFIAS'
   | 'PANORAMICAS'
   | 'PLANOS'
@@ -143,6 +144,7 @@ export class NotificacionesPostgresListenerService
       }
 
       if (
+        datos.recurso !== 'MEDICIONES' &&
         datos.recurso !==
         'FOTOGRAFIAS' &&
         datos.recurso !==
