@@ -7,6 +7,7 @@ import { cargarAutodesk, medicionesCompletas, normalizarMediciones, serializarEs
 import type { EstadoMediciones, Measure, RegistroMediciones, Viewer } from './autodesk';
 import styles from './PlanViewer.module.css';
 
+
 interface Props {
   plano: PlanoProyecto;
   pagina: number;
@@ -189,6 +190,7 @@ export function AutodeskCanvas(props: Props) {
         viewer = new viewing.GuiViewer3D(container, {extensions: []});
         if (viewer.start() !== 0) throw new Error('No fue posible iniciar WebGL para Autodesk Viewer.');
         viewer.setTheme('light-theme');
+        viewer.setBackgroundColor(184, 190, 194, 156, 163, 169);
         viewer.prefs.set('restoreMeasurements', true);
         await viewer.loadExtension('Autodesk.PDF');
         if (!activo) return;
@@ -253,7 +255,7 @@ export function AutodeskCanvas(props: Props) {
   return <div className={styles.autodeskStage}>
     <div ref={host} className={styles.autodeskHost} />
     {listo && <div className={styles.autodeskPins}>{pines.map(({incidencia, x, y}) =>
-      <button key={incidencia.id_incidencia} className={styles.incidentMarker} style={{left: x, top: y}}
+      <button key={incidencia.id_incidencia} className={styles.incidentMarker} data-estado={incidencia.estado} style={{left: x, top: y}}
         title={incidencia.titulo} aria-label={`Incidencia: ${incidencia.titulo}`}
         onClick={() => latest.current.onSeleccionar(incidencia)}>!</button>)}</div>}
     {(!listo || error || remoto) && <div className={styles.syncStatus} role="status">

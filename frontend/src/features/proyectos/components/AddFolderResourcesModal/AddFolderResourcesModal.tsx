@@ -1,3 +1,4 @@
+import { FolderFileUpload } from './FolderFileUpload';
 import {
   useEffect,
   useMemo,
@@ -632,7 +633,7 @@ export function AddFolderResourcesModal({
             </h2>
 
             <p>
-              Selecciona recursos existentes para{' '}
+              Carga archivos o selecciona recursos existentes para{' '}
               <strong>
                 {nombreCarpeta}
               </strong>
@@ -664,6 +665,10 @@ export function AddFolderResourcesModal({
           </button>
         </header>
 
+        <div className={styles.scrollContent}>
+        <FolderFileUpload idProyecto={idProyecto} idCarpeta={idCarpeta} ocupado={agregando} onOcupado={setAgregando} onCompletado={onAgregados} />
+
+        <div className={styles.libraryHeading}><strong>Recursos del proyecto</strong><span>Selecciona los que quieras agregar a esta carpeta</span></div>
         <div
           className={
             styles.tabs
@@ -1011,6 +1016,8 @@ export function AddFolderResourcesModal({
                 {error}
               </p>
             )}
+        </div>
+
         </div>
 
         <footer

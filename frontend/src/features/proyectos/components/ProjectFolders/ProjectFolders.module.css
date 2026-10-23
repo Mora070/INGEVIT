@@ -518,3 +518,10 @@
     animation-duration: 1.4s;
   }
 }
+.uploadedFile { display: flex; flex-direction: column; gap: 12px; padding: 20px; min-width: 0; border: 1px solid #e2e6ea; border-radius: 14px; background: white; text-decoration: none; color: #3b4650; transition: border-color .15s, box-shadow .15s; }
+.uploadedFile:hover { border-color: #ea751a; box-shadow: 0 4px 16px #0001; }
+.uploadedFile strong { overflow-wrap: anywhere; font-size: 14px; }
+.uploadedFile > span:last-child { font-size: 12px; color: #6a7680; }
+.fileExtension { align-self: flex-start; padding: 16px; border-radius: 10px; background: #fff0e4; color: #ad4b00; font-weight: 700; }
+.fileExtension[data-extension="xls"], .fileExtension[data-extension="xlsx"] { background: #e8f5ec; color: #28643e; }
+.fileExtension[data-extension="dwg"] { background: #eaf1fb; color: #2b5a98; }

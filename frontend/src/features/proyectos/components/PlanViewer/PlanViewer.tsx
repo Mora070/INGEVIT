@@ -559,6 +559,9 @@ export function PlanViewer({
                 styles.headerInfo
               }
             >
+              <div className={styles.documentIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>
+              </div>
               <strong
                 id="plan-viewer-title"
               >
@@ -566,7 +569,7 @@ export function PlanViewer({
               </strong>
 
               <span>
-                Plano · Autodesk Viewer
+                VISOR DE PLANOS
               </span>
             </div>
 
@@ -597,6 +600,7 @@ export function PlanViewer({
                     null,
                   );
                 }}
+                aria-label={modoCrearIncidencia ? 'Selecciona un punto para la incidencia' : 'Nueva incidencia'}
                 aria-pressed={
                   modoCrearIncidencia
                 }
@@ -634,7 +638,7 @@ export function PlanViewer({
                   }
                   aria-label="Página anterior"
                 >
-                  ‹
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg>
                 </button>
 
                 <span
@@ -658,7 +662,7 @@ export function PlanViewer({
                   }
                   aria-label="Página siguiente"
                 >
-                  ›
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg>
                 </button>
               </div>
 
@@ -669,6 +673,8 @@ export function PlanViewer({
                 href={
                   plano.url
                 }
+                aria-label="Abrir plano en otra pestaña"
+                title="Abrir plano en otra pestaña"
                 target="_blank"
                 rel="noopener noreferrer"
               >

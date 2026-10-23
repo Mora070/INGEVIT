@@ -1,3 +1,6 @@
+import { CarpetasArchivosController } from './carpetas-archivos.controller';
+import { CarpetasArchivosService } from './carpetas-archivos.service';
+import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
 import {
   Module,
 } from '@nestjs/common';
@@ -76,6 +79,7 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 
 @Module({
 imports: [
+  AlmacenamientoModule,
   DatabaseModule,
   AuthModule,
   ActividadesModule,
@@ -83,6 +87,7 @@ imports: [
 ],
 
   controllers: [
+    CarpetasArchivosController,
     CarpetasCreacionController,
     CarpetasConsultaController,
     CarpetasEdicionController,
@@ -91,6 +96,7 @@ imports: [
   ],
 
   providers: [
+    CarpetasArchivosService,
     CarpetasAccesoRepository,
     CarpetasRepository,
     CarpetasRecursosRepository,

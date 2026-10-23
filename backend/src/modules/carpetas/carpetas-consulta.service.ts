@@ -1,3 +1,4 @@
+import type { ArchivoCarpeta } from './carpetas-archivos.service';
 import {
   Injectable,
   NotFoundException,
@@ -83,6 +84,7 @@ export interface PlanoCarpetaResponse {
 
 
 export interface ContenidoCarpetaResponse {
+  archivos: ArchivoCarpeta[];
   carpeta: CarpetaResponse;
 
   subcarpetas:
@@ -318,7 +320,9 @@ export class CarpetasConsultaService {
             ),
           ]);
 
+        const archivos = await client.query<ArchivoCarpeta>('SELECT id_archivo,nombre,extension,mime_type,tamano,fecha_subida FROM obra.carpeta_archivos WHERE id_proyecto=$1 AND id_carpeta=$2 ORDER BY fecha_subida DESC,id_archivo', [idProyecto,idCarpeta]);
         return {
+          archivos: archivos.rows,
           carpeta:
             mapearCarpeta(
               carpeta,

@@ -40,6 +40,7 @@ export interface Viewer {
   finish(): void;
   resize(): void;
   setTheme(theme: string): void;
+  setBackgroundColor(topR: number, topG: number, topB: number, bottomR: number, bottomG: number, bottomB: number): void;
   loadExtension(name: string): Promise<unknown>;
   loadModel(url: string, options: object, success: (model: Model) => void, failure: () => void): void;
   waitForLoadDone(options: {geometry: boolean}): Promise<void>;

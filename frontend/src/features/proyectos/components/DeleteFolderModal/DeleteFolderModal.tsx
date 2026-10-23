@@ -287,11 +287,11 @@ export function DeleteFolderModal({
 
             <div>
               <strong>
-                Los archivos originales no serán eliminados.
+                Los recursos vinculados se conservan; los archivos cargados aquí se eliminarán.
               </strong>
 
               <p>
-                Las fotografías, panorámicas y planos seguirán disponibles en sus secciones originales del proyecto.
+                Las fotografías, panorámicas y planos vinculados seguirán disponibles en sus secciones originales. Los PDF, Excel y DWG cargados directamente en esta carpeta o sus subcarpetas se eliminarán.
               </p>
             </div>
           </div>

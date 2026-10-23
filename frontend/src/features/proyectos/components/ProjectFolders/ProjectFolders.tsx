@@ -1,3 +1,7 @@
+import { lazy, Suspense } from 'react';
+const ExcelViewer = lazy(() => import('../ExcelViewer/ExcelViewer'));
+import type { ArchivoCarpeta } from '../../types/carpeta';
+import { urlArchivoCarpeta } from '../../api/archivos-carpeta.api';
 import {
   useEffect,
   useState,
@@ -106,6 +110,8 @@ export function ProjectFolders({
   onAbrirPanoramica,
   onAbrirPlano,
 }: ProjectFoldersProps) {
+  const [excelAbierto, setExcelAbierto] = useState<{archivo:ArchivoCarpeta;url:string}|null>(null);
+  const [archivos, setArchivos] = useState<ArchivoCarpeta[]>([]);
   const [
     carpetas,
     setCarpetas,
@@ -311,6 +317,7 @@ export function ProjectFolders({
       setPlanos(
         [],
       );
+      setArchivos([]);
 
       setMenuVacio(
         null,
@@ -419,6 +426,7 @@ export function ProjectFolders({
           setPlanos(
             contenido.planos,
           );
+      setArchivos(contenido.archivos ?? []);
 
           setRutaCarpetas((
             rutaActual,
@@ -724,6 +732,7 @@ export function ProjectFolders({
       setPlanos(
         contenido.planos,
       );
+      setArchivos(contenido.archivos ?? []);
 
       setRutaCarpetas(
         (
@@ -813,6 +822,7 @@ export function ProjectFolders({
       setPlanos(
         [],
       );
+      setArchivos([]);
 
       setRutaCarpetas(
         [],
@@ -881,6 +891,7 @@ export function ProjectFolders({
       setPlanos(
         contenido.planos,
       );
+      setArchivos(contenido.archivos ?? []);
 
       setRutaCarpetas(
         (
@@ -1205,7 +1216,7 @@ export function ProjectFolders({
           panoramicas.length ===
           0 &&
           planos.length ===
-          0 ? (
+          0 && archivos.length === 0 ? (
           <div
             className={
               styles.state
@@ -1245,6 +1256,16 @@ export function ProjectFolders({
 
           >
 
+            {carpetaActual && archivos.map(archivo => (
+              <a key={archivo.id_archivo} className={styles.uploadedFile}
+                href={urlArchivoCarpeta(idProyecto, carpetaActual.id_carpeta, archivo.id_archivo)}
+                onClick={event => { if (['xls','xlsx'].includes(archivo.extension.toLowerCase()) && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault();setExcelAbierto({archivo,url:urlArchivoCarpeta(idProyecto,carpetaActual.id_carpeta,archivo.id_archivo)}); } }}
+                onContextMenu={event => event.stopPropagation()} title={(['xls','xlsx'].includes(archivo.extension.toLowerCase()) ? 'Ver ' : 'Descargar ')+archivo.nombre}>
+                <span className={styles.fileExtension} data-extension={archivo.extension}>{archivo.extension.toUpperCase()}</span>
+                <strong>{archivo.nombre}</strong>
+                <span>{(archivo.tamano/1024/1024).toFixed(1)} MB · {['xls','xlsx'].includes(archivo.extension.toLowerCase()) ? 'Abrir vista previa' : 'Descargar'}</span>
+              </a>
+            ))}
             {carpetas.map(
               (
                 carpeta,
@@ -1854,6 +1875,8 @@ export function ProjectFolders({
         />
       )}
 
+      {excelAbierto && <Suspense fallback={<div role="status">Cargando visor de Excel…</div>}><ExcelViewer key={excelAbierto.url} archivo={excelAbierto.archivo} url={excelAbierto.url} onCerrar={()=>setExcelAbierto(null)} /></Suspense>}
+
       {agregandoRecursos &&
         carpetaActual && (
           <AddFolderResourcesModal
@@ -1867,6 +1890,7 @@ export function ProjectFolders({
               carpetaActual.nombre
             }
             onCerrar={() => {
+              void abrirCarpeta(carpetaActual);
               setAgregandoRecursos(
                 false,
               );

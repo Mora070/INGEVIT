@@ -150,6 +150,9 @@ export class ArchivosPendientesService {
             'El archivo pendiente continúa referenciado por una fotografía.',
           );
         }
+      } else if (clave.startsWith('archivos/')) {
+        const r = await client.query<{existe: boolean}>('SELECT EXISTS(SELECT 1 FROM obra.carpeta_archivos WHERE s3_key=$1) AS existe',[clave]);
+        if (r.rows[0]?.existe !== false) throw new Error('El archivo continúa referenciado.');
       } else if (clave.startsWith('planos/')) {
         const referenciado =
           await this.pendientes.estaReferenciadoEnPlanos(

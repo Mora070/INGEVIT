@@ -1,549 +1,197 @@
+/* Estilos exclusivos del visor: no alteran los otros modales de INGEVIT. */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 1200;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  padding: 1.25rem;
-
-  background: rgba(18, 21, 24, 0.72);
-  backdrop-filter: blur(5px);
+  padding: clamp(12px, 2vw, 28px);
+  background: rgb(19 24 29 / 72%);
+  backdrop-filter: blur(8px);
 }
-
 .viewer {
+  --viewer-accent: var(--color-brand-orange, #ea751a);
   display: flex;
   flex-direction: column;
-
-  width: min(1180px, 100%);
-  height: min(90vh, 900px);
-
+  width: min(1600px, 100%);
+  height: calc(100dvh - 56px);
   overflow: hidden;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 30px 90px
-    rgba(0, 0, 0, 0.38);
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 32px 100px #0006, 0 4px 16px #0002;
 }
-
 .header {
+  position: relative;
+  z-index: 25;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-
-  padding: 1rem 1.1rem;
-
-  border-bottom: 1px solid #e4e7ea;
-
-  background: #ffffff;
+  gap: 24px;
+  min-height: 86px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #dce1e4;
+  background: #fff;
+  box-shadow: 0 2px 10px #17212b08;
 }
-
 .headerInfo {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 13px;
+  row-gap: 5px;
+  align-items: center;
   min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
 }
-
+.documentIcon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 48px;
+  color: #b8550c;
+  background: #fff3e9;
+  border: 1px solid #f8dec8;
+  border-radius: 12px;
+}
+.documentIcon svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .headerInfo strong {
   overflow: hidden;
-
-  color: var(--color-brand-charcoal);
-  font-size: 0.94rem;
-  font-weight: 750;
-
+  color: #252c32;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.headerInfo span {
-  color: #7b838b;
-  font-size: 0.75rem;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-
-  flex: 0 0 auto;
-}
-
-.actionButton,
-.closeButton {
+.headerInfo > span { color: #77818a; font-size: 10px; font-weight: 650; letter-spacing: 1.5px; }
+.actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.actionButton, .closeButton, .incidentModeButton, .controlButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-
-  min-height: 38px;
-
-  border: 1px solid #dde1e5;
-  border-radius: 9px;
-
-  background: #ffffff;
-
-  color: #555e67;
-
+  gap: 7px;
+  height: 40px;
+  padding: 0 13px;
+  border: 1px solid #dfe4e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #49535c;
   font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-
-  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
   text-decoration: none;
-}
-
-.actionButton {
-  padding: 0.55rem 0.78rem;
-}
-
-.closeButton {
-  width: 38px;
-  padding: 0;
-}
-
-.actionButton:hover,
-.closeButton:hover {
-  border-color: #cbd1d7;
-
-  background: #f5f6f7;
-
-  color: var(--color-brand-charcoal);
-}
-
-.actionButton svg,
-.closeButton svg {
-  width: 17px;
-  height: 17px;
-
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.content {
-  position: relative;
-
-  flex: 1;
-  min-height: 0;
-
-  background: #e8eaed;
-}
-
-.frame {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  border: 0;
-
-  background: #ffffff;
-}
-
-.loading {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-
-  background: #f4f5f6;
-
-  color: #6c747c;
-  font-size: 0.82rem;
-}
-
-.spinner {
-  width: 30px;
-  height: 30px;
-
-  border: 3px solid #d7dce0;
-  border-top-color: var(--color-brand-orange);
-  border-radius: 50%;
-
-  animation: girar 0.8s linear infinite;
-}
-
-@keyframes girar {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.error {
-  position: absolute;
-  inset: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-
-  padding: 2rem;
-
-  background: #f7f8f9;
-
-  text-align: center;
-}
-
-.error strong {
-  color: var(--color-brand-charcoal);
-  font-size: 1rem;
-}
-
-.error span {
-  max-width: 460px;
-
-  color: #737b84;
-  font-size: 0.82rem;
-  line-height: 1.55;
-}
-
-@media (max-width: 768px) {
-  .overlay {
-    padding: 0;
-  }
-
-  .viewer {
-    width: 100%;
-    height: 100dvh;
-
-    border: 0;
-    border-radius: 0;
-  }
-
-  .header {
-    padding: 0.85rem;
-  }
-
-  .actionButton span {
-    display: none;
-  }
-
-  .actionButton {
-    width: 38px;
-    padding: 0;
-  }
-}
-
-.pageControls,
-.zoomControls {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.controlButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 34px;
-  height: 34px;
-
-  padding: 0;
-
-  border: 1px solid #dde1e5;
-  border-radius: 8px;
-
-  background: #ffffff;
-
-  color: #555e67;
-
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 750;
-
   cursor: pointer;
+  transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
 }
-
-.controlButton:hover:not(:disabled) {
-  background: #f4f5f6;
-
-  color: var(--color-brand-charcoal);
+.actionButton svg, .closeButton svg, .incidentModeButton svg, .controlButton svg {
+  width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
 }
-
-.controlButton:disabled {
-  cursor: not-allowed;
-
-  opacity: 0.4;
-}
-
-.pageIndicator,
-.zoomValue {
-  min-width: 62px;
-
-  color: #626a73;
-
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.pdfScroll {
-  width: 100%;
-  height: 100%;
-
-  overflow: auto;
-
-  padding: 2rem;
-
-  background: #dfe2e5;
-}
-
-.pageStage {
-  position: relative;
-
-  width: fit-content;
-
-  margin: 0 auto;
-
-  box-shadow:
-    0 10px 30px
-    rgba(0, 0, 0, 0.18);
-}
-
-.pageStage :global(.react-pdf__Page) {
-  display: block;
-}
-
-.pageStage :global(.react-pdf__Page__canvas) {
-  display: block;
-}
-
+.actionButton:hover, .closeButton:hover { background: #f1f4f6; border-color: #c8d0d6; color: #202830; }
+.closeButton { width: 40px; padding: 0; background: #f5f6f7; border-color: transparent; }
+.incidentModeButton { color: #fff; background: #333c44; border-color: #333c44; box-shadow: 0 2px 3px #1c293314; }
+.incidentModeButton:hover { background: #454f58; border-color: #454f58; }
+.incidentModeButtonActive, .incidentModeButtonActive:hover { color: #fff; background: #ad4b00; border-color: #ad4b00; box-shadow: 0 0 0 3px #ea751a25; }
+.pageControls { display: flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid #e3e7ea; border-radius: 11px; background: #f6f8f9; }
+.controlButton { width: 32px; height: 32px; padding: 0; border-color: transparent; border-radius: 8px; background: transparent; }
+.controlButton:hover:not(:disabled) { background: #fff; color: #242c33; box-shadow: 0 1px 4px #18273314; }
+.controlButton:disabled { opacity: .3; cursor: not-allowed; }
+.pageIndicator { min-width: 66px; padding: 0 6px; text-align: center; color: #46515b; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.viewer button:focus-visible, .viewer a:focus-visible { outline: 2px solid #ad4b00; outline-offset: 3px; }
+.content { position: relative; flex: 1; min-height: 0; background: #adb4ba; }
+.autodeskStage, .autodeskHost { position: absolute; inset: 0; }
+.autodeskStage { overflow: hidden; }
+.autodeskPins { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+.autodeskPins button { pointer-events: auto; }
 .incidentMarker {
   position: absolute;
   z-index: 10;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 28px;
-  height: 28px;
-
-  transform:
-    translate(-50%, -50%);
-
-  border: 2px solid #ffffff;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
   border-radius: 50%;
-
-  background: #d97706;
-
-  color: #ffffff;
-
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 800;
-
+  background: #ad4b00;
+  color: #fff;
+  font-family: inherit; font-size: 12px; font-weight: 750; line-height: 1;
   cursor: pointer;
-
-  box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.28);
+  box-shadow: 0 0 0 3px #ad4b0025, 0 3px 8px #18232d40;
+  transition: transform 150ms, box-shadow 150ms;
 }
-
-.incidentMarker:hover {
-  transform:
-    translate(-50%, -50%)
-    scale(1.08);
-}
-
-.incidentLoading {
-  position: absolute;
-  right: 0.75rem;
-  bottom: 0.75rem;
-
-  padding: 0.45rem 0.65rem;
-
-  border-radius: 8px;
-
-  background:
-    rgba(255, 255, 255, 0.94);
-
-  color: #626a73;
-
-  font-size: 0.72rem;
-  font-weight: 650;
-
-  box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.08);
-}
-
-.errorBanner {
-  position: absolute;
-  top: 0.75rem;
-  left: 50%;
-  z-index: 20;
-
-  transform:
-    translateX(-50%);
-
-  max-width:
-    calc(100% - 2rem);
-
-  padding:
-    0.6rem 0.8rem;
-
-  border: 1px solid
-    rgba(180, 35, 24, 0.18);
-  border-radius: 8px;
-
-  background:
-    rgba(255, 245, 244, 0.96);
-
-  color: #b42318;
-
-  font-size: 0.78rem;
-
-  box-shadow:
-    0 6px 18px
-    rgba(0, 0, 0, 0.08);
-}
-
-@media (max-width: 900px) {
-  .header {
-    align-items: flex-start;
-  }
-
-  .actions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .pdfScroll {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .header {
-    gap: 0.65rem;
-  }
-
-  .headerInfo {
-    max-width: 150px;
-  }
-
-  .pageIndicator,
-  .zoomValue {
-    min-width: 50px;
-  }
-
-  .pdfScroll {
-    padding: 0.75rem;
-  }
-}
-
-.incidentModeButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-
-  min-height: 38px;
-
-  padding: 0.55rem 0.8rem;
-
-  border: 1px solid #dde1e5;
-  border-radius: 9px;
-
-  background: #ffffff;
-
-  color: #555e67;
-
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-
-  cursor: pointer;
-}
-
-.incidentModeButton svg {
-  width: 17px;
-  height: 17px;
-
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.incidentModeButton:hover {
-  border-color: var(--color-brand-orange);
-
-  color: var(--color-brand-orange);
-}
-
-.incidentModeButtonActive {
-  border-color: var(--color-brand-orange);
-
-  background: var(--color-brand-orange);
-
-  color: #ffffff;
-}
-
-.incidentModeButtonActive:hover {
-  background: var(--color-brand-orange);
-
-  color: #ffffff;
-}
-
-.pageStageSelecting {
-  cursor: crosshair;
-}
-
-.pageStageSelecting::after {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-
-  content: '';
-
-  pointer-events: none;
-
-  border: 2px solid
-    rgba(234, 117, 26, 0.55);
-
-  box-shadow:
-    inset 0 0 0 1px
-    rgba(255, 255, 255, 0.5);
-}
-
-@media (max-width: 768px) {
-  .incidentModeButton span {
-    display: none;
-  }
-
-  .incidentModeButton {
-    width: 38px;
-
-    padding: 0;
-  }
-}
-.autodeskStage { position: absolute; inset: 0; overflow: hidden; }
-.autodeskHost { position: absolute; inset: 0; }
-.autodeskPins { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
-.autodeskPins button { pointer-events: auto; }
-.syncStatus { position: absolute; top: 12px; left: 12px; max-width: min(460px, calc(100% - 24px)); z-index: 5; display: flex; flex-wrap: wrap; gap: 6px; padding: 9px 12px; border-radius: 10px; color: #263744; background: rgba(255,255,255,.96); box-shadow: 0 2px 8px #0002; font-size: 12px; }
-.syncStatus span { width: 100%; }
-.syncStatus button { border: 1px solid #ccd5dc; border-radius: 5px; padding: 5px 8px; background: white; cursor: pointer; }
+.incidentMarker[data-estado="EN_PROCESO"] { background: #2563a0; box-shadow: 0 0 0 3px #2563a025, 0 3px 8px #18232d40; }
+.incidentMarker[data-estado="SOLUCIONADA"] { background: #38754b; box-shadow: 0 0 0 3px #38754b25, 0 3px 8px #18232d40; }
+.incidentMarker:hover { transform: translate(-50%, -50%) scale(1.13); box-shadow: 0 0 0 5px #fff5, 0 4px 12px #18232d50; }
+.errorBanner { position: absolute; top: 16px; left: 50%; z-index: 20; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 16px; border: 1px solid #eccbc5; border-radius: 12px; background: #fff6f3; color: #9d2e21; font-size: 12px; box-shadow: 0 6px 24px #1c27331a; }
+.syncStatus { position: absolute; top: 16px; left: 16px; max-width: min(440px, calc(100% - 32px)); z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; border: 1px solid #ffffffb3; border-radius: 12px; color: #46515a; background: #fffffff5; box-shadow: 0 6px 24px #1c273326; font-size: 12px; line-height: 1.5; }
+.syncStatus span { width: 100%; overflow-wrap: anywhere; }
+.syncStatus button { padding: 6px 10px; border: 1px solid #d7dee3; border-radius: 7px; background: #fff; color: #35424d; font: inherit; cursor: pointer; }
+.syncStatus button:hover { background: #f1f4f6; }
 .syncStatus [role="alert"] { color: #a12424; }
-.viewerBlocker { position: absolute; inset: 0; z-index: 4; background: #e8eaed88; }
+.viewerBlocker { position: absolute; inset: 0; z-index: 4; background: #c3c9ce99; }
+/* Barras nativas APS: conservamos estructura, herramientas, submenús y eventos. */
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar) { bottom: 22px; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-control-group) {
+  padding: 5px;
+  border: 1px solid #ffffff24;
+  border-radius: 13px;
+  /* El tema claro de APS también declara el fondo: mantener el contraste del menú. */
+  background: #252e37 !important;
+  box-shadow: 0 8px 24px #17212b40, inset 0 1px 0 #ffffff0a;
+}
+.autodeskHost :global(.adsk-viewing-viewer .adsk-button) { border-radius: 8px; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button) { color: #f1f5f9 !important; background-color: transparent; border-color: transparent; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button .adsk-button-icon) { color: #f1f5f9 !important; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button:hover) { background-color: #ffffff18; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button.active) { background-color: #ea751a26; box-shadow: inset 0 0 0 1px #ea751a5c; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button.active .adsk-button-icon) { color: #ffb16f !important; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button:focus-visible) { outline: 2px solid #ffb16f; outline-offset: 2px; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-control-tooltip) { border: 1px solid #ffffff24; border-radius: 7px; background: #25303a; color: #fff; box-shadow: 0 4px 12px #0003; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-button .adsk-button-arrow) { color: #e3e9ef; }
+.autodeskHost :global(.adsk-viewing-viewer .docking-panel) { border: 1px solid #d8dfe4; border-radius: 12px; background-color: #fafbfc; box-shadow: 0 8px 28px #17212b29; }
+.autodeskHost :global(.adsk-viewing-viewer .docking-panel-title) { background: #f5f7f9; color: #303b44; border-bottom: 1px solid #e0e5e9; border-radius: 12px 12px 0 0; }
+@media (max-width: 1000px) {
+  .header { gap: 14px; padding: 15px 18px; }
+  .actions { gap: 7px; }
+  .actionButton span { display: none; }
+  .actionButton { width: 40px; padding: 0; }
+}
+@media (max-width: 700px) {
+  .overlay { padding: 0; }
+  .viewer { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+  .header { flex-wrap: wrap; gap: 12px; min-height: auto; padding: 12px; }
+  .headerInfo { flex: 1 1 100%; grid-template-columns: 36px minmax(0, 1fr); column-gap: 10px; }
+  .documentIcon { width: 36px; height: 40px; border-radius: 9px; }
+  .documentIcon svg { width: 20px; height: 20px; }
+  .headerInfo strong { font-size: 14px; }
+  .headerInfo > span { font-size: 9px; }
+  .actions { width: 100%; gap: 8px; }
+  .incidentModeButton { margin-right: auto; padding: 0 10px; }
+  .autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar) { bottom: 12px; max-width: calc(100% - 12px); }
+  .autodeskHost :global(.adsk-viewing-viewer .adsk-control-group) { padding: 2px; border-radius: 10px; }
+}
+@media (max-width: 380px) {
+  .incidentModeButton span { display: none; }
+  .incidentModeButton { width: 40px; padding: 0; }
+  .pageIndicator { min-width: 52px; }
+  .actions { gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viewer *, .viewer *::before, .viewer *::after { transition: none !important; animation: none !important; }
+}
+
+/* Iconos SVG y glifos heredan el mismo contraste que los iconos de fuente. */
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button .adsk-button-icon::before) { color: inherit !important; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar .adsk-button .adsk-button-icon svg) { fill: currentColor; }
+
+/* Compartir las capas del lienzo, los marcadores y los controles nativos. */
+.autodeskStage { isolation: isolate; }
+.autodeskHost :global(.adsk-viewing-viewer) { z-index: auto !important; }
+.autodeskHost :global(.adsk-viewing-viewer .adsk-toolbar) { z-index: 3; }
+.autodeskHost :global(.adsk-viewing-viewer .docking-panel) {
+  z-index: 3 !important;
+  background: #fafbfc !important;
+  opacity: 1;
+}

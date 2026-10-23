@@ -47,6 +47,7 @@ export interface PlanoCarpeta
 }
 
 export interface ContenidoCarpeta {
+  archivos: ArchivoCarpeta[];
   carpeta: CarpetaProyecto;
 
   subcarpetas: CarpetaProyecto[];
@@ -57,3 +58,4 @@ export interface ContenidoCarpeta {
 
   planos: PlanoCarpeta[];
 }
+export interface ArchivoCarpeta { id_archivo: string; nombre: string; extension: string; mime_type: string; tamano: number; fecha_subida: string; }
