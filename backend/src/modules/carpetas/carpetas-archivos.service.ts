@@ -36,6 +36,25 @@ export class CarpetasArchivosService {
      throw error;
    }
  }
+ async quitar(proyecto: string, carpeta: string, usuario: string, id: string) {
+   await this.db.withTransaction(async c => {
+     await this.autorizar(c, proyecto, carpeta, usuario);
+     // El trigger encola la limpieza del almacenamiento al confirmar la transacción.
+     const r = await c.query('DELETE FROM obra.carpeta_archivos WHERE id_proyecto=$1 AND id_carpeta=$2 AND id_archivo=$3 RETURNING id_archivo', [proyecto, carpeta, id]);
+     if (!r.rows.length) throw new NotFoundException('El archivo no está disponible.');
+   });
+ }
+ async mover(proyecto: string, carpeta: string, usuario: string, id: string, destino: string) {
+   await this.db.withTransaction(async c => {
+     if (!await this.acceso.bloquearDisponible(c, proyecto, usuario)) throw new NotFoundException('La carpeta no está disponible.');
+     // Orden estable para movimientos simultáneos en direcciones opuestas.
+     for (const carpetaId of [...new Set([carpeta, destino])].sort()) {
+       if (!await this.carpetas.bloquear(c, proyecto, carpetaId)) throw new NotFoundException('La carpeta no está disponible.');
+     }
+     const r = await c.query('UPDATE obra.carpeta_archivos SET id_carpeta=$4 WHERE id_proyecto=$1 AND id_carpeta=$2 AND id_archivo=$3 RETURNING id_archivo', [proyecto, carpeta, id, destino]);
+     if (!r.rows.length) throw new NotFoundException('El archivo no está disponible.');
+   });
+ }
  async abrir(proyecto: string, carpeta: string, usuario: string, id: string) {
    const archivo=await this.db.withTransaction(async c => {
      await this.autorizar(c,proyecto,carpeta,usuario);

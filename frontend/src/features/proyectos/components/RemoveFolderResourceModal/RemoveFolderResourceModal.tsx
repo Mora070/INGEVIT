@@ -4,6 +4,7 @@ import styles from './RemoveFolderResourceModal.module.css';
 
 interface RemoveFolderResourceModalProps {
   nombreRecurso: string;
+  eliminaArchivo?: boolean;
   quitando: boolean;
   error: string | null;
   onCerrar: () => void;
@@ -12,6 +13,7 @@ interface RemoveFolderResourceModalProps {
 
 export function RemoveFolderResourceModal({
   nombreRecurso,
+  eliminaArchivo = false,
   quitando,
   error,
   onCerrar,
@@ -121,10 +123,9 @@ export function RemoveFolderResourceModal({
             </svg>
 
             <p>
-              El archivo original
-              seguirá disponible en
-              el proyecto y no será
-              eliminado.
+              {eliminaArchivo
+                ? 'Este archivo cargado se eliminará del proyecto. Esta acción no se puede deshacer.'
+                : 'El archivo original seguirá disponible en el proyecto y no será eliminado.'}
             </p>
           </div>
 

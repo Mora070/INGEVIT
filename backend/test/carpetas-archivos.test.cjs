@@ -31,3 +31,26 @@ test('deniega carpetas que no pertenecen al proyecto',async()=>{const f=servicio
 test('registra un archivo con clave interna aleatoria',async()=>{const f=servicio();await f.s.subir('p','c','u',archivo('a.pdf',Buffer.from('%PDF-')));assert.match(f.guardados[0],/^archivos\/[a-f0-9-]+\.pdf$/);assert.equal(f.eliminados.length,0);});
 test('compensa el almacenamiento cuando falla el registro',async()=>{const f=servicio({fallo:Error('SQL')});await assert.rejects(f.s.subir('p','c','u',archivo('a.pdf',Buffer.from('%PDF-'))));assert.deepEqual(f.eliminados,f.guardados);});
 test('conserva bytes ante un COMMIT incierto',async()=>{const f=servicio({fallo:new ResultadoTransaccionDesconocidoError('COMMIT',Error('red'))});await assert.rejects(f.s.subir('p','c','u',archivo('a.pdf',Buffer.from('%PDF-'))));assert.equal(f.eliminados.length,0);});
+function operaciones({acceso=true,destino=true,existe=true}={}) {
+ const consultas=[],bloqueos=[];
+ const s=new CarpetasArchivosService({withTransaction:fn=>fn({query:async(sql,args)=>{consultas.push({sql,args});return {rows:existe?[{id_archivo:'f'}]:[]};}})},
+ {bloquearDisponible:async()=>acceso},{bloquear:async(c,p,id)=>{bloqueos.push(id);return id==='z'&&!destino?null:{};}},{});
+ return {s,consultas,bloqueos};
+}
+test('mover verifica ambas carpetas y limita el archivo al origen y proyecto',async()=>{
+ const f=operaciones();await f.s.mover('p','z','u','f','a');
+ assert.deepEqual(f.bloqueos,['a','z']);assert.deepEqual(f.consultas[0].args,['p','z','f','a']);
+ assert.match(f.consultas[0].sql,/WHERE id_proyecto=\$1 AND id_carpeta=\$2 AND id_archivo=\$3/);
+});
+test('mover rechaza destinos ajenos sin modificar archivos',async()=>{
+ const f=operaciones({destino:false});await assert.rejects(f.s.mover('p','a','u','f','z'));assert.equal(f.consultas.length,0);
+});
+test('quitar y mover requieren acceso al proyecto',async()=>{
+ const f=operaciones({acceso:false});await assert.rejects(f.s.quitar('p','a','u','f'));await assert.rejects(f.s.mover('p','a','u','f','z'));assert.equal(f.consultas.length,0);
+});
+test('quitar limita la eliminación a la carpeta y proyecto',async()=>{
+ const f=operaciones();await f.s.quitar('p','a','u','f');assert.deepEqual(f.consultas[0].args,['p','a','f']);assert.match(f.consultas[0].sql,/DELETE.*WHERE id_proyecto=\$1 AND id_carpeta=\$2 AND id_archivo=\$3/);
+});
+test('archivo movido o eliminado por otra sesión devuelve no disponible',async()=>{
+ const f=operaciones({existe:false});await assert.rejects(f.s.quitar('p','a','u','f'));await assert.rejects(f.s.mover('p','a','u','f','z'));
+});

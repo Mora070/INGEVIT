@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 const ExcelViewer = lazy(() => import('../ExcelViewer/ExcelViewer'));
 import type { ArchivoCarpeta } from '../../types/carpeta';
-import { urlArchivoCarpeta } from '../../api/archivos-carpeta.api';
+import { moverArchivoCarpeta, quitarArchivoCarpeta, urlArchivoCarpeta } from '../../api/archivos-carpeta.api';
 import {
   useEffect,
   useState,
@@ -85,6 +85,7 @@ interface MenuCarpetaContextual
 }
 
 type RecursoCarpetaContextual =
+  | { tipo: 'ARCHIVO'; recurso: ArchivoCarpeta & { titulo: string } }
   | {
     tipo: 'FOTOGRAFIA';
     recurso: FotografiaCarpeta;
@@ -497,7 +498,10 @@ export function ProjectFolders({
     );
 
     try {
-      if (
+      if (seleccionado.tipo === 'ARCHIVO') {
+        await quitarArchivoCarpeta(idProyecto, carpetaActual.id_carpeta, seleccionado.recurso.id_archivo);
+        setArchivos(actuales => actuales.filter(a => a.id_archivo !== seleccionado.recurso.id_archivo));
+      } else if (
         seleccionado.tipo ===
         'FOTOGRAFIA'
       ) {
@@ -600,6 +604,12 @@ export function ProjectFolders({
     );
 
     try {
+      if (seleccionado.tipo === 'ARCHIVO') {
+        await moverArchivoCarpeta(idProyecto, carpetaActual.id_carpeta, seleccionado.recurso.id_archivo, idCarpetaDestino);
+        setArchivos(actuales => actuales.filter(a => a.id_archivo !== seleccionado.recurso.id_archivo));
+        setRecursoAMover(null);
+        return;
+      }
       let idRecurso: string;
 
       if (
@@ -1260,7 +1270,11 @@ export function ProjectFolders({
               <a key={archivo.id_archivo} className={styles.uploadedFile}
                 href={urlArchivoCarpeta(idProyecto, carpetaActual.id_carpeta, archivo.id_archivo)}
                 onClick={event => { if (['xls','xlsx'].includes(archivo.extension.toLowerCase()) && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault();setExcelAbierto({archivo,url:urlArchivoCarpeta(idProyecto,carpetaActual.id_carpeta,archivo.id_archivo)}); } }}
-                onContextMenu={event => event.stopPropagation()} title={(['xls','xlsx'].includes(archivo.extension.toLowerCase()) ? 'Ver ' : 'Descargar ')+archivo.nombre}>
+                onContextMenu={event => {
+                  event.preventDefault(); event.stopPropagation();
+                  setMenuVacio(null); setMenuCarpeta(null);
+                  setMenuRecurso({x: event.clientX, y: event.clientY, recurso: {tipo: 'ARCHIVO', recurso: {...archivo, titulo: archivo.nombre}}});
+                }} title={(['xls','xlsx'].includes(archivo.extension.toLowerCase()) ? 'Ver ' : 'Descargar ')+archivo.nombre}>
                 <span className={styles.fileExtension} data-extension={archivo.extension}>{archivo.extension.toUpperCase()}</span>
                 <strong>{archivo.nombre}</strong>
                 <span>{(archivo.tamano/1024/1024).toFixed(1)} MB · {['xls','xlsx'].includes(archivo.extension.toLowerCase()) ? 'Abrir vista previa' : 'Descargar'}</span>
@@ -1665,6 +1679,14 @@ export function ProjectFolders({
               return;
             }
 
+            if (seleccionado.tipo === 'ARCHIVO') {
+              if (!carpetaActual) return;
+              const archivo = seleccionado.recurso;
+              const url = urlArchivoCarpeta(idProyecto, carpetaActual.id_carpeta, archivo.id_archivo);
+              if (['xls', 'xlsx'].includes(archivo.extension.toLowerCase())) setExcelAbierto({archivo, url});
+              else { const enlace = document.createElement('a'); enlace.href = url; enlace.click(); }
+              return;
+            }
             onAbrirPlano(
               seleccionado.recurso,
             );
@@ -1909,6 +1931,7 @@ export function ProjectFolders({
 
       {recursoAQuitar && (
         <RemoveFolderResourceModal
+          eliminaArchivo={recursoAQuitar.tipo === 'ARCHIVO'}
           nombreRecurso={
             recursoAQuitar.recurso.titulo
           }

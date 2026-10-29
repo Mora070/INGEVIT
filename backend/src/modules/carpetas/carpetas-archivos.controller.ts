@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, ParseUUIDPipe, Req, Res, UseGuards, UseInterceptors, UploadedFile, UnauthorizedException, Header, Logger } from '@nestjs/common';
+import { Controller, Delete, Patch, HttpCode, Post, Get, Param, ParseUUIDPipe, Req, Res, UseGuards, UseInterceptors, UploadedFile, UnauthorizedException, Header, Logger } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { pipeline } from 'node:stream/promises';
@@ -18,6 +18,20 @@ export class CarpetasArchivosController {
  @Req() req:AuthRequest, @UploadedFile() archivo:Express.Multer.File) {
    if(!req.usuario) throw new UnauthorizedException();
    return this.archivos.subir(proyecto,carpeta,req.usuario.id_usuario,archivo);
+ }
+ @Delete(':idArchivo')
+ @HttpCode(204)
+ async quitar(@Param('idProyecto',new ParseUUIDPipe()) proyecto:string, @Param('idCarpeta',new ParseUUIDPipe()) carpeta:string,
+ @Param('idArchivo',new ParseUUIDPipe()) id:string, @Req() req:AuthRequest) {
+   if(!req.usuario) throw new UnauthorizedException();
+   await this.archivos.quitar(proyecto,carpeta,req.usuario.id_usuario,id);
+ }
+ @Patch(':idArchivo/mover/:idDestino')
+ @HttpCode(204)
+ async mover(@Param('idProyecto',new ParseUUIDPipe()) proyecto:string, @Param('idCarpeta',new ParseUUIDPipe()) carpeta:string,
+ @Param('idArchivo',new ParseUUIDPipe()) id:string, @Param('idDestino',new ParseUUIDPipe()) destino:string, @Req() req:AuthRequest) {
+   if(!req.usuario) throw new UnauthorizedException();
+   await this.archivos.mover(proyecto,carpeta,req.usuario.id_usuario,id,destino);
  }
  @Get(':idArchivo')
  async descargar(@Param('idProyecto',new ParseUUIDPipe()) proyecto:string, @Param('idCarpeta',new ParseUUIDPipe()) carpeta:string,
