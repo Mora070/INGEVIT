@@ -52,6 +52,10 @@ import {
 } from '../../components/PlanViewer/PlanViewer';
 
 import {
+  PhotoComparison,
+} from '../../components/PhotoComparison/PhotoComparison';
+
+import {
   EditPlanModal,
 } from '../../components/EditPlanModal/EditPlanModal';
 
@@ -614,6 +618,31 @@ export function ProjectDetailPage({
   >(
     null,
   );
+
+  /*
+   * ====================================================
+   * COMPARATIVA DE FOTOGRAFÍAS
+   * ====================================================
+   */
+
+  const [
+    modoComparacion,
+    setModoComparacion,
+  ] = useState<boolean>(
+    false,
+  );
+
+  const [
+    fotografiasComparacion,
+    setFotografiasComparacion,
+  ] = useState<FotografiaProyecto[]>(
+    [],
+  );
+
+  const [
+    comparadorAbierto,
+    setComparadorAbierto,
+  ] = useState<boolean>(false);
 
   const [
     panoramicaAbierta,
@@ -3205,14 +3234,95 @@ export function ProjectDetailPage({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    inputFotografiaRef.current?.click();
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  Subir fotografía
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModoComparacion((actual) => !actual);
+                      setFotografiasComparacion([]);
+                      setMenuFotografiaAbierto(null);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '10px 16px',
+                      border: '1px solid #f97316',
+                      borderRadius: '9px',
+                      backgroundColor: modoComparacion
+                        ? '#fff7ed'
+                        : '#ffffff',
+                      color: '#ea580c',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {modoComparacion
+                      ? 'Cancelar comparación'
+                      : 'Comparar fotografías'}
+                  </button>
+
+                  {modoComparacion &&
+                    fotografiasComparacion.length === 2 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setComparadorAbierto(true);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '10px 18px',
+                          border: '1px solid #334155',
+                          borderRadius: '9px',
+                          backgroundColor: '#334155',
+                          color: '#ffffff',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Ver comparación
+                      </button>
+                    )}
+
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      inputFotografiaRef.current?.click();
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '10px 18px',
+                      border: '1px solid #f97316',
+                      borderRadius: '9px',
+                      backgroundColor: '#f97316',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    Subir fotografía
+                  </button>
+                </div>
               </div>
               {/* FILTRO DE FECHAS - GALERÍA FOTOGRAFÍAS */}
               <div
@@ -3416,7 +3526,85 @@ export function ProjectDetailPage({
                         className={
                           styles.galleryCard
                         }
+                        style={{
+                          position: 'relative',
+                          outline:
+                            modoComparacion &&
+                              fotografiasComparacion.some(
+                                (seleccionada) =>
+                                  seleccionada.id_fotografia ===
+                                  fotografia.id_fotografia,
+                              )
+                              ? '3px solid #f97316'
+                              : 'none',
+                          outlineOffset: '-3px',
+                          borderRadius: '10px',
+                        }}
                       >
+
+                        {modoComparacion && (
+                          <button
+                            type="button"
+                            aria-label={`Seleccionar fotografía ${fotografia.titulo}`}
+                            aria-pressed={fotografiasComparacion.some(
+                              (seleccionada) =>
+                                seleccionada.id_fotografia ===
+                                fotografia.id_fotografia,
+                            )}
+                            onClick={() => {
+                              setFotografiasComparacion((actuales) => {
+                                const existe = actuales.some(
+                                  (seleccionada) =>
+                                    seleccionada.id_fotografia ===
+                                    fotografia.id_fotografia,
+                                );
+
+                                if (existe) {
+                                  return actuales.filter(
+                                    (seleccionada) =>
+                                      seleccionada.id_fotografia !==
+                                      fotografia.id_fotografia,
+                                  );
+                                }
+
+                                if (actuales.length >= 2) {
+                                  return actuales;
+                                }
+
+                                return [...actuales, fotografia];
+                              });
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '12px',
+                              left: '12px',
+                              zIndex: 5,
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              border: '2px solid #ffffff',
+                              backgroundColor:
+                                fotografiasComparacion.some(
+                                  (seleccionada) =>
+                                    seleccionada.id_fotografia ===
+                                    fotografia.id_fotografia,
+                                )
+                                  ? '#f97316'
+                                  : '#334155',
+                              color: '#ffffff',
+                              fontWeight: 700,
+                              fontSize: '14px',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                            }}
+                          >
+                            {fotografiasComparacion.findIndex(
+                              (seleccionada) =>
+                                seleccionada.id_fotografia ===
+                                fotografia.id_fotografia,
+                            ) + 1 || '✓'}
+                          </button>
+                        )}
                         <div
                           className={
                             styles.planActions
@@ -3507,9 +3695,33 @@ export function ProjectDetailPage({
                         <button
                           type="button"
                           onClick={() => {
-                            setFotografiaAbierta(
-                              fotografia,
-                            );
+                            if (modoComparacion) {
+                              setFotografiasComparacion((actuales) => {
+                                const existe = actuales.some(
+                                  (seleccionada) =>
+                                    seleccionada.id_fotografia ===
+                                    fotografia.id_fotografia,
+                                );
+
+                                if (existe) {
+                                  return actuales.filter(
+                                    (seleccionada) =>
+                                      seleccionada.id_fotografia !==
+                                      fotografia.id_fotografia,
+                                  );
+                                }
+
+                                if (actuales.length >= 2) {
+                                  return actuales;
+                                }
+
+                                return [...actuales, fotografia];
+                              });
+
+                              return;
+                            }
+
+                            setFotografiaAbierta(fotografia);
                           }}
                           style={{
                             display:
@@ -4582,6 +4794,17 @@ export function ProjectDetailPage({
           }}
         />
       )}
+
+      {/* COMPARATIVA DE FOTOGRAFÍAS */}
+      {comparadorAbierto &&
+        fotografiasComparacion.length === 2 && (
+          <PhotoComparison
+            fotografias={fotografiasComparacion}
+            onCerrar={() => {
+              setComparadorAbierto(false);
+            }}
+          />
+        )}
 
       {panoramicaAbierta && (
         <PanoramaViewer
