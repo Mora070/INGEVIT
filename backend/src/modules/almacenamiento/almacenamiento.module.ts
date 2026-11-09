@@ -9,6 +9,14 @@ import {
 } from './almacenamiento-local.service';
 
 import {
+  AlmacenamientoS3Service,
+} from './almacenamiento-s3.service';
+
+import {
+  getAlmacenamientoProveedor,
+} from './config/almacenamiento.config';
+
+import {
   ArchivosPendientesRepository,
 } from './archivos-pendientes.repository';
 
@@ -23,26 +31,35 @@ import {
 } from './archivos-pendientes.worker';
 
 /**
- * Configura la implementación de almacenamiento utilizada por el backend.
+ * Expone una única abstracción de almacenamiento.
  *
- * Los consumidores dependen del contrato AlmacenamientoService,
- * sin necesitar conocer si los archivos están en disco local o en S3.
+ * En desarrollo usa el disco local por defecto. En producción se activa
+ * Amazon S3 mediante STORAGE_PROVIDER=s3.
  */
 @Module({
   imports: [
-    DatabaseModule,   // <-- aquí lo agregas
+    DatabaseModule,
   ],
   providers: [
-    AlmacenamientoLocalService,
     ArchivosPendientesRepository,
     ArchivosPendientesService,
     ArchivosPendientesWorker,
     {
       provide: AlmacenamientoService,
-      useExisting: AlmacenamientoLocalService,
+      useFactory: () => {
+        const proveedor = getAlmacenamientoProveedor();
 
+        if (proveedor === 's3') {
+          return new AlmacenamientoS3Service();
+        }
+
+        return new AlmacenamientoLocalService();
+      },
     },
   ],
-  exports: [AlmacenamientoService, ArchivosPendientesRepository,],
+  exports: [
+    AlmacenamientoService,
+    ArchivosPendientesRepository,
+  ],
 })
-export class AlmacenamientoModule { }
+export class AlmacenamientoModule {}
