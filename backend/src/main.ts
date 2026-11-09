@@ -5,6 +5,7 @@ import { createValidationPipe } from './common/pipes/create-validation-pipe';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
 import type { Server } from 'node:http';
+import { getAuthAllowedOrigins } from './modules/auth/auth-origin.config';
 
 async function bootstrap(): Promise<void> {
   const host = process.env.HOST ?? '127.0.0.1';
@@ -21,15 +22,19 @@ async function bootstrap(): Promise<void> {
   }
 
   const app = await NestFactory.create(AppModule);
+  const allowedOrigins = [...getAuthAllowedOrigins()];
 
   // 1. Habilitar CORS para permitir peticiones directas desde Vercel y local
   app.enableCors({
+    origin: allowedOrigins,
+    /*
     origin: [
       'https://ingevit.vercel.app',
       'http://localhost:4300',
       'http://127.0.0.1:3000',
       'http://localhost:3000',
     ],
+    */
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
