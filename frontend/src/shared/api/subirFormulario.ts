@@ -19,17 +19,24 @@ export function subirFormulario<T>(
       return;
     }
     const xhr = new XMLHttpRequest();
+    let finalizada = false;
     const abortar = () => xhr.abort();
-    const terminar = () => signal.removeEventListener('abort', abortar);
+    const terminar = () => {
+      finalizada = true;
+      signal.removeEventListener('abort', abortar);
+    };
     xhr.open('POST', ruta);
     xhr.setRequestHeader('Accept', 'application/json');
-    xhr.upload.onprogress = event => onProgreso({
+    xhr.upload.onprogress = event => { if (!finalizada) onProgreso({
       enviados: event.loaded,
       total: event.lengthComputable ? event.total : null,
       transferenciaCompleta: false,
-    });
-    xhr.upload.onload = () => onProgreso({ enviados: 0, total: null, transferenciaCompleta: true });
-    xhr.onload = () => {
+    }); };
+    xhr.upload.onload = () => {
+      if (!finalizada) onProgreso({ enviados: 0, total: null, transferenciaCompleta: true });
+    };
+    const resolver = () => {
+      if (finalizada) return;
       terminar();
       let contenido: unknown;
       try {
@@ -58,11 +65,17 @@ export function subirFormulario<T>(
       }
       resolve(contenido as T);
     };
+    xhr.onload = resolver;
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4 && xhr.status > 0) resolver();
+    };
     xhr.onerror = () => {
+      if (finalizada) return;
       terminar();
       reject(new Error('Se perdió la conexión. Revisa las capas antes de volver a enviar el archivo.'));
     };
     xhr.onabort = () => {
+      if (finalizada) return;
       terminar();
       reject(new Error('Transferencia interrumpida. El servidor podría haber recibido el archivo; revisa las capas antes de repetirla.'));
     };

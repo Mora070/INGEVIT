@@ -1,17 +1,34 @@
-.card { position: fixed; right: 24px; bottom: 24px; z-index: 1500; width: min(370px, calc(100vw - 32px)); box-sizing: border-box; padding: 20px; background: #fff; color: #343a40; border: 1px solid #e3e6e9; border-top: 4px solid #f27c12; border-radius: 14px; box-shadow: 0 10px 40px #15202b30; font-family: inherit; }
-.heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
-.heading button { background: transparent; border: 0; color: #56616d; cursor: pointer; min-width: 32px; min-height: 32px; font-size: 24px; }
-.name { margin: 8px 0 14px; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.progress { width: 100%; height: 8px; accent-color: #f27c12; }
-.meta { margin: 6px 0; font-size: 12px; color: #66717d; }
-.description { margin: 12px 0; font-size: 13px; line-height: 1.5; }
+.card { position: fixed; right: 20px; bottom: 20px; z-index: 1500; width: min(290px, calc(100vw - 32px)); box-sizing: border-box; padding: 12px 14px; background: #fff; color: #343a40; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 6px 24px #15202b24; font-family: inherit; }
+.heading { display: flex; align-items: center; gap: 7px; min-height: 24px; font-size: 12px; }
+.heading strong { flex: 1; }
+.indicator { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #f27c12; }
+.indicator[data-state=lista] { background: #27814c; }
+.indicator[data-state=error] { background: #b42318; }
+.indicator[data-state=cancelada] { background: #77818b; }
+.percent { font-size: 12px; font-variant-numeric: tabular-nums; }
+.heading .iconButton { border: 0; background: transparent; color: #65707b; width: 26px; height: 26px; padding: 0; font-size: 21px; cursor: pointer; }
+.name { margin: 3px 0 8px; font-size: 11px; color: #65707b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 4px; overflow: hidden; accent-color: #f27c12; background: #eceef1; }
+.progress::-webkit-progress-bar { background: #eceef1; border-radius: 4px; }
+.progress::-webkit-progress-value { background: #f27c12; border-radius: 4px; }
+.progress::-moz-progress-bar { background: #f27c12; border-radius: 4px; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; }
+.actions button { border: 0; background: none; color: #9a4808; padding: 5px 0; font: inherit; font-size: 11px; cursor: pointer; }
+.actions .cancel { color: #66717b; }
+.hint { margin: 3px 0 0; color: #7a838c; font-size: 10px; line-height: 1.4; }
+.actions .hint { margin: 0; }
+.details { margin-top: 8px; padding-top: 8px; border-top: 1px solid #edf0f2; }
+.description { margin: 0 0 6px; font-size: 12px; line-height: 1.5; }
 .description[role=alert] { color: #b42318; }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.actions button { border: 1px solid #dce1e5; border-radius: 8px; background: #fff7ed; color: #753709; padding: 9px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
-.actions .cancel { background: #fff; color: #626a73; }
-.details { font-size: 12px; line-height: 1.5; margin: 12px 0; padding: 12px; border-radius: 8px; background: #f8f9fa; }
-.details dt { font-weight: 700; margin-top: 8px; }
-.details dt:first-child { margin-top: 0; }
-.details dd { margin: 2px 0 0; overflow-wrap: anywhere; }
-.card button:focus-visible { outline: 3px solid #f6a85c; outline-offset: 3px; }
-@media (max-width: 640px) { .card { right: 16px; bottom: 16px; padding: 16px; } }
+.details dl { margin: 8px 0 0; font-size: 11px; line-height: 1.5; }
+.details dt { font-weight: 600; color: #66717b; margin-top: 5px; }
+.details dd { margin: 0; overflow-wrap: anywhere; }
+.card button:focus-visible, .confirmDialog button:focus-visible { outline: 3px solid #f6a85c; outline-offset: 3px; border-radius: 4px; }
+.confirmDialog { box-sizing: border-box; width: min(410px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 16px; color: #343a40; background: #fff; box-shadow: 0 20px 70px #15202b35; font-family: inherit; }
+.confirmDialog::backdrop { background: #18202b70; }
+.confirmDialog h2 { margin: 0 0 10px; font-size: 18px; }
+.confirmDialog p { margin: 0; color: #68727d; font-size: 13px; line-height: 1.6; }
+.confirmActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.confirmActions button { min-height: 40px; padding: 9px 13px; border: 1px solid #dce1e5; border-radius: 8px; background: #fff; color: #4f5964; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.confirmActions .confirmCancel { background: #f27c12; border-color: #f27c12; color: #fff; }
+@media (max-width: 640px) { .card { right: 12px; bottom: 12px; width: min(280px, calc(100vw - 24px)); } .confirmDialog { padding: 20px; } }
