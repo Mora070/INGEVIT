@@ -1,5 +1,8 @@
+import { OrtofotoUploadCard } from './features/proyectos/uploads/OrtofotoUploadCard';
+import { subidaActiva, limpiarSubidaSesion } from './features/proyectos/uploads/subidaOrtofoto';
 
 import {
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -72,6 +75,10 @@ export default function App() {
     actualizarUsuario,
     reintentar,
   } = useSesion();
+
+  useEffect(() => {
+    if (estado.tipo === 'anonima') limpiarSubidaSesion();
+  }, [estado.tipo]);
 
   // Versión centralizada de la fotografía.
   // Se comparte entre AppShell y ProfilePage.
@@ -151,6 +158,8 @@ export default function App() {
       return;
     }
 
+    if (subidaActiva() && !window.confirm('Hay una ortofoto subiendo. Cerrar sesión interrumpirá la transferencia. ¿Quieres continuar?')) return;
+    limpiarSubidaSesion();
     salidaActiva.current = true;
 
     setCerrando(true);
@@ -372,6 +381,7 @@ export default function App() {
       onCerrarSesion={salir}
       cerrandoSesion={cerrando}
     >
+      <OrtofotoUploadCard />
       {errorSalida && (
         <p
           className="mensaje-error"

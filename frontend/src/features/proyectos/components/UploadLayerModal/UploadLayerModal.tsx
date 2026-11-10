@@ -4,17 +4,7 @@ import {
   useState,
 } from 'react';
 
-import {
-  subirCapaProyecto,
-} from '../../api/capas.api';
-
-import type {
-  CapaProyecto,
-} from '../../types/capa';
-
-import {
-  ApiError,
-} from '../../../../shared/api/http';
+import { iniciarSubidaOrtofoto } from '../../uploads/subidaOrtofoto';
 
 import styles from './UploadLayerModal.module.css';
 
@@ -23,9 +13,6 @@ interface UploadLayerModalProps {
 
   onCerrar: () => void;
 
-  onSubida: (
-    capa: CapaProyecto,
-  ) => void;
 }
 
 function formatearTamano(
@@ -67,46 +54,6 @@ function formatearTamano(
   )} GB`;
 }
 
-function obtenerTiempoEstimado(
-  bytes: number,
-): string {
-  const mb =
-    bytes /
-    (1024 * 1024);
-
-  if (
-    mb <= 100
-  ) {
-    return 'aproximadamente 1 a 2 minutos';
-  }
-
-  if (
-    mb <= 300
-  ) {
-    return 'aproximadamente 2 a 4 minutos';
-  }
-
-  if (
-    mb <= 600
-  ) {
-    return 'aproximadamente 4 a 7 minutos';
-  }
-
-  if (
-    mb <= 1000
-  ) {
-    return 'aproximadamente 7 a 12 minutos';
-  }
-
-  if (
-    mb <= 3000
-  ) {
-    return 'aproximadamente 12 a 20 minutos';
-  }
-
-  return 'más de 20 minutos';
-}
-
 function archivoGeoTiffValido(
   archivo: File,
 ): boolean {
@@ -126,7 +73,6 @@ function archivoGeoTiffValido(
 export function UploadLayerModal({
   idProyecto,
   onCerrar,
-  onSubida,
 }: UploadLayerModalProps) {
   const inputRef =
     useRef<HTMLInputElement | null>(
@@ -282,28 +228,16 @@ export function UploadLayerModal({
     );
 
     try {
-      const nuevaCapa =
-        await subirCapaProyecto(
-          idProyecto,
-          {
-            nombre:
-              nombre.trim(),
-
-            descripcion,
-
-            archivo,
-          },
-        );
-
-      onSubida(
-        nuevaCapa,
-      );
+      iniciarSubidaOrtofoto(idProyecto, {
+        nombre: nombre.trim(), descripcion, archivo,
+      });
+      onCerrar();
     } catch (
     errorObtenido
     ) {
       if (
         errorObtenido instanceof
-        ApiError
+        Error
       ) {
         setError(
           errorObtenido.message,
@@ -622,24 +556,12 @@ export function UploadLayerModal({
               La georreferenciación, el CRS y la extensión
               espacial se obtendrán automáticamente del archivo.
             </p>
-            {archivo && (
-              <div
-                className={
-                  styles.estimatedTime
-                }
-              >
-                <strong>
-                  Tiempo estimado de carga inicial:
-                </strong>{' '}
-                {obtenerTiempoEstimado(
-                  archivo.size,
-                )}.
-                {' '}
-                Este tiempo puede variar según la velocidad
-                de conexión y el tamaño de la ortofoto.
-                El procesamiento continuará después de la carga.
-              </div>
-            )}
+            <p className={styles.estimatedTime}>
+              <strong>La carga continuará minimizada.</strong>{' '}
+              Puedes seguir usando INGEVIT. Mantén esta pestaña abierta
+              hasta que el servidor confirme la recepción del archivo.
+              Después, el procesamiento continuará en el servidor.
+            </p>
           </div>
 
           {error && (
@@ -688,7 +610,7 @@ export function UploadLayerModal({
           >
             {subiendo
               ? 'Subiendo...'
-              : 'Subir ortofoto'}
+              : 'Subir y minimizar'}
           </button>
         </footer>
       </section>

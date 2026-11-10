@@ -1,0 +1,17 @@
+.card { position: fixed; right: 24px; bottom: 24px; z-index: 1500; width: min(370px, calc(100vw - 32px)); box-sizing: border-box; padding: 20px; background: #fff; color: #343a40; border: 1px solid #e3e6e9; border-top: 4px solid #f27c12; border-radius: 14px; box-shadow: 0 10px 40px #15202b30; font-family: inherit; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+.heading button { background: transparent; border: 0; color: #56616d; cursor: pointer; min-width: 32px; min-height: 32px; font-size: 24px; }
+.name { margin: 8px 0 14px; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress { width: 100%; height: 8px; accent-color: #f27c12; }
+.meta { margin: 6px 0; font-size: 12px; color: #66717d; }
+.description { margin: 12px 0; font-size: 13px; line-height: 1.5; }
+.description[role=alert] { color: #b42318; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.actions button { border: 1px solid #dce1e5; border-radius: 8px; background: #fff7ed; color: #753709; padding: 9px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.actions .cancel { background: #fff; color: #626a73; }
+.details { font-size: 12px; line-height: 1.5; margin: 12px 0; padding: 12px; border-radius: 8px; background: #f8f9fa; }
+.details dt { font-weight: 700; margin-top: 8px; }
+.details dt:first-child { margin-top: 0; }
+.details dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.card button:focus-visible { outline: 3px solid #f6a85c; outline-offset: 3px; }
+@media (max-width: 640px) { .card { right: 16px; bottom: 16px; padding: 16px; } }

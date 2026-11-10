@@ -461,6 +461,18 @@ export function ProjectsMap({
     0,
   );
 
+  useEffect(() => {
+    const recibida = (evento: Event) => {
+      const { proyecto, capa } = (evento as CustomEvent<{ proyecto: string; capa: CapaProyecto }>).detail;
+      if (proyecto !== proyectoSeleccionadoId) return;
+      capaPendienteZoomRef.current = capa.id_capa;
+      setPanelCapasAbierto(true);
+      setVersionPanelCapas(actual => actual + 1);
+    };
+    window.addEventListener('ingevit:ortofoto-recibida', recibida);
+    return () => window.removeEventListener('ingevit:ortofoto-recibida', recibida);
+  }, [proyectoSeleccionadoId]);
+
   /*
    * ====================================================
    * NUEVA INCIDENCIA
@@ -5155,28 +5167,7 @@ export function ProjectsMap({
                 false,
               );
             }}
-            onSubida={(
-              nuevaCapa,
-            ) => {
-              capaPendienteZoomRef.current =
-                nuevaCapa.id_capa;
 
-              setModalSubirCapaAbierto(
-                false,
-              );
-
-              setPanelCapasAbierto(
-                true,
-              );
-
-              setVersionPanelCapas(
-                (
-                  actual,
-                ) =>
-                  actual +
-                  1,
-              );
-            }}
           />
         )}
 
