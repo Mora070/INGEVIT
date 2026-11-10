@@ -27,8 +27,8 @@ export function getRasterioConfig(env: NodeJS.ProcessEnv = process.env) {
   return {
     python: ruta('CAPAS_PYTHON_PATH'),
     script: ruta('CAPAS_RASTERIO_SCRIPT'),
-    cacheMb: entero('CAPAS_RASTERIO_CACHE_MB', '256', 4096),
-    warpMb: entero('CAPAS_RASTERIO_WARP_MB', '64', 4096),
+    cacheMb: entero('CAPAS_RASTERIO_CACHE_MB', '128', 4096),
+    warpMb: entero('CAPAS_RASTERIO_WARP_MB', '32', 4096),
     maxBytes: entero('CAPAS_TESELAS_MAX_BYTES', '10737418240', Number.MAX_SAFE_INTEGER),
   };
 }
@@ -72,7 +72,10 @@ export async function ejecutarRasterio(
     };
     let mensaje = 'Python no pudo completar la generación de teselas.';
     if (cause && typeof cause === 'object') {
-      if ('killed' in cause && cause.killed === true) {
+      if ('signal' in cause && cause.signal === 'SIGKILL') {
+        // SIGKILL también puede ser manual; solo el kernel/cgroup confirma OOM.
+        mensaje = 'Python recibió SIGKILL. Revisar los eventos de memoria del contenedor y del kernel.';
+      } else if ('killed' in cause && cause.killed === true) {
         mensaje = 'El procesamiento Python agotó el tiempo permitido.';
       } else if ('stderr' in cause && typeof cause.stderr === 'string') {
         try {
