@@ -4,7 +4,7 @@ import type { JwtModuleOptions } from '@nestjs/jwt';
  * Duración inicial del token, expresada en segundos.
  * La reutilizaremos al configurar la cookie para evitar diferencias.
  */
-export const AUTH_TOKEN_TTL_SECONDS = 15 * 60;
+export const AUTH_TOKEN_TTL_SECONDS = 30 * 60;
 
 /**
  * Identificadores técnicos de quién emite el token
