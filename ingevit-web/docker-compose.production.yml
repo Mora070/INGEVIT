@@ -10,7 +10,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      FRONTEND_ORIGIN: https://ingevit360.com
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
     expose:
       - "3001"
     networks:

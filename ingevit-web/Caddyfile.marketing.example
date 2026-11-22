@@ -1,3 +1,3 @@
-ingevit360.com, www.ingevit360.com {
+ingevit.com, www.ingevit.com {
     reverse_proxy ingevit-marketing:3001
 }
