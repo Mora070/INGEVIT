@@ -1,0 +1,20 @@
+services:
+  marketing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    expose:
+      - "3001"
+    networks:
+      deploy_default:
+        aliases:
+          - ingevit-marketing
+
+networks:
+  deploy_default:
+    external: true
