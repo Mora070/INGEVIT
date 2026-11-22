@@ -97,7 +97,7 @@ app.post("/api/contact", async (req, res) => {
 
     await transporte.sendMail({
       from: `INGEVIT Web <${usuario}>`,
-      to: "ejmora@jdc.edu.co",
+      to: "projectingevitpro12@gmail.com",
       replyTo: correoContacto,
       subject: `Nueva solicitud de estudio - ${nombre.trim()}`,
       html: `
