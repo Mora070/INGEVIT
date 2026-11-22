@@ -6,10 +6,10 @@ import {
   Route,
 } from "lucide-react";
 
-import servicePrincipal from "../../assets/service-principal.jpg";
-import serviceCivil from "../../assets/service-civil.jpg";
-import servicesRoad from "../../assets/services-road.jpg";
-import serviceTopografia from "../../assets/service-topografia.jpg";
+import servicePrincipal from "../../assets/service-principal.JPG";
+import serviceCivil from "../../assets/service-civil.JPG";
+import servicesRoad from "../../assets/services-road.JPG";
+import serviceTopografia from "../../assets/service-topografia.JPG";
 import serviceConstruccion from "../../assets/logo360.jpeg";
 
 

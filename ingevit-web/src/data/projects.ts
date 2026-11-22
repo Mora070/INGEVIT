@@ -4,33 +4,33 @@ import type { Project } from "../types";
    PORTADAS DE LOS PROYECTOS
 ========================================================= */
 
-import avSantaFe from "../assets/projects-AVSTF.jpg";
-import parqueCusezar from "../assets/projects-parquecusezar.jpg";
-import viscaya from "../assets/projects-VISCAYA.jpg";
+import avSantaFe from "../assets/projects-AVSTF.JPG";
+import parqueCusezar from "../assets/projects-parquecusezar.JPG";
+import viscaya from "../assets/projects-VISCAYA.JPG";
 
 /* =========================================================
    GALERÍA — AV. SANTA FE
 ========================================================= */
 
-import avSantaFe1 from "../assets/card-1.jpg";
-import avSantaFe2 from "../assets/card-1.1.jpg";
-import avSantaFe3 from "../assets/card-1.2.jpg";
+import avSantaFe1 from "../assets/card-1.JPG";
+import avSantaFe2 from "../assets/card-1.1.JPG";
+import avSantaFe3 from "../assets/card-1.2.JPG";
 
 /* =========================================================
    GALERÍA — PARQUE LA MARLENE CUSEZAR
 ========================================================= */
 
-import parqueCusezar1 from "../assets/card-2.jpg";
-import parqueCusezar2 from "../assets/card-2.1.jpg";
-import parqueCusezar3 from "../assets/card-2.2.jpg";
+import parqueCusezar1 from "../assets/card-2.JPG";
+import parqueCusezar2 from "../assets/card-2.1.JPG";
+import parqueCusezar3 from "../assets/card-2.2.JPG";
 
 /* =========================================================
    GALERÍA — VISCAYA
 ========================================================= */
 
-import viscaya1 from "../assets/card-3.jpg";
-import viscaya2 from "../assets/card-3.1.jpg";
-import viscaya3 from "../assets/card-3.2.jpg";
+import viscaya1 from "../assets/card-3.JPG";
+import viscaya2 from "../assets/card-3.1.JPG";
+import viscaya3 from "../assets/card-3.2.JPG";
 
 /* =========================================================
    PROYECTOS

@@ -1,7 +1,7 @@
 
 import SystemShowcase from "./SystemShowcase";
 
-import equipoIngevit from "../../assets/equipo-ingevit.jpg";
+import equipoIngevit from "../../assets/equipo-ingevit.JPG";
 
 const systemVideo = {
   src: import.meta.env.VITE_SYSTEM_VIDEO_URL || "/videos/hero-ingevi.mp4",
