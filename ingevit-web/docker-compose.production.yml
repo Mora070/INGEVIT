@@ -3,11 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_SYSTEM_VIDEO_URL: ${VITE_SYSTEM_VIDEO_URL}
     restart: unless-stopped
     env_file: .env
     environment:
       NODE_ENV: production
       PORT: 3001
+      FRONTEND_ORIGIN: https://ingevit360.com
     expose:
       - "3001"
     networks:

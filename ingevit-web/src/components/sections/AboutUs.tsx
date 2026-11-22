@@ -4,8 +4,8 @@ import SystemShowcase from "./SystemShowcase";
 import equipoIngevit from "../../assets/equipo-ingevit.jpg";
 
 const systemVideo = {
-  src: "/videos/INGEVIT_360_editado_4K.mp4",
-  provisional: true,
+  src: import.meta.env.VITE_SYSTEM_VIDEO_URL || "/videos/hero-ingevi.mp4",
+  provisional: !import.meta.env.VITE_SYSTEM_VIDEO_URL,
 };
 
 export default function AboutUs() {

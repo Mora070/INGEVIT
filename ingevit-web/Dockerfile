@@ -6,6 +6,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . ./
+ARG VITE_SYSTEM_VIDEO_URL=""
+ENV VITE_SYSTEM_VIDEO_URL=$VITE_SYSTEM_VIDEO_URL
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-bookworm-slim

@@ -79,7 +79,7 @@ export default function SystemShowcase({ src, provisional }: SystemShowcaseProps
       </div>
       <figure className="system-story-video mx-auto max-w-5xl">
         <div className="overflow-hidden rounded-sm border border-line-light bg-paper">
-          <video className="aspect-video w-full object-contain" autoPlay muted loop controls playsInline preload="auto" aria-label={provisional ? "Video provisional de referencia" : "Presentación del sistema INGEVIT"}>
+          <video className="aspect-video w-full object-contain" autoPlay muted loop controls playsInline preload="metadata" aria-label={provisional ? "Video provisional de referencia" : "Presentación del sistema INGEVIT"}>
             <source src={src} type="video/mp4" />
             Tu navegador no soporta video HTML5. <a href={src}>Abrir video</a>
           </video>
