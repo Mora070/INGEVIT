@@ -105,7 +105,7 @@ export default function Navbar() {
             ? "pointer-events-auto visible opacity-100"
             : "pointer-events-none invisible opacity-0"
         }`}
-        style={{ height: "100vh", height: "100dvh" }}
+        style={{ height: "100dvh" }}
       >
         <nav className="flex min-h-full flex-col justify-center px-6 pb-8 pt-24 sm:px-8 sm:pb-12 sm:pt-28">
           <p className="mb-7 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">
