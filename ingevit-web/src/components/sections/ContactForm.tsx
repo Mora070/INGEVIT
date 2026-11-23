@@ -110,11 +110,11 @@ export default function ContactForm() {
                   className="text-accent"
                 />
 
-                <span>+57 312 456 7890</span>
+                <span>+57 316 471 1845</span>
               </a>
 
               <a
-                href="mailto:ingevit77@gmail.com"
+                href="mailto:ingevitgroup@gmail.com"
                 className="flex w-fit items-center gap-3 text-sm text-muted-warm transition-colors hover:text-ink"
               >
                 <Mail
@@ -122,7 +122,7 @@ export default function ContactForm() {
                   className="text-accent"
                 />
 
-                <span>ingevit77@gmail.com</span>
+                <span>ingevitgroup@gmail.com</span>
               </a>
             </div>
           </div>
