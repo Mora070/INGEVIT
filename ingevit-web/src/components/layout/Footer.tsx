@@ -19,7 +19,7 @@ export default function Footer() {
 
           <div className="flex min-w-0 flex-col items-center border-t border-white/10 pt-6 text-center md:items-start md:border-l md:border-t-0 md:pl-10 md:pt-0 md:text-left lg:pl-12">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">Trayectoria INGEVIT</p>
-            <h3 className="mt-3 max-w-md text-3xl leading-tight text-white sm:text-4xl">Ingeniería con experiencia desde 2011.</h3>
+            <h3 className="mt-3 max-w-md text-3xl leading-tight text-white sm:text-4xl">Ingeniería con experiencia desde 2023.</h3>
             <a href="mailto:ingevit77@gmail.com" className="mt-3 inline-flex max-w-full items-center gap-2.5 text-sm text-white/85 transition-colors hover:text-accent">
               <Mail size={16} strokeWidth={1.6} className="shrink-0 text-accent" />
               <span className="break-all">ingevit77@gmail.com</span>

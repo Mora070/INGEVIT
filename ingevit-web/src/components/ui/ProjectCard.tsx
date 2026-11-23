@@ -29,6 +29,8 @@ export default function ProjectCard({
           data-motion="fade"
           src={image}
           alt={title}
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
         {/* Flecha */}

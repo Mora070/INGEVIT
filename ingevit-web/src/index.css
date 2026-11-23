@@ -236,6 +236,12 @@
   margin-inline: auto;
   padding-inline: 24px;
 }
+.site-content,
+.site-content > *,
+.site-container,
+.site-container > * {
+  min-width: 0;
+}
 .site-section { padding-block: 40px; }
 .site-section + .site-section { padding-top: 16px; }
 .hero-intro {
@@ -248,9 +254,10 @@
   background: var(--color-paper);
 }
 .hero-wash {
-  background: linear-gradient(90deg, rgba(245,244,240,.98) 0%, rgba(245,244,240,.94) 40%, rgba(245,244,240,.48) 65%, rgba(245,244,240,.12) 100%),
-    linear-gradient(0deg, #F5F4F0 0%, rgba(245,244,240,0) 22%);
+  background: linear-gradient(90deg, rgba(245,244,240,.88) 0%, rgba(245,244,240,.78) 40%, rgba(245,244,240,.3) 65%, rgba(245,244,240,.04) 100%),
+    linear-gradient(0deg, #F5F4F0 0%, rgba(245,244,240,0) 30%);
 }
+.hero-background-video { filter: brightness(1.12) contrast(1.08) saturate(1.12); }
 
 @media (min-width: 1024px) {
   .site-container { padding-inline: 32px; }
@@ -259,10 +266,17 @@
   .hero-intro { padding-top: 152px; }
 }
 @media (max-width: 767px) {
-  .hero-intro { min-height: 620px; }
+  .site-container { padding-inline: 18px; }
+  .site-section { padding-block: 32px; }
+  .site-section + .site-section { padding-top: 12px; }
+  .hero-intro {
+    min-height: max(600px, 100svh);
+    padding-top: 104px;
+    padding-bottom: 48px;
+  }
   .hero-wash {
-    background: linear-gradient(90deg, rgba(245,244,240,.96), rgba(245,244,240,.88)),
-      linear-gradient(0deg, #F5F4F0, transparent 25%);
+    background: linear-gradient(90deg, rgba(245,244,240,.78), rgba(245,244,240,.58)),
+      linear-gradient(0deg, #F5F4F0 0%, rgba(245,244,240,.08) 42%);
   }
 }
 
@@ -344,6 +358,15 @@
   .system-showcase[data-story-enhanced="true"] .system-story-panel { top: 96px; height: calc(75svh - 96px); min-height: 350px; }
   .system-story-heading { font-size: clamp(1.35rem, 5vw, 1.75rem); line-height: 1.5; }
   .system-story-label { margin-bottom: 20px; font-size: 10px; }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .system-showcase[data-story-enhanced="true"] .system-story { height: auto; }
+  .system-showcase[data-story-enhanced="true"] .system-story-panel {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 320px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .system-story { height: auto; min-height: 0; }

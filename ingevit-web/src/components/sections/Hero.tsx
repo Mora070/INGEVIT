@@ -1,7 +1,7 @@
 export default function Hero() {
   return (
     <section id="inicio" className="hero-intro relative isolate overflow-hidden">
-      <video className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+      <video className="hero-background-video pointer-events-none absolute inset-0 h-full w-full object-cover object-center" autoPlay muted loop playsInline preload="none" aria-hidden="true">
         <source src="/videos/hero-ingevi.mp4" type="video/mp4" />
       </video>
       <div aria-hidden="true" className="hero-wash pointer-events-none absolute inset-0" />

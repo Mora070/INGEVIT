@@ -16,6 +16,23 @@ export default function SystemShowcase({ src, provisional }: SystemShowcaseProps
 
   useEffect(() => {
     const root = ref.current;
+    const video = root?.querySelector<HTMLVideoElement>(".system-story-video video");
+    if (video) {
+      const videoObserver = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          void video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
+      }, { threshold: 0.35 });
+      videoObserver.observe(video);
+
+      return () => videoObserver.disconnect();
+    }
+  }, []);
+
+  useEffect(() => {
+    const root = ref.current;
     const story = root?.querySelector<HTMLElement>(".system-story");
     if (!root || !story) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -79,7 +96,7 @@ export default function SystemShowcase({ src, provisional }: SystemShowcaseProps
       </div>
       <figure className="system-story-video mx-auto max-w-5xl">
         <div className="overflow-hidden rounded-sm border border-line-light bg-paper">
-          <video className="aspect-video w-full object-contain" autoPlay muted loop controls playsInline preload="metadata" aria-label={provisional ? "Video provisional de referencia" : "Presentación del sistema INGEVIT"}>
+          <video className="aspect-video w-full object-contain" muted loop controls playsInline preload="none" aria-label={provisional ? "Video provisional de referencia" : "Presentación del sistema INGEVIT"}>
             <source src={src} type="video/mp4" />
             Tu navegador no soporta video HTML5. <a href={src}>Abrir video</a>
           </video>

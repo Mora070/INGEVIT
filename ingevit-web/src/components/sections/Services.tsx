@@ -81,7 +81,7 @@ export default function Services() {
                 "polygon(22% 0%, 100% 0%, 100% 100%, 8% 100%, 3% 96%, 0% 88%, 0% 63%)",
             }}
           >
-            <img data-motion="photo" src={servicePrincipal} alt="Proyecto de infraestructura INGEVIT" className="h-full w-full object-cover object-center" />
+            <img data-motion="photo" src={servicePrincipal} alt="Proyecto de infraestructura INGEVIT" loading="lazy" decoding="async" className="h-full w-full object-cover object-center" />
           </div>
         </div>
         <div className="service-grid relative z-10 -mt-8 grid gap-x-6 gap-y-7 bg-paper px-4 pt-5 sm:grid-cols-2 sm:px-5 lg:-mt-16 lg:grid-cols-4 lg:px-6 lg:pt-6">
@@ -96,6 +96,8 @@ export default function Services() {
                   <img
                     src={service.image}
                     alt={service.title}
+                    loading="lazy"
+                    decoding="async"
                     className={`h-full w-full ${service.number === "04"
                       ? "object-contain p-2"
                       : "object-cover transition-transform duration-700 group-hover:scale-[1.035]"

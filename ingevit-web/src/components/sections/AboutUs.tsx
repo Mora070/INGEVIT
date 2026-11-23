@@ -4,8 +4,8 @@ import SystemShowcase from "./SystemShowcase";
 import equipoIngevit from "../../assets/equipo-ingevit.JPG";
 
 const systemVideo = {
-  src: import.meta.env.VITE_SYSTEM_VIDEO_URL || "/videos/hero-ingevi.mp4",
-  provisional: !import.meta.env.VITE_SYSTEM_VIDEO_URL,
+  src: import.meta.env.VITE_SYSTEM_VIDEO_URL || "https://ingevit-360-storage.s3.amazonaws.com/marketing/videos/INGEVIT_360_editado_4K.mp4",
+  provisional: false,
 };
 
 export default function AboutUs() {
@@ -55,6 +55,8 @@ export default function AboutUs() {
                   data-motion="team"
                   src={equipoIngevit}
                   alt="Equipo de trabajo INGEVIT"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover object-center"
                 />
 

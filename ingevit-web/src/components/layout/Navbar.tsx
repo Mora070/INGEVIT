@@ -39,7 +39,7 @@ export default function Navbar() {
           : "bg-ink"
       }`}
     >
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:h-24 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-24 lg:px-8">
         {/* Logo */}
         <a
           href="#inicio"
@@ -100,13 +100,14 @@ export default function Navbar() {
 
       {/* Menú móvil */}
       <div
-        className={`absolute left-0 top-0 w-full overflow-hidden bg-[#07111f] transition-all duration-500 lg:hidden ${
+        className={`fixed inset-x-0 top-0 z-40 w-full overflow-y-auto bg-[#07111f] transition-[opacity,visibility] duration-300 lg:hidden ${
           isOpen
-            ? "pointer-events-auto min-h-screen opacity-100"
-            : "pointer-events-none h-0 opacity-0"
+            ? "pointer-events-auto visible opacity-100"
+            : "pointer-events-none invisible opacity-0"
         }`}
+        style={{ height: "100vh", height: "100dvh" }}
       >
-        <nav className="flex min-h-screen flex-col justify-center px-8 pb-12 pt-28">
+        <nav className="flex min-h-full flex-col justify-center px-6 pb-8 pt-24 sm:px-8 sm:pb-12 sm:pt-28">
           <p className="mb-7 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">
             Navegación
           </p>
